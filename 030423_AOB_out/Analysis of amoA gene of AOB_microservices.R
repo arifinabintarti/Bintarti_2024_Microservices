@@ -29,6 +29,7 @@ install.packages("lme4")
 install.packages("nlme")
 install.packages("car")
 install.packages("multcomp")
+install.packages("ape")
 library(multcomp)
 library(car)
 library(BiocManager)
@@ -59,6 +60,7 @@ library(tibble)
 library(fitdistrplus)
 library(lme4)
 library(nlme)
+library(ape)
 
 # SET THE WORKING DIRECTORY
 setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOB_out/AOB.ASV-analysis')
@@ -73,6 +75,82 @@ aob.tax <- read.csv("besthit.diamond.output.currateddb.aob.asv.edited.csv")
 dim(aob.tax) # 1338
 # load the metadata
 meta_micro <- read.csv("meta_microservices.csv")
+# load phylogenetic tree (nwk file)
+setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOB_out/AOB.Phylogenetic-analysis/')
+aob.tre <- ape::read.tree("tree.AOB.nwk")
+
+# Calculate the alpha diversity (Richness and Pielou's evenness, we also calculates Shannon index) 
+
+# 1. AOB alpha diversity for each sample 
+aob.asv_pa <- 1*(aob.asv>0)
+aob.s <- specnumber(aob.asv, MARGIN = 2) # richness
+aob.richness <- as.data.frame(aob.s) 
+aob.h <- diversity(t(aob.asv), index = 'shannon') # Shannon index
+aob.shannon <- as.data.frame(aob.h)
+aob.pielou <- aob.h/log(aob.s) # Pielou's evenness
+aob.evenness <- as.data.frame(aob.pielou)
+aob.meta <- data.frame(meta_micro) # make data frame of the map data
+aob.meta$Richness <- aob.s
+aob.meta$Shannon <- aob.h
+aob.meta$Pielou <- aob.pielou
+
+# Statistical Analyses: Alpha Diversity
+
+# 1. Bulk Soil: 
+# compare alpha diversity between control and shelter, and among managements systems within treatment
+aob.meta.bulk <- aob.meta[1:120,] # select only bulk soil sample
+aob.meta.bulk$Irrigation<-as.factor(aob.meta.bulk$Irrigation)
+aob.meta.bulk$Treatment<-as.factor(aob.meta.bulk$Treatment)
+# Richness: fit nested ANOVA
+set.seed(13)
+aob.nest.rich <- aov(aob.meta.bulk$Richness ~ aob.meta.bulk$Irrigation / aob.meta.bulk$Treatment)
+summary(aob.nest.rich) # (p-value Irri & Treat = 0.77 & 0.86, F-val Irri & Treat = 0.085 & 0.32), no significant effect of irrigation and management systems to AOB richness
+# double check the effect of irrigation on AOB richness
+set.seed(13)
+aob.rich.irri <- lm(aob.meta.bulk$Richness ~ Irrigation, data=aob.meta.bulk, na.action=na.exclude)
+aob.rich.irri
+drop1(aob.rich.irri,~.,test="F") # not significant, similar p-val and F-val
+# Shannon: fit nested ANOVA
+set.seed(13)
+aob.nest.sha <- aov(aob.meta.bulk$Shannon ~ aob.meta.bulk$Irrigation / aob.meta.bulk$Treatment)
+summary(aob.nest.sha) # (p-value Irri & Treat = 0.78 & 0.50, F-val Irri & Treat = 0.075 & 0.83), no significant effect of irrigation and management systems to AOB shannon diversity index
+# Evenness: fit nested ANOVA
+set.seed(13)
+aob.nest.pie <- aov(aob.meta.bulk$Pielou ~ aob.meta.bulk$Irrigation / aob.meta.bulk$Treatment)
+summary(aob.nest.pie) # (p-value Irri & Treat = 0.94 & 0.78, F-val Irri & Treat = 0.005 & 0.43), no significant effect of irrigation and management systems to AOB evenness.
+
+# 2. Rhizosphere Soil: 
+# compare alpha diversity between control and shelter, and among managements systems within treatment
+aob.meta.rhizo <- aob.meta[121:192,] # select only rhizosphere soil sample
+aob.meta.rhizo$Irrigation<-as.factor(aob.meta.rhizo$Irrigation)
+aob.meta.rhizo$Treatment<-as.factor(aob.meta.rhizo$Treatment)
+# Richness: fit nested ANOVA
+set.seed(13)
+aob.nest.rich.rz <- aov(aob.meta.rhizo$Richness ~ aob.meta.rhizo$Irrigation / aob.meta.rhizo$Treatment)
+summary(aob.nest.rich.rz) # (p-value Irri & Treat = 0.21 & 0.66, F-val Irri & Treat = 1.58 & 0.59), no significant effect of irrigation and management systems to AOB richness
+# Shannon: fit nested ANOVA
+set.seed(13)
+aob.nest.sha.rz <- aov(aob.meta.rhizo$Shannon ~ aob.meta.rhizo$Irrigation / aob.meta.rhizo$Treatment)
+summary(aob.nest.sha.rz) # (p-value Irri & Treat = 0.27 & 0.12, F-val Irri & Treat = 1.2 & 1.85), no significant effect of irrigation and management systems to AOB shannon diversity index
+# Evenness: fit nested ANOVA
+set.seed(13)
+aob.nest.pie.rz <- aov(aob.meta.rhizo$Pielou ~ aob.meta.rhizo$Irrigation / aob.meta.rhizo$Treatment)
+summary(aob.nest.pie.rz) # (p-value Irri & Treat = 0.38 & 0.29, F-val Irri & Treat = 0.75 & 1.25), no significant effect of irrigation and management systems to AOB evenness.
+
+### Conclusion: Irrigation and management systems have no effect on the AOB Alpha diversity ###
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

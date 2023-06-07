@@ -1,21 +1,53 @@
 Raw Sequence Analysis of Bacterial amoA Gene (AOB) of Wheat Field Soil and Rhizosphere Samples from the Rain-out Shelter and DOK Experiment (MICCROSERVICES)
 
-# Analysis of amoA gene of AOB Illumina MiSeq Data
+# Analysis of amoA gene of AOB, AOA, and COMAMMOX Illumina MiSeq Data
 
 The sequencing library was constructed using two-step PCR to enable for primer barcoding. Sequencing was conducted at Sequencing Facility of Genoscreen in Lille, France using V2 flow cell with 2 x 250 bp.
 
-All raw sequence analyses were conducted using the INRAE server that can be accessed by ssh connection and INRAE authenticators: 
-$>ssh <inrae-username>@djs-agro-emfeed.inra.local
+All raw sequence analyses were conducted on my  INRAE local computer because the server somehow is not working for the RScript (Step 2 of the AMOA-SEQ pipeline). I suspect it is because different packages version in R (probably Biostrings package).
 
 All data are stored in the "microservices" directory under "Project" directory in the server (/home/afbintarti/Projects/microservices). Raw sequence data are stored in the INRAE server:
-/home/afbintarti/Projects/microservices/03042023_AOA_AOB_rawSeq/AOB
+/home/afbintarti/Projects/microservices/03042023_AOA_AOB_rawSeq
+that can be accessed by ssh connection and INRAE authenticators: $>ssh <inrae-username>@djs-agro-emfeed.inra.local
 
-The pipeline used for the analysis is AMOA-SEQ pipeline developed by Lee et  al. 2023 (it has not published yet), a research team at the University of Lyon, France. The pipeline uses DADA2 for sequence quality filtering to generate amplicon sequence variants (ASVs) (https://github.com/miasungeunlee/AMOA-SEQ).
+The pipeline used for the analysis is AMOA-SEQ pipeline developed by Lee et  al. 2023 (it has not published yet), a research team at the University of Lyon, France. The pipeline uses DADA2 for sequence quality filtering to generate amplicon sequence variants (ASVs) (https://github.com/miasungeunlee/AMOA-SEQ). The reference database for amoA genes of AOB, AOA, and comammox were curated by Lee et al. using different resources (NCBI, IMG-JGI database, and curated archaeal, baccterial, and comammox amoA gene sequences from Alves et al. 2018, Lee et al. 2023 (not published yet), Palomo et al. 2022 for the taxonomic and phylogenetic analyses).
 
-Because the quality of the AOB raw sequece data is low (the average length of ~89 bp) merging of paired reads was not possible. Thus, we used GAP pipeline with the AOB sequence data.
+Note for AOB analyses): Because the quality of our AOB raw sequece data is low (the average length less than 200 bp) merging of paired reads was not possible. Thus, we used GAP pipeline (the one that is used for AOA analysis) using our AOB sequence data.
 
-Follow the tutorial and installation of the AMOA-SEQ tool in: https://github.com/miasungeunlee/AMOA-SEQ.
+Follow the tutorial and installation of the AMOA-SEQ tool in: https://github.com/miasungeunlee/AMOA-SEQ. All of the outputs were stored in the INRAE local computer:
+/mnt/d/Bioinformaticss/AMOA-SEQ
 
+# 1.) Activate the AMOA-SEQ tool
+```
+source activate AMOA-SEQ
+```
 
+# 2.) Run the AMOA-SEQ pipeline for the AOB raw sequence analyses (Windows)
+```
+./AMOA-SEQ.AOB.sh -e 070623_AOB_out -i /mnt/d/Bioinformaticss/AMOA-SEQ/030423_AOB_Fastq -f GGGGTTTCTACTGGTGGT -r CCCCTCKGSAAAGCCTTCTTC -m 200 -l 200 -c TRUE -t 410 -n 3 -o AOB
+
+### Note:
+# after checking the output file "tree.AOB.afa" in the "AOB.Phylogenetic-analysis" directory, we found that there are gaps in the PSV sequences.
+# we need to modify the parameter/flag of -n 3 (instead of 2).
+# we need to remove the step with sed using # (#sed 's/NNNNNNNNNN/NNNNNNNNNN/g') in the AMOA-SEQ.sh script and save the new script in the AMOA-SEQ.AOB.sh
+# we still found gaps in the "tree.AOB.afa" file as expected because the R1 and R2 are not merging. The gaps between the PSVs and the reference database are perfectly fine as refereces sequences are complete amoA gene sequences. 
+
+### Tools version:
+# R version 4.1.2; platform: x86_64-pc-linux-gnu (64-bits); running under Ubuntu 22.04.2.LTS
+# ShortRead 1.52.0
+# Biostrings 2.62.0
+# dada2 1.22.0
+# devtools 2.4.5
+
+# cutadapt 2.6, Phyton 3.7.16
+# blast 2.12.0
+# diamond 0.9.19
+# fasttree 2.1.11
+# muscle 5.1
+# perl 5.26.2
+# pandas 1.3.5
+# pip 22.3.1
+# seqkit 2.4.0
+```
 
 
