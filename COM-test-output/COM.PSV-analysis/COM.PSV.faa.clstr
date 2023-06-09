@@ -1,0 +1,232 @@
+>Cluster 0
+0	132aa, >ASV_1... *
+1	132aa, >ASV_9... at 100.00%
+2	132aa, >ASV_38... at 100.00%
+3	132aa, >ASV_68... at 100.00%
+4	132aa, >ASV_129... at 100.00%
+5	132aa, >ASV_145... at 100.00%
+>Cluster 1
+0	132aa, >ASV_2... *
+1	132aa, >ASV_4... at 100.00%
+2	132aa, >ASV_6... at 100.00%
+3	132aa, >ASV_7... at 100.00%
+4	132aa, >ASV_11... at 100.00%
+5	132aa, >ASV_19... at 100.00%
+6	132aa, >ASV_21... at 100.00%
+7	132aa, >ASV_24... at 100.00%
+8	132aa, >ASV_32... at 100.00%
+9	132aa, >ASV_41... at 100.00%
+10	132aa, >ASV_47... at 100.00%
+11	132aa, >ASV_59... at 100.00%
+12	132aa, >ASV_74... at 100.00%
+13	132aa, >ASV_110... at 100.00%
+14	132aa, >ASV_132... at 100.00%
+15	132aa, >ASV_140... at 100.00%
+16	132aa, >ASV_146... at 100.00%
+17	132aa, >ASV_208... at 100.00%
+>Cluster 2
+0	132aa, >ASV_3... *
+1	131aa, >ASV_12... at 100.00%
+2	132aa, >ASV_51... at 100.00%
+3	132aa, >ASV_61... at 100.00%
+4	132aa, >ASV_84... at 100.00%
+5	132aa, >ASV_106... at 100.00%
+6	132aa, >ASV_183... at 100.00%
+7	132aa, >ASV_197... at 100.00%
+>Cluster 3
+0	132aa, >ASV_5... *
+1	132aa, >ASV_16... at 100.00%
+2	132aa, >ASV_17... at 100.00%
+3	132aa, >ASV_23... at 100.00%
+4	132aa, >ASV_25... at 100.00%
+5	132aa, >ASV_26... at 100.00%
+6	132aa, >ASV_28... at 100.00%
+7	132aa, >ASV_45... at 100.00%
+8	132aa, >ASV_58... at 100.00%
+9	132aa, >ASV_66... at 100.00%
+10	132aa, >ASV_70... at 100.00%
+11	132aa, >ASV_71... at 100.00%
+12	132aa, >ASV_77... at 100.00%
+13	132aa, >ASV_79... at 100.00%
+14	132aa, >ASV_82... at 100.00%
+15	132aa, >ASV_99... at 100.00%
+16	132aa, >ASV_100... at 100.00%
+17	132aa, >ASV_107... at 100.00%
+18	132aa, >ASV_108... at 100.00%
+19	132aa, >ASV_124... at 100.00%
+20	132aa, >ASV_136... at 100.00%
+21	132aa, >ASV_155... at 100.00%
+22	132aa, >ASV_250... at 100.00%
+23	132aa, >ASV_255... at 100.00%
+24	132aa, >ASV_280... at 100.00%
+25	132aa, >ASV_291... at 100.00%
+26	132aa, >ASV_352... at 100.00%
+27	132aa, >ASV_459... at 100.00%
+28	132aa, >ASV_464... at 100.00%
+29	132aa, >ASV_524... at 100.00%
+30	132aa, >ASV_529... at 100.00%
+31	132aa, >ASV_592... at 100.00%
+>Cluster 4
+0	132aa, >ASV_8... *
+1	132aa, >ASV_29... at 100.00%
+2	132aa, >ASV_144... at 100.00%
+3	132aa, >ASV_206... at 100.00%
+>Cluster 5
+0	132aa, >ASV_10... *
+1	132aa, >ASV_142... at 100.00%
+>Cluster 6
+0	132aa, >ASV_13... *
+1	132aa, >ASV_69... at 100.00%
+2	132aa, >ASV_270... at 100.00%
+3	132aa, >ASV_275... at 100.00%
+4	132aa, >ASV_309... at 100.00%
+5	132aa, >ASV_323... at 100.00%
+6	132aa, >ASV_326... at 100.00%
+7	132aa, >ASV_348... at 100.00%
+8	132aa, >ASV_383... at 100.00%
+9	132aa, >ASV_462... at 100.00%
+>Cluster 7
+0	132aa, >ASV_14... *
+1	132aa, >ASV_18... at 100.00%
+2	132aa, >ASV_75... at 100.00%
+3	132aa, >ASV_121... at 100.00%
+4	132aa, >ASV_123... at 100.00%
+5	132aa, >ASV_137... at 100.00%
+6	132aa, >ASV_143... at 100.00%
+>Cluster 8
+0	132aa, >ASV_15... *
+1	132aa, >ASV_44... at 100.00%
+2	132aa, >ASV_151... at 100.00%
+3	132aa, >ASV_182... at 100.00%
+>Cluster 9
+0	132aa, >ASV_20... *
+1	132aa, >ASV_63... at 100.00%
+2	132aa, >ASV_577... at 100.00%
+>Cluster 10
+0	132aa, >ASV_27... *
+1	132aa, >ASV_109... at 100.00%
+2	132aa, >ASV_198... at 100.00%
+>Cluster 11
+0	132aa, >ASV_30... *
+1	132aa, >ASV_36... at 100.00%
+2	132aa, >ASV_39... at 100.00%
+3	132aa, >ASV_40... at 100.00%
+4	132aa, >ASV_50... at 100.00%
+5	132aa, >ASV_65... at 100.00%
+6	132aa, >ASV_92... at 100.00%
+7	132aa, >ASV_93... at 100.00%
+8	132aa, >ASV_95... at 100.00%
+9	132aa, >ASV_98... at 100.00%
+10	132aa, >ASV_180... at 100.00%
+11	132aa, >ASV_189... at 100.00%
+>Cluster 12
+0	132aa, >ASV_37... *
+1	132aa, >ASV_125... at 100.00%
+2	132aa, >ASV_290... at 100.00%
+>Cluster 13
+0	132aa, >ASV_48... *
+1	132aa, >ASV_73... at 100.00%
+2	132aa, >ASV_160... at 100.00%
+>Cluster 14
+0	132aa, >ASV_52... *
+1	132aa, >ASV_88... at 100.00%
+2	132aa, >ASV_115... at 100.00%
+3	132aa, >ASV_224... at 100.00%
+4	132aa, >ASV_337... at 100.00%
+5	132aa, >ASV_361... at 100.00%
+6	132aa, >ASV_511... at 100.00%
+>Cluster 15
+0	132aa, >ASV_53... *
+>Cluster 16
+0	132aa, >ASV_54... *
+>Cluster 17
+0	132aa, >ASV_56... *
+>Cluster 18
+0	132aa, >ASV_60... *
+>Cluster 19
+0	132aa, >ASV_64... *
+1	132aa, >ASV_76... at 100.00%
+2	132aa, >ASV_122... at 100.00%
+3	132aa, >ASV_491... at 100.00%
+4	132aa, >ASV_569... at 100.00%
+>Cluster 20
+0	132aa, >ASV_67... *
+>Cluster 21
+0	132aa, >ASV_83... *
+>Cluster 22
+0	132aa, >ASV_90... *
+>Cluster 23
+0	132aa, >ASV_96... *
+>Cluster 24
+0	132aa, >ASV_131... *
+1	132aa, >ASV_162... at 100.00%
+>Cluster 25
+0	132aa, >ASV_152... *
+>Cluster 26
+0	132aa, >ASV_163... *
+>Cluster 27
+0	132aa, >ASV_169... *
+>Cluster 28
+0	132aa, >ASV_170... *
+>Cluster 29
+0	132aa, >ASV_185... *
+>Cluster 30
+0	132aa, >ASV_194... *
+>Cluster 31
+0	132aa, >ASV_196... *
+>Cluster 32
+0	132aa, >ASV_199... *
+>Cluster 33
+0	132aa, >ASV_220... *
+>Cluster 34
+0	132aa, >ASV_233... *
+1	132aa, >ASV_390... at 100.00%
+>Cluster 35
+0	132aa, >ASV_238... *
+>Cluster 36
+0	132aa, >ASV_243... *
+>Cluster 37
+0	132aa, >ASV_260... *
+1	132aa, >ASV_306... at 100.00%
+>Cluster 38
+0	132aa, >ASV_276... *
+>Cluster 39
+0	132aa, >ASV_281... *
+>Cluster 40
+0	132aa, >ASV_293... *
+1	132aa, >ASV_588... at 100.00%
+>Cluster 41
+0	132aa, >ASV_301... *
+>Cluster 42
+0	132aa, >ASV_307... *
+>Cluster 43
+0	132aa, >ASV_308... *
+>Cluster 44
+0	132aa, >ASV_324... *
+1	132aa, >ASV_515... at 100.00%
+>Cluster 45
+0	132aa, >ASV_325... *
+>Cluster 46
+0	132aa, >ASV_349... *
+>Cluster 47
+0	132aa, >ASV_360... *
+>Cluster 48
+0	132aa, >ASV_389... *
+>Cluster 49
+0	132aa, >ASV_395... *
+>Cluster 50
+0	132aa, >ASV_404... *
+>Cluster 51
+0	132aa, >ASV_473... *
+>Cluster 52
+0	132aa, >ASV_501... *
+>Cluster 53
+0	132aa, >ASV_545... *
+>Cluster 54
+0	132aa, >ASV_586... *
+>Cluster 55
+0	132aa, >ASV_587... *
+>Cluster 56
+0	132aa, >ASV_591... *
+>Cluster 57
+0	132aa, >ASV_598... *
