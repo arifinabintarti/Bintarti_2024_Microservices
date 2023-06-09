@@ -14,7 +14,7 @@ The pipeline used for the analysis is AMOA-SEQ pipeline developed by Lee et  al.
 
 Note for AOB analyses): Because the quality of our AOB raw sequece data is low (the average length less than 200 bp) merging of paired reads was not possible. Thus, we used GAP pipeline (the one that is used for AOA analysis) using our AOB sequence data.
 
-Follow the tutorial and installation of the AMOA-SEQ tool in: https://github.com/miasungeunlee/AMOA-SEQ. All of the outputs were stored in the INRAE local computer:
+Follow the installation (and the tutorial) of the AMOA-SEQ tool in: https://github.com/miasungeunlee/AMOA-SEQ. All of the outputs were stored in the INRAE local computer:
 /mnt/d/Bioinformaticss/AMOA-SEQ
 
 # 1.) Activate the AMOA-SEQ tool
@@ -22,8 +22,10 @@ Follow the tutorial and installation of the AMOA-SEQ tool in: https://github.com
 source activate AMOA-SEQ
 ```
 
-# 2.) Run the AMOA-SEQ pipeline for the AOB raw sequence analyses (Windows)
+# 2.) Run the AMOA-SEQ pipeline on Windows
 ```
+1) AOB
+
 ./AMOA-SEQ.AOB.sh -e 070623_AOB_out -i /mnt/d/Bioinformaticss/AMOA-SEQ/030423_AOB_Fastq -f GGGGTTTCTACTGGTGGT -r CCCCTCKGSAAAGCCTTCTTC -m 200 -l 200 -c TRUE -t 410 -n 3 -o AOB
 
 ### Note:
@@ -31,6 +33,15 @@ source activate AMOA-SEQ
 # we need to modify the parameter/flag of -n 3 (instead of 2).
 # we need to remove the step with sed using # (#sed 's/NNNNNNNNNN/NNNNNNNNNN/g') in the AMOA-SEQ.sh script and save the new script in the AMOA-SEQ.AOB.sh
 # we still found gaps in the "tree.AOB.afa" file as expected because the R1 and R2 are not merging. The gaps between the PSVs and the reference database are perfectly fine as refereces sequences are complete amoA gene sequences. 
+
+2) AOA
+
+./AMOA-SEQ.sh -e 030423_AOA_out -i /mnt/d/Bioinformaticss/AMOA-SEQ/030423_AOA_Fastq -f ATGGTCTGGCTWAGACG -r GCCATCCATCTGTATGTCCA -m 200 -l 200 -c TRUE -t 410 -n 2 -o AOA
+
+3) COMAMMOX
+
+./AMOA-SEQ.sh -e 050623_COMA_out -i /mnt/d/Bioinformaticss/AMOA-SEQ/050623_COMA_Fastq  -f AGGNGAYTGGGAYTTCTGG -r CGGACAWABRTGAABCCCAT -m 204 -l 250 -c FALSE -t 396 -n 1 -o COM
+
 
 ### Tools version:
 # R version 4.1.2; platform: x86_64-pc-linux-gnu (64-bits); running under Ubuntu 22.04.2.LTS
