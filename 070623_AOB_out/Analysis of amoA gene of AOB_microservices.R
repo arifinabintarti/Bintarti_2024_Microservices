@@ -64,6 +64,16 @@ library(lme4)
 library(nlme)
 library(ape)
 
+# Build a phylogenetic tree using the ASV Table
+BiocManager::install("DECIPHER")
+library(DECIPHER) 
+library(phangorn); packageVersion("phangorn")
+
+
+
+
+
+
 # SET THE WORKING DIRECTORY
 setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB.ASV-analysis')
 wd <- print(getwd())
@@ -160,7 +170,7 @@ sort(sample_sums(aob.physeq), decreasing = F)
 set.seed(13)
 aob.rare.min.physeq <- rarefy_even_depth(aob.physeq, sample.size = min(sample_sums(aob.physeq)),
   rngseed = 13, replace = TRUE, trimOTUs = TRUE, verbose = TRUE)
-sort(sample_sums(aob.rare.min), decreasing = F) # 178 OTUs were removed because they are no longer present in any sample after random subsampling
+sort(sample_sums(aob.rare.min.physeq), decreasing = F) # 178 OTUs were removed because they are no longer present in any sample after random subsampling
                                                 # no sample removed
 
 # run the ggrare function attached in the file "generating_rarecurve.r"
@@ -214,8 +224,6 @@ sort(sample_sums(aob.rare.2k.physeq), decreasing = F) # 102 OTUs were removed be
 aob.physeq2k <- prune_samples(sample_sums(aob.physeq) < 2000, aob.physeq)
 sort(sample_sums(aob.physeq2k), decreasing = F)
 
-
-
 ############################################################################
 
 # Calculate the alpha diversity (Richness and Pielou's evenness, we also calculates Shannon index) 
@@ -234,11 +242,13 @@ aob.min.pielou <- aob.min.h/log(aob.min.s) # Pielou's evenness
 aob.min.evenness <- as.data.frame(aob.min.pielou)
 aob.min.d <- diversity(t(aob.asv.min), index = 'simpson') # Simpson index
 aob.min.simpson <- as.data.frame(aob.min.d)
+aob.min.inv.d <- diversity(t(aob.asv.min), index = 'invsimpson')
 aob.min.meta <- data.frame(meta_micro) # make data frame of the map data
 aob.min.meta$Richness <- aob.min.s
 aob.min.meta$Shannon <- aob.min.h
 aob.min.meta$Pielou <- aob.min.pielou
 aob.min.meta$Simpson <- aob.min.d
+aob.min.meta$InvSimpson <- aob.min.inv.d
 # Statistical Analyses: Alpha Diversity
 aob.min.meta$Irrigation<-as.factor(aob.min.meta$Irrigation)
 aob.min.meta$Treatment<-as.factor(aob.min.meta$Treatment)
@@ -247,55 +257,26 @@ aob.min.meta$Type<-as.factor(aob.min.meta$Type)
 
 # 1. Richness
 
-# Anova mixed model (no interaction)
-aob.min.mod <- lmer(aob.min.meta$Richness ~ Irrigation + Treatment + Type + Date + (1|PlotID), data=aob.min.meta)
+# Anova mixed model (no interaction) = all samples
+set.seed(13)
+str(aob.min.meta.df)
+aob.min.meta.df$Irrigation <- as.factor(aob.min.meta.df$Irrigation)
+aob.min.meta.df$Date <- as.factor(aob.min.meta.df$Date)
+aob.min.mod <- lmer(aob.min.meta.df$Richness ~ Irrigation + Treatment + Type + Date + (1|PlotID), data=aob.min.meta.df)
 car::Anova(aob.min.mod, type = "II")
-# Anova mixed model (with interaction)
-aob.min.mod2 <- lmer(aob.min.meta$Richness ~ Irrigation + Treatment + Irrigation*Treatment + Date + Type + (1|PlotID), data=aob.min.meta)
+# Anova mixed model (with interaction) = all samples
+set.seed(13)
+str(aob.min.meta.df)
+aob.min.mod2 <- lmer(aob.min.meta.df$Richness ~ Irrigation*Treatment*Date*Type + (1|PlotID), data=aob.min.meta.df)
 car::Anova(aob.min.mod2, type = "III")
-# model evaluation
-# normality
-plot(aob.min.mod)
-qqnorm(resid(aob.min.mod))
-qqline(resid(aob.min.mod)) #There is some deviation from from the expected normal line towards the tails, but overall the line looks straight and therefore pretty normal and suggests that the assumption is not violated
-# Generate residual and predicted values
-aob.min.mod_resids <- residuals(aob.min.mod)
-aob.min.mod_preds <- predict(aob.min.mod)
-plot(aob.min.mod_resids ~ aob.min.mod_preds, xlab = "Predicted Values", ylab = "Residuals", asp=.5)
-#plot a line on X-axis for comparison. a=intercept,b=slope,h=yvalue,v=xvalue.
-abline(a=0,h=0,b=0)
-#Perform a Shapiro-Wilk test for normality of residuals
-shapiro.test(aob.min.mod_resids) #data errors are normally distributed
-kurtosis(resid(aob.min.mod),method = 'sample') #3.6 (in the range of -7 to 7)
-# homoscedasticity
-leveneTest(residuals(aob.min.mod) ~ factor(aob.min.meta$PlotID)) #Since the p value is greater than 0.05, we can say that the variance of the residuals is equal and therefore the assumption of homoscedasticity is met
-hist(aob.min.mod_resids)
-# posthoc
-library(multcomp)
-post.rich.trt <- glht(aob.min.mod, linfct = mcp(Treatment = "Tukey"), test = adjusted("BH"))
-mcs.rich.trt = summary(post.rich.trt,
-              test=adjusted("BH"))
-# get the significant letter
-label.rich.trt <- cld(mcs.rich.trt,
-    level=0.05,
-    decreasing=TRUE)
-label.rich.trt.df <- as.data.frame(label.rich.trt$mcletters$Letters)
-names(label.rich.trt.df)[names(label.rich.trt.df) == "label.rich.trt$mcletters$Letters"] <- "Letter"
-label.rich.trt.df <- rownames_to_column(label.rich.trt.df, "Treatment")
-label.rich.trt.df
-# calculate the max value of the ricchness and put them in the same data frame of the group and the significant letter
-aob.sum.rich.trt <- aob.min.meta %>%
-  group_by(Treatment) %>% 
-  summarize(max.rich=max(Richness))
-aob.sum.rich.trt2 <- left_join(label.rich.trt.df,aob.sum.rich.trt, by='Treatment')
-aob.sum.rich.trt2
 
-# line chart of AOB richness 
+# Line plot of AOB richness 
 aob.min.meta.df <- data.frame(meta_micro)
 aob.min.meta.df$Richness <- aob.min.s
 aob.min.meta.df$Shannon <- aob.min.h
 aob.min.meta.df$Pielou <- aob.min.pielou
 aob.min.meta.df$Simpson <- aob.min.d
+aob.min.meta.df$InvSimpson <- aob.min.inv.d
 aob.min.meta.df$SampleID<-as.factor(aob.min.meta.df$SampleID)
 aob.min.meta.df$PlotID<-as.factor(aob.min.meta$PlotID)
 aob.min.meta.df$Date  <- as.Date(aob.min.meta.df$Date , "%m/%d/%Y")
@@ -305,105 +286,546 @@ aob.min.meta.df.tidy <- aob.min.meta.df %>%
                              group_by(Irrigation, Treatment, Type, Date) %>%
                              summarize(Mean.Rich=mean(Richness),
                                        Mean.Sha=mean(Shannon),
-                                       Mean.Simp=mean(Simpson))
-#setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/')
-#write.csv(aob.min.meta.df.tidy, file = "aob.min.meta.df.tidy.csv")
+                                       Mean.Simp=mean(Simpson),
+                                       Mean.invsimp=mean(InvSimpson))
+setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/')
+#write.csv(aob.min.meta.df.tidy, file = "aob.min.meta.df.tidy2.csv")
 aob.min.meta.df.tidy.ed <- read.csv("aob.min.meta.df.tidy.csv")
-aob.min.meta.df.tidy.ed.bulk <- aob.min.meta.df.tidy.ed[]
 #install.packages("rcartocolor")
 library(rcartocolor)
 carto_pal(n = NULL, 'Safe')
 display_carto_pal(7, "Vivid")
 carto_pal(n = NULL, 'Vivid')
 color.trt <- c(D="#E58606", K="#5D69B1", M="#52BCA3")
-           #CDRS="#99C945", CCMRS="#CC61B0", CKRS="#24796C")
-#palette.colors(n = NULL, "Polychrome 36")
-install.packages("ggnewscale")
+#install.packages("ggnewscale")
 library(ggnewscale)
+aob.min.meta.df.tidy.ed$Type <- factor(aob.min.meta.df.tidy.ed$Type, levels = c("BS", "RS"),
+                  labels = c("Bulk Soil", "Rhizosphere")
+                  )
 aob.min.meta.df.tidy.ed$Date  <- as.Date(aob.min.meta.df.tidy.ed$Date , "%m/%d/%Y")
 aob.min.rich.plot <- ggplot(aob.min.meta.df.tidy.ed, aes(x = Date, y = Mean.Rich, linetype=Irrigation))+
-                             geom_line(size=1.15, aes(group = var2, col=Treatment))+
-                             ylim(0, 110)+
+                             geom_line(linewidth=1.15, aes(group = var2, col=Treatment))+
+                             facet_wrap(~ Type, strip.position="top", nrow = 1)+
+                             #expand_limits(y = 0)+
                              theme_bw() +
-                             scale_color_manual(values = color.trt, labels = c("Biodynamic", "Conventional", "Mineral fertilized"))+
+                             scale_colour_viridis(discrete=T, labels = c("Biodynamic", "Conventional", "Mineral fertilized"))+
+                             #scale_color_manual(values = color.trt, labels = c("Biodynamic", "Conventional", "Mineral fertilized"))+
                              labs(x="Time Point", y="AOB Richness")+
-                             theme(legend.position = "right",
+                             theme(legend.position = "bottom",
+                             strip.text = element_text(size=18),
                              axis.text.y = element_text(size = 16),
                              axis.text.x = element_text(size = 16),
                              plot.background = element_blank(),
                              panel.grid.major = element_blank(),
                              panel.grid.minor = element_blank(),
                              axis.title.y = element_text(size=18,face="bold"),
-                             axis.title.x = element_text(size=18,face="bold"),
+                             axis.title.x = element_blank(),
                              legend.title = element_text(size=15, face='bold'),
                              legend.text=element_text(size=14))+
-                             new_scale_color() +
-                             geom_point(alpha=0.5,aes(col=Type), size=4)+
+                             #new_scale_color() +
+                             geom_point(alpha=0.5,aes(col=Treatment), size=4)+
+                             theme(legend.direction = "horizontal", legend.box = "vertical")
                              #scale_shape_manual(values=c(16,17), labels = c("Bulk Soil", "Rhizosphere"))
-                             scale_colour_manual(values=c('black', 'red'), labels = c("Bulk Soil", "Rhizosphere"))
+                             #scale_colour_manual(values=c('black', 'red'))
                              
 aob.min.rich.plot                            
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
-ggsave("AOB_min_rich.eps",
-       aob.min.rich.plot, device = "eps",
-       width = 10, height = 7, 
+ggsave("AOB_min_rich3.eps",
+       aob.min.rich.plot, device = cairo_ps,
+       width = 9, height = 7.5, 
+       units= "in", dpi = 600)
+
+dev.off()
+
+#Line plot of AOB Shannon
+#install.packages("scales")
+library(scales)
+str(aob.min.meta.df.tidy.ed)
+aob.min.sha.plot <- ggplot(aob.min.meta.df.tidy.ed, aes(x = Date, y = Mean.Sha, linetype=Irrigation))+
+                             geom_line(linewidth=1.15, aes(group = var2, col=Treatment))+
+                             facet_wrap(~ Type, strip.position="top", nrow = 1)+
+                             theme_bw() +
+                             scale_colour_viridis(discrete=T, labels = c("Biodynamic", "Conventional", "Mineral fertilized"))+
+                             #scale_color_manual(values = color.trt, labels = c("Biodynamic", "Conventional", "Mineral fertilized"))+
+                             labs(x="Time Point", y="AOB Shannon")+
+                             theme(legend.position = "bottom",
+                             strip.text = element_text(size=18),
+                             axis.text.y = element_text(size = 16),
+                             axis.text.x = element_text(size = 16),
+                             plot.background = element_blank(),
+                             panel.grid.major = element_blank(),
+                             panel.grid.minor = element_blank(),
+                             axis.title.y = element_text(size=18,face="bold"),
+                             axis.title.x = element_blank(),
+                             legend.title = element_text(size=15, face='bold'),
+                             legend.text=element_text(size=14))+
+                             #new_scale_color() +
+                             geom_point(alpha=0.5,aes(col=Treatment), size=4)+
+                             theme(legend.direction = "horizontal", legend.box = "vertical")
+                             #scale_shape_manual(values=c(16,17), labels = c("Bulk Soil", "Rhizosphere"))
+                             #scale_colour_manual(values=c('black', 'red'))+
+                             #scale_y_continuous(labels = label_number(accuracy = 0.05))
+                             
+aob.min.sha.plot                            
+setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
+ggsave("AOB_min_sha2.eps",
+       aob.min.sha.plot, device = cairo_ps,
+       width = 9, height = 7.5, 
+       units= "in", dpi = 600)
+
+#Line plot of AOB Simpson
+str(aob.min.meta.df.tidy.ed)
+aob.min.simp.plot <- ggplot(aob.min.meta.df.tidy.ed, aes(x = Date, y = Mean.Simp, linetype=Irrigation))+
+                             geom_line(linewidth=1, aes(group = var2, col=Treatment))+
+                             #ylim(0.9,0.97)+
+                             facet_wrap(~ Type, strip.position="top", nrow = 1)+
+                             #expand_limits(y = 0.9)+
+                             theme_bw() +
+                             scale_color_manual(values = color.trt, labels = c("Biodynamic", "Conventional", "Mineral fertilized"))+
+                             labs(x="Time Point", y="AOB Simpson")+
+                             theme(legend.position = "bottom",
+                             strip.text = element_text(size=18),
+                             axis.text.y = element_text(size = 16),
+                             axis.text.x = element_text(size = 16),
+                             plot.background = element_blank(),
+                             panel.grid.major = element_blank(),
+                             panel.grid.minor = element_blank(),
+                             axis.title.y = element_text(size=18,face="bold"),
+                             axis.title.x = element_blank(),
+                             legend.title = element_text(size=15, face='bold'),
+                             legend.text=element_text(size=14))+
+                             #new_scale_color() +
+                             geom_point(alpha=0.5,aes(col=Treatment), size=4)+
+                             theme(legend.direction = "horizontal", legend.box = "vertical")
+                             #scale_color_manual(values = color.trt)
+                             #scale_shape_manual(values=c(16,17), labels = c("Bulk Soil", "Rhizosphere"))
+                             #scale_colour_manual(values=c('black', 'red'))
+                             #scale_y_continuous(labels = label_number(accuracy = 0.01))
+                             
+aob.min.simp.plot                            
+setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
+ggsave("AOB_min_simp.eps",
+       aob.min.simp.plot, device = cairo_ps,
+       width = 8, height = 7, 
+       units= "in", dpi = 600)
+
+#Line plot of AOB Inverse Simpson
+str(aob.min.meta.df.tidy.ed)
+aob.min.invsimp.plot <- ggplot(aob.min.meta.df.tidy.ed, aes(x = Date, y = Mean.invsimp, linetype=Irrigation))+
+                             geom_line(linewidth=1, aes(group = var2, col=Treatment))+
+                             #ylim(0.9,0.97)+
+                             facet_wrap(~ Type, strip.position="top", nrow = 1)+
+                             #expand_limits(y = 0.9)+
+                             theme_bw() +
+                             scale_colour_viridis(discrete=T, labels = c("Biodynamic", "Conventional", "Mineral fertilized"))+
+                             #scale_color_manual(values = color.trt, labels = c("Biodynamic", "Conventional", "Mineral fertilized"))+
+                             labs(x="Time Point", y="AOB Inverse Simpson")+
+                             theme(legend.position = "bottom",
+                             strip.text = element_text(size=18),
+                             axis.text.y = element_text(size = 16),
+                             axis.text.x = element_text(size = 16),
+                             plot.background = element_blank(),
+                             panel.grid.major = element_blank(),
+                             panel.grid.minor = element_blank(),
+                             axis.title.y = element_text(size=18,face="bold"),
+                             axis.title.x = element_blank(),
+                             legend.title = element_text(size=15, face='bold'),
+                             legend.text=element_text(size=14))+
+                             #new_scale_color() +
+                             geom_point(alpha=0.5,aes(col=Treatment), size=4)+
+                             theme(legend.direction = "horizontal", legend.box = "vertical")
+                             #scale_color_manual(values = color.trt)
+                             #scale_shape_manual(values=c(16,17), labels = c("Bulk Soil", "Rhizosphere"))
+                             #scale_colour_manual(values=c('black', 'red'))
+                             #scale_y_continuous(labels = label_number(accuracy = 0.01))
+                             
+aob.min.invsimp.plot                            
+setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
+ggsave("AOB_min_invsimp.eps",
+       aob.min.invsimp.plot, device = cairo_ps,
+       width = 9, height = 7.5, 
        units= "in", dpi = 600)
 
 # Box plot of AOB Richness
 
-aob.min.meta.df
-
 #install.packages("ggpattern")
-#options(timeout=600)
 #install.packages("sf")
 library(sf)
 library(ggpattern)
-
 soiltype <- c("Bulk Soil", "Rhizosphere")
 names(soiltype) <- c("BS", "RS")
-date <- c("2022-04-28", "2022-06-01", "2022-07-05", "2022-07-20", "2022-09-13")
-names(date) <- c("2022-04-28", "2022-06-01", "2022-07-05", "2022-07-20", "2022-09-13")
-label <- c("Biodynamic", "Conventional", "Mineral fertilized")
+aob.min.meta.df$Type <- factor(aob.min.meta.df$Type, levels = c("BS", "RS"),
+                  labels = c("Bulk Soil", "Rhizosphere"))
+aob.min.meta.df$Treatment <- factor(aob.min.meta.df$Treatment, levels = c("D", "K", "M"),
+                  labels = c("Biodynamic", "Conventional", "Mineral fertilized"))
 set.seed(13)
-aob.min.rich.boxplot <- ggplot(aob.min.meta.df, aes(x=Treatment, y=Richness, pattern = Irrigation, fill = Treatment)) +
+#aob.min.rich.boxplot <- ggplot(aob.min.meta.df, aes(x=Treatment, y=Richness, pattern = Irrigation, fill = Treatment)) +
+               #geom_boxplot(aes(fill = Treatment))+
+               #geom_jitter(position = position_jitter(seed=13), alpha=0.3)+
+               #theme_bw() +
+               #labs(x="Treatment", y="AOB Richness")+
+               #expand_limits(y = 0)+
+               #labs(pattern="Irrigation")+
+               #scale_colour_viridis(discrete=T)+
+               #scale_fill_manual(values = c("#FC8D62","#8DA0CB","#66C2A5"))+
+               #scale_pattern_manual(values = c(Rainout = "stripe", Control = "none"))+
+               #facet_grid(Type~Date)+
+               #geom_boxplot_pattern(position = position_dodge(preserve = "single"), 
+                     #color = "black", pattern_fill = "black", 
+                     #pattern_angle = 45, pattern_density = 0.05, 
+                     #pattern_spacing = 0.018, 
+                     #pattern_key_scale_factor = 0.6)+
+                     #theme(legend.title = element_text(size=15, face='bold'),
+                     #legend.text = element_text(size=15),
+                     #strip.text = element_text(size=18),
+                     #axis.text.y = element_text(size = 18),
+                     #axis.title.y = element_text(size=18,face="bold"),
+                     #axis.text.x = element_blank(),
+                     #axis.title.x =element_blank(),
+                     #axis.ticks.x = element_blank(),
+                     #plot.background = element_blank(),
+                     #panel.grid.major = element_blank(),
+                     #panel.grid.minor = element_blank())+
+                     #guides(pattern = guide_legend(override.aes = list(fill = "white")),
+                     #fill = guide_legend(override.aes = list(pattern = "none")))
+#aob.min.rich.boxplot
+   
+#setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
+#ggsave("AOB_min_rich_box.eps",
+       #aob.min.rich.boxplot, device = "eps",
+       #width = 12.5, height = 7, 
+       #units= "in", dpi = 600)
+
+# Richness: plotting the significance across treatment
+aob.min.rich.pwc.plot <- ggplot(aob.min.meta, aes(x=Irrigation, y=Richness)) +
+               geom_boxplot(aes(fill=Treatment))+
+               #geom_jitter(position = position_jitter(seed=13), alpha=0.3)+
+               theme_bw() +
+               labs(y="AOB Richness")+
+               expand_limits(y = 0)+
+               labs(pattern="Irrigation")+
+               scale_fill_viridis(discrete=T)+
+               #scale_fill_manual(values = c("#FC8D62","#8DA0CB","#66C2A5"))+
+               facet_grid(Type~ Date,scales="free_x")+
+                     theme(legend.title = element_text(size=15, face='bold'),
+                     legend.text = element_text(size=15),
+                     strip.text = element_text(size=18),
+                     axis.text = element_text(size = 18),
+                     axis.title.y = element_text(size=18,face="bold"),
+                     axis.title.x =element_blank(),
+                     plot.background = element_blank(),
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank())
+aob.min.rich.pwc.plot
+# adding asterix from the stats analyses
+aob.rich.pwc.all <- aob.min.meta %>%
+  group_by(Type, Date, Irrigation) %>%
+  pairwise_t_test(Richness ~ Treatment, p.adjust.method = "BH") %>%
+  select(-p, -p.signif)
+# plotting the significance
+aob.rich.pwc.all <- aob.rich.pwc.all %>% add_xy_position(x = "Irrigation", dodge = 0.8)
+aob.min.rich.pwc.plot2 <- aob.min.rich.pwc.plot + 
+ stat_pvalue_manual(aob.rich.pwc.all,label = "p.adj.signif", tip.length = 0, hide.ns = TRUE)+
+ scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
+aob.min.rich.pwc.plot2
+setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
+ggsave("AOB_min_rich_all_test.eps",
+       aob.min.rich.pwc.plot2, device = "eps",
+       width = 14, height =5.8, 
+       units= "in", dpi = 600)
+
+# Shannon: plotting the significance across treatment
+aob.min.sha.pwc.plot <- ggplot(aob.min.meta, aes(x=Irrigation, y=Shannon)) +
                geom_boxplot(aes(fill = Treatment))+
                #geom_jitter(position = position_jitter(seed=13), alpha=0.3)+
                theme_bw() +
-               labs(x="Treatment", y="AOB Richness")+
-               expand_limits(y = 0)+
-               #labs(pattern="Irrigation")+
-               scale_fill_manual(values = c("#FC8D62","#8DA0CB","#66C2A5"))+
-               #ylim(0,2.4)+
-               scale_pattern_manual(values = c(Rainout = "stripe", Control = "none"))+
-               facet_grid(Type ~ Date, labeller=labeller(Date=date,Type=soiltype),scales = 'free_x')+
-               geom_boxplot_pattern(position = position_dodge(preserve = "single"), 
-                     color = "black", pattern_fill = "black", 
-                     pattern_angle = 45, pattern_density = 0.1, 
-                     pattern_spacing = 0.018, 
-                     pattern_key_scale_factor = 0.6) +
-                     theme(legend.position="right",
-                     legend.key.size = unit(1, 'cm'),
-                     legend.title = element_text(size=15, face='bold'),
+               labs(y="AOB Shannon")+
+               #expand_limits(y = 0)+
+               labs(pattern="Irrigation")+
+               scale_fill_viridis(discrete=T)+
+               #scale_fill_manual(values = c("#FC8D62","#8DA0CB","#66C2A5"))+
+               facet_grid(Type~ Date,scales="free_x")+
+                     theme(legend.title = element_text(size=15, face='bold'),
                      legend.text = element_text(size=15),
-                     axis.text.y = element_text(size = 18),
-                     axis.text.x = element_blank(),
-                     strip.text.x = element_blank(),
-                     strip.text.y = element_text(size=18),
-                     plot.title = element_text(size = 20,face = 'bold'),
+                     strip.text = element_text(size=18),
+                     axis.text = element_text(size = 18),
+                     axis.title.y = element_text(size=18,face="bold"),
                      axis.title.x =element_blank(),
-                     axis.title.y = element_markdown(size=18,face="bold"),
                      plot.background = element_blank(),
                      panel.grid.major = element_blank(),
-                     panel.grid.minor = element_blank())+
-                     guides(pattern = guide_legend(override.aes = list(fill = "white")),fill = "none")
-                     #fill = guide_legend(override.aes = list(pattern = "none")))
+                     panel.grid.minor = element_blank())
+aob.min.sha.pwc.plot
+# adding asterix from the stats analyses
+aob.sha.pwc.all <- aob.min.meta %>%
+  group_by(Type, Date, Irrigation) %>%
+  pairwise_t_test(Shannon ~ Treatment, p.adjust.method = "BH") %>%
+  select(-p, -p.signif)
+# plotting the significance
+aob.sha.pwc.all <- aob.sha.pwc.all %>% add_xy_position(x = "Irrigation", dodge = 0.8)
+aob.min.sha.pwc.plot2 <- aob.min.sha.pwc.plot + 
+ stat_pvalue_manual(aob.sha.pwc.all,label = "p.adj.signif", tip.length = 0, hide.ns = TRUE)+
+ scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
+aob.min.sha.pwc.plot2
+setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
+ggsave("AOB_min_sha_all.eps",
+       aob.min.sha.pwc.plot2, device = "eps",
+       width = 14, height =5.8, 
+       units= "in", dpi = 600)
 
-aob.min.rich.boxplot
-library(grid)
-library(gridExtra)
-aob.min.rich.boxplot.grob <- ggplotGrob(aob.min.rich.boxplot)
-names(aob.min.rich.boxplot.grob$grobs)
-aob.min.rich.boxplot.grob$layout
+# Simpson: plotting the significance across treatment
+aob.min.simp.pwc.plot <- ggplot(aob.min.meta, aes(x=Irrigation, y=Simpson)) +
+               geom_boxplot(aes(fill = Treatment))+
+               #geom_jitter(position = position_jitter(seed=13), alpha=0.3)+
+               theme_bw() +
+               labs(y="AOB Simpson")+
+               #expand_limits(y = 0)+
+               labs(pattern="Irrigation")+
+               scale_fill_manual(values = c("#FC8D62","#8DA0CB","#66C2A5"))+
+               facet_grid(Type~ Date,scales="free_x")+
+                     theme(legend.title = element_text(size=15, face='bold'),
+                     legend.text = element_text(size=15),
+                     strip.text = element_text(size=18),
+                     axis.text = element_text(size = 18),
+                     axis.title.y = element_text(size=18,face="bold"),
+                     axis.title.x =element_blank(),
+                     plot.background = element_blank(),
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank())
+aob.min.simp.pwc.plot
+# adding asterix from the stats analyses
+aob.simp.pwc.all <- aob.min.meta %>%
+  group_by(Type, Date, Irrigation) %>%
+  pairwise_t_test(Simpson ~ Treatment, p.adjust.method = "BH") %>%
+  select(-p, -p.signif)
+# plotting the significance
+aob.simp.pwc.all <- aob.simp.pwc.all %>% add_xy_position(x = "Irrigation", dodge = 0.8)
+aob.min.simp.pwc.plot2 <- aob.min.simp.pwc.plot + 
+ stat_pvalue_manual(aob.simp.pwc.all,label = "p.adj.signif", tip.length = 0, hide.ns = TRUE)+
+ scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
+aob.min.simp.pwc.plot2
+setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
+ggsave("AOB_min_simp_all.eps",
+       aob.min.simp.pwc.plot2, device = "eps",
+       width = 16, height =7, 
+       units= "in", dpi = 600)
+
+
+# Inverse Simpson: plotting the significance across treatment
+aob.min.invsimp.pwc.plot <- ggplot(aob.min.meta, aes(x=Irrigation, y=InvSimpson)) +
+               geom_boxplot(aes(fill = Treatment))+
+               #geom_jitter(position = position_jitter(seed=13), alpha=0.3)+
+               theme_bw() +
+               labs(y="AOB Inverse Simpson")+
+               #expand_limits(y = 0)+
+               labs(pattern="Irrigation")+
+               scale_fill_viridis(discrete=T)+
+               #scale_fill_manual(values = c("#FC8D62","#8DA0CB","#66C2A5"))+
+               facet_grid(Type~ Date,scales="free_x")+
+                     theme(legend.title = element_text(size=15, face='bold'),
+                     legend.text = element_text(size=15),
+                     strip.text = element_text(size=18),
+                     axis.text = element_text(size = 18),
+                     axis.title.y = element_text(size=18,face="bold"),
+                     axis.title.x =element_blank(),
+                     plot.background = element_blank(),
+                     panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank())
+aob.min.invsimp.pwc.plot
+# adding asterix from the stats analyses
+aob.invsimp.pwc.all <- aob.min.meta %>%
+  group_by(Type, Date, Irrigation) %>%
+  pairwise_t_test(InvSimpson ~ Treatment, p.adjust.method = "BH") %>%
+  select(-p, -p.signif)
+# plotting the significance
+aob.invsimp.pwc.all <- aob.invsimp.pwc.all %>% add_xy_position(x = "Irrigation", dodge = 0.8)
+aob.min.invsimp.pwc.plot2 <- aob.min.invsimp.pwc.plot + 
+ stat_pvalue_manual(aob.invsimp.pwc.all,label = "p.adj.signif", tip.length = 0, hide.ns = TRUE)+
+ scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
+aob.min.invsimp.pwc.plot2
+setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
+ggsave("AOB_min_invsimp_all.eps",
+       aob.min.invsimp.pwc.plot2, device = "eps",
+       width = 14, height =5.8, 
+       units= "in", dpi = 600)
+
+###################################################################################
+# Beta Diversity Analyses on Rarefied Data: AOB
+###################################################################################
+# dissimilarity indices for community ecologist to make a distance structure (Bray-Curtis distance between samples)
+#aob.asv.min_PA <- 1*(aob.asv.min>0)
+#aob.asv.min_PA
+aob.asv.min_dist <- vegdist(t(aob.asv.min), method = "bray")
+# jaccard
+aob.asv.min_dist_jac <- vegdist(t(aob.asv.min), binary = TRUE, method = "jaccard") 
+# Weighted UniFrac
+aob.wUF_dist <- UniFrac(aob.rare.min.physeq, weighted = TRUE)
+
+# CMD/classical multidimensional scaling (MDS) of a data matrix. Also known as principal coordinates analysis
+aob.asv.min_pcoa <- cmdscale(aob.asv.min_dist, eig=T)
+# jaccard
+aob.asv.min_pcoa.jac <- cmdscale(aob.asv.min_dist_jac, eig=T)
+
+# scores of PC1 and PC2
+ax1.scores <- aob.asv.min_pcoa$points[,1]
+ax2.scores <- aob.asv.min_pcoa$points[,2] 
+# jaccard
+ax1.scores.j <- aob.asv.min_pcoa.jac$points[,1]
+ax2.scores.j <- aob.asv.min_pcoa.jac$points[,2]
+
+#env_fit <- envfit(otu_pcoa, env, na.rm=TRUE)
+
+#calculate percent variance explained, then add to plot
+ax1 <- aob.asv.min_pcoa$eig[1]/sum(aob.asv.min_pcoa$eig)
+ax2 <- aob.asv.min_pcoa$eig[2]/sum(aob.asv.min_pcoa$eig)
+aob.map.pcoa <- cbind(aob.min.meta,ax1.scores,ax2.scores)
+# jaccard
+ax1.j <- aob.asv.min_pcoa.jac$eig[1]/sum(aob.asv.min_pcoa.jac$eig)
+ax2.j <- aob.asv.min_pcoa.jac$eig[2]/sum(aob.asv.min_pcoa.jac$eig)
+aob.map.pcoa.j <- cbind(aob.min.meta,ax1.scores.j,ax2.scores.j)
+
+# simple plot
+aob.pcoa_plot <- plot(ax1.scores, ax2.scores, xlab=paste("PCoA1: ",round(ax1,3)*100,"% var. explained", sep=""), ylab=paste("PCoA2: ",round(ax2,3)*100,"% var. explained", sep=""))
+# PCoA Plot 
+#require("ggrepel")
+library(ggrepel)
+library(viridis)
+set.seed(13)
+aob.pcoa_plot <- ggplot(data = aob.map.pcoa, aes(x=ax1.scores, y=ax2.scores))+
+            theme_bw()+
+            geom_point(data = aob.map.pcoa, aes(x = ax1.scores, y = ax2.scores, col=Treatment, shape=Irrigation),size=5, alpha= 0.8)+
+            #scale_colour_manual(values = c("#FC8D62","#8DA0CB","#66C2A5"))+
+            scale_color_viridis(discrete = T) +
+            scale_x_continuous(name=paste("PCoA1:\n",round(ax1,3)*100,"% var. explained", sep=""))+
+            scale_y_continuous(name=paste("PCoA2:\n",round(ax2,3)*100,"% var. explained", sep=""))+
+            #coord_fixed() + 
+            labs(colour = "Treatment",  title = "AOB PCoA Plot (Bray-Curtis)")+
+            theme(legend.position="right",
+            legend.title = element_text(size=15, face='bold'),
+            plot.background = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 20, face="bold"),
+            #plot.subtitle = element_text(size = 20, face = 'bold'),
+            axis.text=element_text(size=16), 
+            axis.title=element_text(size=17,face="bold"),
+            legend.text=element_text(size=15),
+            legend.spacing.x = unit(0.05, 'cm'))
+aob.pcoa_plot
+setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
+ggsave("AOB_PCoA_rare.tiff",
+       aob.pcoa_plot, device = "tiff",
+       width = 8, height =6, 
+       units= "in", dpi = 600)
+# jaccard
+set.seed(13)
+aob.pcoa_plot.jac <- ggplot(data = aob.map.pcoa.j, aes(x=ax1.scores.j, y=ax2.scores.j))+
+            theme_bw()+
+            geom_point(data = aob.map.pcoa.j, aes(x = ax1.scores.j, y = ax2.scores.j, col=Treatment, shape=Irrigation),size=5, alpha= 0.8)+
+            #scale_colour_manual(values = c("#FC8D62","#8DA0CB","#66C2A5"))+
+            scale_color_viridis(discrete = T) +
+            scale_x_continuous(name=paste("PCoA1:\n",round(ax1.j,3)*100,"% var. explained", sep=""))+
+            scale_y_continuous(name=paste("PCoA2:\n",round(ax2.j,3)*100,"% var. explained", sep=""))+
+            #coord_fixed() + 
+            labs(colour = "Treatment",  title = "AOB PCoA Plot (Bray-Curtis)")+
+            theme(legend.position="right",
+            legend.title = element_text(size=15, face='bold'),
+            plot.background = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 20, face="bold"),
+            #plot.subtitle = element_text(size = 20, face = 'bold'),
+            axis.text=element_text(size=16), 
+            axis.title=element_text(size=17,face="bold"),
+            legend.text=element_text(size=15),
+            legend.spacing.x = unit(0.05, 'cm'))
+aob.pcoa_plot.jac
+#aob.pcoa_plot+geom_text_repel(aes(label = SampleID),size = 3, max.overlaps = Inf)
+# Calculated the statistical analysis of beta diversity using PERMANOVA
+set.seed(13)
+aob.asv.min_dist
+aob.adonis <- adonis2(aob.asv.min_dist ~ Irrigation*Treatment*Date*Type, data=aob.min.meta, 
+                 permutation=999,
+                 method="bray", 
+                 strata = NULL)
+aob.adonis
+set.seed(13)
+aob.adonis.jac <- adonis2(aob.asv.min_dist_jac ~ Irrigation*Treatment*Date*Type, data=aob.min.meta, 
+                 permutation=999,
+                 method="jaccard", 
+                 strata = NULL)
+aob.adonis.jac
+############################################################################
+# beta diversity on unrarefied data
+# dissimilarity indices for community ecologist to make a distance structure (Bray-Curtis distance between samples)
+aob.asv_PA <- 1*(aob.asv>0)
+aob.asv_PA
+aob.asv_dist <- vegdist(t(aob.asv_PA), binary = TRUE, method = "bray")
+# CMD/classical multidimensional scaling (MDS) of a data matrix. Also known as principal coordinates analysis
+aob.asv_pcoa <- cmdscale(aob.asv_dist, eig=T)
+# scores of PC1 and PC2
+ax1.scores.x <- aob.asv_pcoa$points[,1]
+ax2.scores.x <- aob.asv_pcoa$points[,2] 
+#env_fit <- envfit(otu_pcoa, env, na.rm=TRUE)
+#calculate percent variance explained, then add to plot
+ax1.x <- aob.asv_pcoa$eig[1]/sum(aob.asv_pcoa$eig)
+ax2.x <- aob.asv_pcoa$eig[2]/sum(aob.asv_pcoa$eig)
+aob.map.pcoa.x <- cbind(aob.min.meta,ax1.scores.x,ax2.scores.x)
+# simple plot
+aob.pcoa_plot.x <- plot(ax1.scores.x, ax2.scores.x, xlab=paste("PCoA1: ",round(ax1.x,3)*100,"% var. explained", sep=""), ylab=paste("PCoA2: ",round(ax2.x,3)*100,"% var. explained", sep=""))
+# PCoA Plot 
+#require("ggrepel")
+library(ggrepel)
+library(viridis)
+set.seed(13)
+aob.pcoa_plot.x<- ggplot(data = aob.map.pcoa.x, aes(x=ax1.scores.x, y=ax2.scores.x))+
+            theme_bw()+
+            geom_point(data = aob.map.pcoa.x, aes(x = ax1.scores.x, y = ax2.scores.x, col=Treatment, shape=Irrigation),size=5, alpha= 0.8)+
+            #scale_colour_manual(values = c("#FC8D62","#8DA0CB","#66C2A5"))+
+            scale_color_viridis(discrete = T) +
+            scale_x_continuous(name=paste("PCoA1:\n",round(ax1.x,3)*100,"% var. explained", sep=""))+
+            scale_y_continuous(name=paste("PCoA2:\n",round(ax2.x,3)*100,"% var. explained", sep=""))+
+            #coord_fixed() + 
+            labs(colour = "Treatment",  title = "AOB PCoA Plot")+
+            theme(legend.position="right",
+            legend.title = element_text(size=15, face='bold'),
+            plot.background = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 20, face="bold"),
+            #plot.subtitle = element_text(size = 20, face = 'bold'),
+            axis.text=element_text(size=16), 
+            axis.title=element_text(size=17,face="bold"),
+            legend.text=element_text(size=15),
+            legend.spacing.x = unit(0.05, 'cm'))
+aob.pcoa_plot.x
+set.seed(13)
+aob.adonis.x <- adonis2(aob.asv_dist ~ Irrigation*Treatment*Date, data=aob.min.meta, 
+                 permutation=999,
+                 method="bray", 
+                 strata = NULL)
+aob.adonis.x
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -440,16 +862,12 @@ hist(aob.min.sha.mod_resids)
 
 
 
-aob.min.meta.df %>% 
-group_by(gear,carb) %>% 
-mutate(mean=mean(disp)) %>% 
-ggplot(aes(gear,mean,group=carb,color=carb))
-+geom_line()+geom_point()
 
 
 
 
-str(aob.min.meta)
+
+
 
 
 
