@@ -269,15 +269,15 @@ aob.min.meta.df$Simpson <- aob.min.d
 aob.min.meta.df$InvSimpson <- aob.min.inv.d
 #aob.min.meta.df$Date  <- as.Date(aob.min.meta.df$Date , "%m/%d/%Y")
 str(aob.min.meta.df)
-aob.min.meta.df$Date <- factor(aob.min.meta.df$Date, levels = c("4/28/22", "6/1/22", "7/5/22", "7/20/22", "9/13/22"),
-                  labels = c("04-28-22", "06-01-22", "07-05-22", "07-20-22", "09-13-22"))
+#aob.min.meta.df$Date <- factor(aob.min.meta.df$Date, levels = c("4/28/22", "6/1/22", "7/5/22", "7/20/22", "9/13/22"),
+                 # labels = c("04-28-22", "06-01-22", "07-05-22", "07-20-22", "09-13-22"))
 aob.min.meta.df$Type <- factor(aob.min.meta.df$Type, levels = c("BS", "RS"),
                   labels = c("Bulk Soil", "Rhizosphere"))
 aob.min.meta.df$Treatment <- factor(aob.min.meta.df$Treatment, levels = c("D", "K", "M"),
                   labels = c("Biodynamic", "Conventional", "Mineral fertilized"))
 aob.min.meta.df$SampleID<-as.factor(aob.min.meta.df$SampleID)
-aob.min.meta.df$PlotID<-as.factor(aob.min.meta$PlotID)
-aob.min.meta.df$Irrigation<-as.factor(aob.min.meta$Irrigation)
+aob.min.meta.df$PlotID<-as.factor(aob.min.meta.df$PlotID)
+aob.min.meta.df$Irrigation<-as.factor(aob.min.meta.df$Irrigation)
 # tidy up the data frame
 aob.min.meta.df.tidy <- aob.min.meta.df %>%
                              group_by(Irrigation, Treatment, Date,  Type, var2,var3) %>%
@@ -295,6 +295,7 @@ display_carto_pal(7, "Vivid")
 carto_pal(n = NULL, 'Vivid')
 color.trt <- c(D="#E58606", K="#5D69B1", M="#52BCA3")
 library(ggnewscale)
+library(viridis)
 aob.min.meta.df$Date <- factor(aob.min.meta.df$Date, levels = unique(aob.min.meta.df$Date))
 aob.min.rich.plot <- ggplot(aob.min.meta.df.tidy, aes(x = Date, y = Mean.Rich, linetype=Irrigation))+
                              geom_line(linewidth=1.15, aes(group = var2, col=Treatment))+
@@ -476,7 +477,7 @@ library(ggpattern)
        #units= "in", dpi = 600)
 
 str(aob.min.meta.df)
-aob.min.meta.df$Date  <- as.Date(aob.min.meta.df$Date , "%m/%d/%y")
+#aob.min.meta.df$Date  <- as.Date(aob.min.meta.df$Date , "%m/%d/%y")
 # Richness: plotting the significance across treatment
 aob.min.rich.pwc.plot <- ggplot(aob.min.meta.df, aes(x=Irrigation, y=Richness)) +
                geom_boxplot(aes(fill=Treatment))+
@@ -967,7 +968,7 @@ ggsave("AOB_UnweightedUniFrac_rarefied.tiff",
 ######################################################################################
 
 # BULK SOIL
-
+aob.min.meta.bulk <- aob.min.meta.df[1:120,]
 # 1. Calculating dissimilarity indices for community ecologist to make a distance structure (Bray-Curtis distance between samples)
 
 # Bray-Curtis - Bulk Soil :
@@ -1038,7 +1039,7 @@ aob.map.pcoa.uwUF.bulk <- cbind(aob.min.meta.bulk,ax1.scores.uwUF.bulk,ax2.score
 #################################################################################################
 
 # RHIZOSPHERE
-
+aob.min.meta.rh <- aob.min.meta.df[121:192,]
 # Bray-Curtis - Rhizosphere :
 aob.asv.min.rh <- aob.asv.min[,121:192]
 aob.asv.min.rh1 <- aob.asv.min.rh[rowSums(aob.asv.min.rh)>0,]
