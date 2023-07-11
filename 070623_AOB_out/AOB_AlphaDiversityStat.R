@@ -1,4 +1,9 @@
-##### ALPHA DIVERSITY ANALYSIS: MICROSERVICES ######
+###########################################################################
+#################### ALPHA DIVERSITY ANALYSIS: AOB ########################
+###########################################################################
+
+# Author: Ari Fina Bintarti
+# Date: 03/07/2023
 
 install.packages("datarium")
 install.packages("rstatix")
@@ -8,7 +13,8 @@ library(rstatix)
 # 1. Response variable: Richness
 ###########################################################################
 # 1a. Analyses of Bulk Soil
-aob.min.meta.bulk <- aob.min.meta[1:120,]
+str(aob.min.meta.df)
+aob.min.meta.bulk <- aob.min.meta.df[1:120,]
 str(aob.min.meta.bulk)
 aob.min.meta.bulk.sum.rich <- aob.min.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
@@ -85,13 +91,13 @@ aob.min.meta.bulk$Treatment <- factor(aob.min.meta.bulk$Treatment, levels = c("D
                   labels = c("Biodynamic", "Conventional", "Mineral fertilized"))
 aob.min.meta.bulk$Date  <- as.Date(aob.min.meta.bulk$Date , "%m/%d/%Y")
 aob.rich.pwc <- aob.min.meta.bulk %>%
-  group_by(Date, Irrigation) %>%
-  pairwise_t_test(Richness ~ Treatment, p.adjust.method = "BH") %>%
+  group_by(Date, Treatment) %>%
+  pairwise_t_test(Richness ~ Irrigation, p.adjust.method = "BH") %>%
   select(-p, -p.signif) # Remove details
 aob.rich.pwc
 ######################################################################
 # 1b. Analyses of rhizosphere Soil
-aob.min.meta.rh <- aob.min.meta[121:192,]
+aob.min.meta.rh <- aob.min.meta.df[121:192,]
 str(aob.min.meta.rh)
 aob.min.meta.rh$SampleID <- as.factor(aob.min.meta.rh$SampleID)
 aob.min.meta.rh$PlotID <- as.factor(aob.min.meta.rh$PlotID)
