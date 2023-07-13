@@ -126,20 +126,20 @@ library(UpSetR)
 
 # 
 
-tmp_T3s <- physeq.subset
+tmp_T3s <- aob.physeq.subset
 
 str(tmp_T3s)
 
 #  treatment
-a = tibble("sample"= tmp_T3s@sam_data$sample_name,
-           "treatment"= as.character(tmp_T3s@sam_data$mesh_size_um))
+a = tibble("sample"= tmp_T3s@sam_data$SampleID,
+           "treatment"= as.character(tmp_T3s@sam_data$Irrigation))
 # force control as intercept
-a[a == "Col0"] <- "1a"
+#a[a == "Col0"] <- "1a"
 a = as.factor(a$treatment)
 # offset
 o = log(sample_sums(tmp_T3s))
 # random effect
-z <- as.factor(tmp_T3s@sam_data$sample_name)
+z <- as.factor(tmp_T3s@sam_data$SampleID)
 #tmp_T3s@sam_data$block <- paste(c("b"),tmp_T3s@sam_data$block, sep="")
 # x <- as.factor(tmp_T3s@sam_data$block)
 
@@ -152,16 +152,16 @@ glmT3s.pairwise.global = data.frame()
 
 for (i in 1:length(taxa_names(tmp_T3s))) {
   
-  OTU = taxa_names(tmp_T3s)[i] 
+  ASV = taxa_names(tmp_T3s)[i] 
   # response variable
-  y = as.vector(tmp_T3s@otu_table[OTU,]@.Data)
+  y = as.vector(tmp_T3s@otu_table[ASV,]@.Data)
   
   tryCatch({
     ### model
     glmT3s <- glmer(y ~ a + (1 | z), family='poisson', offset = o)
     glmT3s.sum = summary(glmT3s)$coefficients
     #glmT3s.sum = summary(glmT3s)$coefficients$cond
-    glmT3s.sum = tibble("OTU"= OTU,
+    glmT3s.sum = tibble("ASV"= ASV,
                         "treatment"=rownames(glmT3s.sum),
                         as_tibble(glmT3s.sum))
     glmT3s.sum
@@ -189,14 +189,14 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
     #tmp_df[,"p.adjust"] <- p.adjust(tmp_df$p.value,"fdr",n=21)
     #tmp_df[,"p.adjust"] <- p.adjust(tmp_df$p.value,"bonferroni",n=21)
     
-    tmp_df = cbind("OTU"=OTU,tmp_df)
+    tmp_df = cbind("ASV"=ASV,tmp_df)
     
     glmT3s.pairwise.global = rbind(glmT3s.pairwise.global,tmp_df)
     
   },
   error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   
-  rm(OTU,y,glmT3s,glmT3s.sum)
+  rm(ASV,y,glmT3s,glmT3s.sum)
   
 }
 

@@ -1,6 +1,7 @@
-#################################### Analysis of amoA gene of AOA Illumina MiSeq Data #####################################
-##
-# Date : 08 June 2023
+#############################################################################################
+# Analysis of amoA gene of AOA Illumina MiSeq Data 
+#############################################################################################
+# Date : 13 July 2023
 # Author : Ari Fina BINTARTI
 
 # Install packages
@@ -31,6 +32,7 @@ install.packages("nlme")
 install.packages("car")
 install.packages("multcomp")
 install.packages("ape")
+install.packages("devtools", dependencies = TRUE)
 library(multcomp)
 library(car)
 library(BiocManager)
@@ -63,9 +65,11 @@ library(fitdistrplus)
 library(lme4)
 library(nlme)
 library(ape)
+library(devtools)
 
 # SET THE WORKING DIRECTORY
 setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/AOA.ASV-analysis')
+setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/AOA.ASV-analysis')
 wd <- print(getwd())
 # load the asv table
 aoa.asv <- read.table('annotated.AOA.ASVs.counts.tsv', sep='\t', header=T, row.names = 1, check.names = FALSE)
@@ -73,13 +77,16 @@ dim(aoa.asv) # 646  192
 sort(colSums(aoa.asv, na.rm = FALSE, dims = 1), decreasing = F) # there are no asv that does not exist in at least one sample.
 # load the taxonomy table
 setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/')
+setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/')
 aoa.tax <- read.csv("besthit.diamond.output.curateddb.AOA.ASVs.csv")
 dim(aoa.tax) # 646
 # load the metadata
 setwd('/Users/arifinabintarti/Documents/France/microservices/')
+setwd('D:/Fina/INRAE_Project/microservices/')
 meta_micro <- read.csv("meta_microservices.csv")
 # load phylogenetic tree (nwk file)
 setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/AOA.Phylogenetic-analysis/')
+setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/AOA.Phylogenetic-analysis/')
 aoa.tre <- ape::read.tree("tree.AOA.nwk")
 
 ############################################################################
@@ -100,7 +107,8 @@ sample_names(aoa.asv.physeq)
 sample_names(aoa.asv.physeq) <- paste0("S", sample_names(aoa.asv.physeq))
 
 # phyloseq object of the taxonomy table
-aoa.tax <- column_to_rownames(aoa.tax, var = "ASVid")
+#aoa.tax <- column_to_rownames(aoa.tax, var = "ASVid")
+row.names(aoa.tax) <- aoa.tax$ASVid
 aoa.tax.physeq = tax_table(as.matrix(aoa.tax)) # taxonomy table
  
 # phyloseq object of the metadata

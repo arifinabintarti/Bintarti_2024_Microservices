@@ -33,6 +33,8 @@ install.packages("nlme")
 install.packages("car")
 install.packages("multcomp")
 install.packages("ape")
+install.packages("devtools", dependencies = TRUE)
+library(devtools)
 library(multcomp)
 library(car)
 library(BiocManager)
@@ -68,6 +70,7 @@ library(ape)
 
 # SET THE WORKING DIRECTORY
 setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB.ASV-analysis')
+setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB.ASV-analysis')
 wd <- print(getwd())
 # load the asv table
 aob.asv <- read.table('annotated.AOB.ASVs.counts.tsv', sep='\t', header=T, row.names = 1, check.names = FALSE)
@@ -75,13 +78,16 @@ dim(aob.asv) # 1338  192
 sort(colSums(aob.asv, na.rm = FALSE, dims = 1), decreasing = F) # there are no asv that does not exist in at least one sample.
 # load the taxonomy table
 setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/')
+setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out')
 aob.tax <- read.csv("besthit.diamond.output.curateddb.AOB.ASVs.csv")
 dim(aob.tax) # 1338
 # load the metadata
 setwd('/Users/arifinabintarti/Documents/France/microservices/')
+setwd('D:/Fina/INRAE_Project/microservices')
 meta_micro <- read.csv("meta_microservices.csv")
 # load phylogenetic tree (nwk file)
 setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB.Phylogenetic-analysis/')
+setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB.Phylogenetic-analysis')
 aob.tre <- ape::read.tree("tree.AOB.nwk")
 
 ############################################################################
@@ -115,6 +121,7 @@ sample_names(aob.meta.physeq)
 
 # read the rooted tree
 setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB-rooted-tree/')
+setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB-rooted-tree/')
 AOB_rooted_tree <- ape::read.tree("tree.nwk")
 
 # make phyloseq object
@@ -215,17 +222,6 @@ ggsave("AOB_rarecurve_min.jpg",
        width = 10, height = 7, 
        units= "in", dpi = 600)
 
-# rarefy to 2k of sequencing depth
-set.seed(13)
-aob.rare.2k.physeq <- rarefy_even_depth(aob.physeq, sample.size = 2000,
-  rngseed = 13, replace = TRUE, trimOTUs = TRUE, verbose = TRUE)
-aob.rare.2k.physeq
-sort(sample_sums(aob.rare.2k.physeq), decreasing = F) # 102 OTUs were removed because they are no longer present in any sample after random subsampling
-                                                # 5 samples removed
-# subset samples with sample sum less than 2000 reads
-aob.physeq2k <- prune_samples(sample_sums(aob.physeq) < 2000, aob.physeq)
-sort(sample_sums(aob.physeq2k), decreasing = F)
-
 ######################################################################################################
 
 # Calculate the alpha diversity (Richness and Pielou's evenness, we also calculates Shannon index) 
@@ -269,15 +265,15 @@ aob.min.meta.df$Simpson <- aob.min.d
 aob.min.meta.df$InvSimpson <- aob.min.inv.d
 #aob.min.meta.df$Date  <- as.Date(aob.min.meta.df$Date , "%m/%d/%Y")
 str(aob.min.meta.df)
-aob.min.meta.df$Date <- factor(aob.min.meta.df$Date, levels = c("4/28/22", "6/1/22", "7/5/22", "7/20/22", "9/13/22"),
-                  labels = c("04-28-22", "06-01-22", "07-05-22", "07-20-22", "09-13-22"))
+#aob.min.meta.df$Date <- factor(aob.min.meta.df$Date, levels = c("4/28/22", "6/1/22", "7/5/22", "7/20/22", "9/13/22"),
+                  #labels = c("04-28-22", "06-01-22", "07-05-22", "07-20-22", "09-13-22"))
 aob.min.meta.df$Type <- factor(aob.min.meta.df$Type, levels = c("BS", "RS"),
                   labels = c("Bulk Soil", "Rhizosphere"))
 aob.min.meta.df$Treatment <- factor(aob.min.meta.df$Treatment, levels = c("D", "K", "M"),
                   labels = c("Biodynamic", "Conventional", "Mineral fertilized"))
 aob.min.meta.df$SampleID<-as.factor(aob.min.meta.df$SampleID)
-aob.min.meta.df$PlotID<-as.factor(aob.min.meta$PlotID)
-aob.min.meta.df$Irrigation<-as.factor(aob.min.meta$Irrigation)
+aob.min.meta.df$PlotID<-as.factor(aob.min.meta.df$PlotID)
+aob.min.meta.df$Irrigation<-as.factor(aob.min.meta.df$Irrigation)
 # tidy up the data frame
 aob.min.meta.df.tidy <- aob.min.meta.df %>%
                              group_by(Irrigation, Treatment, Date,  Type, var2,var3) %>%
@@ -289,12 +285,16 @@ str(aob.min.meta.df.tidy)
 #setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/')
 #write.csv(aob.min.meta.df.tidy, file = "aob.min.meta.df.tidy2.csv")
 #aob.min.meta.df.tidy.ed <- read.csv("aob.min.meta.df.tidy.csv")
+#remotes::install_github("Nowosad/rcartocolor")
 library(rcartocolor)
 carto_pal(n = NULL, 'Safe')
 display_carto_pal(7, "Vivid")
 carto_pal(n = NULL, 'Vivid')
 color.trt <- c(D="#E58606", K="#5D69B1", M="#52BCA3")
+install.packages("ggnewscale")
 library(ggnewscale)
+#install.packages("viridis")
+library(viridis)
 aob.min.meta.df$Date <- factor(aob.min.meta.df$Date, levels = unique(aob.min.meta.df$Date))
 aob.min.rich.plot <- ggplot(aob.min.meta.df.tidy, aes(x = Date, y = Mean.Rich, linetype=Irrigation))+
                              geom_line(linewidth=1.15, aes(group = var2, col=Treatment))+
@@ -317,6 +317,11 @@ aob.min.rich.plot <- ggplot(aob.min.meta.df.tidy, aes(x = Date, y = Mean.Rich, l
                              theme(legend.direction = "horizontal", legend.box = "vertical")
 aob.min.rich.plot                            
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
+setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
+ggsave("AOB_min_rich3.tiff",
+       aob.min.rich.plot, device = tiff,
+       width = 9, height = 7.5, 
+       units= "in", dpi = 600)
 ggsave("AOB_min_rich3.eps",
        aob.min.rich.plot, device = cairo_ps,
        width = 9, height = 7.5, 
@@ -352,6 +357,12 @@ aob.min.sha.plot
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
 ggsave("AOB_min_sha2.eps",
        aob.min.sha.plot, device = cairo_ps,
+       width = 9, height = 7.5, 
+       units= "in", dpi = 600)
+
+setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
+ggsave("AOB_min_sha2.tiff",
+       aob.min.sha.plot, device = tiff,
        width = 9, height = 7.5, 
        units= "in", dpi = 600)
 
@@ -422,14 +433,24 @@ ggsave("AOB_min_invsimp.eps",
        width = 9, height = 7.5, 
        units= "in", dpi = 600)
 
+setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
+ggsave("AOB_min_invsimp.tiff",
+       aob.min.invsimp.plot, device = tiff,
+       width = 9, height = 7.5, 
+       units= "in", dpi = 600)
+
 #############################################################################
 
 # 1. Richness
 
 # Box plot of AOB Richness
 
-#install.packages("ggpattern")
-#install.packages("sf")
+install.packages('remotes')
+library(remotes)
+remotes::install_github("coolbutuseless/ggpattern")
+install.packages("rstatix")
+install.packages("sf")
+library(rstatix)
 library(sf)
 library(ggpattern)
 #soiltype <- c("Bulk Soil", "Rhizosphere")
@@ -475,8 +496,8 @@ library(ggpattern)
        #width = 12.5, height = 7, 
        #units= "in", dpi = 600)
 
-str(aob.min.meta.df)
-aob.min.meta.df$Date  <- as.Date(aob.min.meta.df$Date , "%m/%d/%y")
+#str(aob.min.meta.df)
+#aob.min.meta.df$Date  <- as.Date(aob.min.meta.df$Date , "%m/%d/%y")
 # Richness: plotting the significance across treatment
 aob.min.rich.pwc.plot <- ggplot(aob.min.meta.df, aes(x=Irrigation, y=Richness)) +
                geom_boxplot(aes(fill=Treatment))+
@@ -520,6 +541,11 @@ ggsave("AOB_min_rich_mean_boxplot.eps",
        aob.min.rich.pwc.plot2, device = "eps",
        width = 14, height =5.8, 
        units= "in", dpi = 600)
+setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
+ggsave("AOB_min_rich_mean_boxplot.tiff",
+       aob.min.rich.pwc.plot2, device = "tiff",
+       width = 14, height =5.8, 
+       units= "in", dpi = 600)
 
 # richness between irrigations
 aob.rich.pwc.irri.plot <- ggplot(aob.min.meta.df, aes(x=Date, y=Richness)) +
@@ -550,6 +576,13 @@ ggsave("AOB_rich_irri_boxplot.eps",
        aob.rich.pwc.irri.plot, device = "eps",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
+setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
+ggsave("AOB_rich_irri_boxplot.tiff",
+       aob.rich.pwc.irri.plot, device = "tiff",
+       width = 10, height =5.5, 
+       units= "in", dpi = 600)
+
+
 
 # 2. Shannon
 
@@ -592,6 +625,11 @@ aob.min.sha.pwc.plot2
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
 ggsave("AOB_min_sha_boxplot.eps",
        aob.min.sha.pwc.plot2, device = "eps",
+       width = 14, height =5.8, 
+       units= "in", dpi = 600)
+setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
+ggsave("AOB_min_sha_boxplot.tiff",
+       aob.min.sha.pwc.plot2, device = "tiff",
        width = 14, height =5.8, 
        units= "in", dpi = 600)
 
@@ -648,7 +686,11 @@ ggsave("AOB_sha_irri_boxplot.eps",
        aob.sha.pwc.irri.plot2, device = "eps",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
-
+setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
+ggsave("AOB_sha_irri_boxplot.tiff",
+       aob.sha.pwc.irri.plot2, device = "tiff",
+       width = 10, height =5.5, 
+       units= "in", dpi = 600)
 # Simpson
 
 # Simpson: plotting the significance across treatment
@@ -726,6 +768,11 @@ ggsave("AOB_min_invsimp_all.eps",
        aob.min.invsimp.pwc.plot2, device = "eps",
        width = 14, height =5.8, 
        units= "in", dpi = 600)
+setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
+ggsave("AOB_min_invsimp_all.tiff",
+       aob.min.invsimp.pwc.plot2, device = "tiff",
+       width = 14, height =5.8, 
+       units= "in", dpi = 600)
 
 # inverse simpson between irrigations
 aob.invsimp.pwc.irri.plot <- ggplot(aob.min.meta.df, aes(x=Date, y=InvSimpson)) +
@@ -761,6 +808,11 @@ aob.invsimp.pwc.irri.plot2
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
 ggsave("AOB_invsimp_irri_boxplot.eps",
        aob.invsimp.pwc.irri.plot2, device = "eps",
+       width = 10, height =5.5, 
+       units= "in", dpi = 600)
+setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
+ggsave("AOB_invsimp_irri_boxplot.tiff",
+       aob.invsimp.pwc.irri.plot2, device = "tiff",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
 
@@ -821,26 +873,26 @@ ax2.scores.uwUF.rare <- aob.rare_pcoa.uwUF$points[,2]
 #Bray-curtis:
 ax1 <- aob.asv.min_pcoa$eig[1]/sum(aob.asv.min_pcoa$eig)
 ax2 <- aob.asv.min_pcoa$eig[2]/sum(aob.asv.min_pcoa$eig)
-aob.map.pcoa <- cbind(aob.min.meta,ax1.scores,ax2.scores)
+aob.map.pcoa <- cbind(aob.min.meta.df,ax1.scores,ax2.scores)
 # jaccard
 ax1.j <- aob.asv.min_pcoa.jac$eig[1]/sum(aob.asv.min_pcoa.jac$eig)
 ax2.j <- aob.asv.min_pcoa.jac$eig[2]/sum(aob.asv.min_pcoa.jac$eig)
-aob.map.pcoa.j <- cbind(aob.min.meta,ax1.scores.j,ax2.scores.j)
+aob.map.pcoa.j <- cbind(aob.min.meta.df,ax1.scores.j,ax2.scores.j)
 # Weighted UniFrac using rarefied:
 ax1.wUF.rare <- aob.rare_pcoa.wUF$eig[1]/sum(aob.rare_pcoa.wUF$eig)
 ax2.wUF.rare <- aob.rare_pcoa.wUF$eig[2]/sum(aob.rare_pcoa.wUF$eig)
-aob.map.pcoa.wUF.rare <- cbind(aob.min.meta,ax1.scores.wUF.rare,ax2.scores.wUF.rare)
+aob.map.pcoa.wUF.rare <- cbind(aob.min.meta.df,ax1.scores.wUF.rare,ax2.scores.wUF.rare)
 # unweighted UniFrac
-ax1.uwUF <- aob.asv.min_pcoa.uwUF$eig[1]/sum(aob.asv.min_pcoa.uwUF$eig)
-ax2.uwUF <- aob.asv.min_pcoa.uwUF$eig[2]/sum(aob.asv.min_pcoa.uwUF$eig)
-aob.map.pcoa.uwUF <- cbind(aob.min.meta,ax1.scores.uwUF,ax2.scores.uwUF)
+ax1.uwUF.rare <- aob.rare_pcoa.uwUF$eig[1]/sum(aob.rare_pcoa.uwUF$eig)
+ax2.uwUF.rare <- aob.rare_pcoa.uwUF$eig[2]/sum(aob.rare_pcoa.uwUF$eig)
+aob.map.pcoa.uwUF.rare <- cbind(aob.min.meta.df,ax1.scores.uwUF.rare,ax2.scores.uwUF.rare)
 
 # simple plot
 aob.pcoa_plot <- plot(ax1.scores, ax2.scores, xlab=paste("PCoA1: ",round(ax1,3)*100,"% var. explained", sep=""), ylab=paste("PCoA2: ",round(ax2,3)*100,"% var. explained", sep=""))
 
 # 5. PCoA Plot 
 
-#require("ggrepel")
+require("ggrepel")
 library(ggrepel)
 library(viridis)
 
@@ -873,6 +925,10 @@ ggsave("AOB_PCoA_rare.tiff",
        aob.pcoa_plot, device = "tiff",
        width = 8, height =6, 
        units= "in", dpi = 600)
+
+
+
+
 
 # b. Jaccard:
 
@@ -975,6 +1031,7 @@ aob.asv.min.bulk <- aob.asv.min[,1:120]
 aob.asv.min.bulk1 <- aob.asv.min.bulk[rowSums(aob.asv.min.bulk)>0,]
 sort(rowSums(aob.asv.min.bulk1, na.rm = FALSE, dims = 1), decreasing = FALSE)
 aob.bulk_dist_bc <- vegdist(t(aob.asv.min.bulk1), method = "bray")
+dim(aob.asv.min.bulk1)
 # jaccard - Bulk Soil :
 aob.bulk_dist_jac <- vegdist(t(aob.asv.min.bulk1), binary = TRUE, method = "jaccard") 
 # Weighted UniFrac (rarefied) - Bulk Soil:
@@ -1017,7 +1074,7 @@ ax2.scores.uwUF.bulk <- aob.bulk_pcoa.uwUF$points[,2]
 #env_fit <- envfit(otu_pcoa, env, na.rm=TRUE)
 
 # 4. calculate percent variance explained, then add to plot
-
+aob.min.meta.bulk <- aob.min.meta.df[1:120,]
 # Bray-curtis - Bulk Soil:
 ax1.bulk <- aob.bulk_pcoa_bc$eig[1]/sum(aob.bulk_pcoa_bc$eig)
 ax2.bulk <- aob.bulk_pcoa_bc$eig[2]/sum(aob.bulk_pcoa_bc$eig)
@@ -1087,7 +1144,7 @@ ax2.scores.uwUF.rh <- aob.rh_pcoa.uwUF$points[,2]
 #env_fit <- envfit(otu_pcoa, env, na.rm=TRUE)
 
 # 4. calculate percent variance explained, then add to plot
-
+aob.min.meta.rh <- aob.min.meta.df[121:192,]
 # Bray-curtis - Rhizosphere :
 ax1.rh <- aob.rh_pcoa_bc$eig[1]/sum(aob.rh_pcoa_bc$eig)
 ax2.rh <- aob.rh_pcoa_bc$eig[2]/sum(aob.rh_pcoa_bc$eig)
@@ -1109,6 +1166,7 @@ aob.map.pcoa.uwUF.rh <- cbind(aob.min.meta.rh,ax1.scores.uwUF.rh,ax2.scores.uwUF
 
 #require("ggrepel")
 library(ggrepel)
+install.packages("viridis")
 library(viridis)
 
 # A. Bray-Curtis - Bulk Soil :
@@ -1153,7 +1211,8 @@ aob.pcoa_rh.plot <- ggplot(data = aob.map.pcoa.rh, aes(x=ax1.scores.rh, y=ax2.sc
                     stat_ellipse()
 aob.pcoa_rh.plot
 
-library(work)
+install.packages("patchwork")
+library(patchwork)
 
 aob.bray.plot <- aob.pcoa_bulk.plot |  aob.pcoa_rh.plot
 aob.bray.plot
@@ -1841,9 +1900,24 @@ ggsave("AOB_meanRA_barplot2.eps",
        units= "in", dpi = 600)
 
 # 2. unrarefied data
-aob.physeq
+head(aob.tax)
+aob.tax.physeq = tax_table(as.matrix(aob.tax)) # taxonomy table
+
+# phyloseq object of the metadata
+str(meta_micro)
+aob.meta.physeq <- sample_data(meta_micro)# meta data
+sample_names(aob.meta.physeq)
+
+# read the rooted tree
+AOB_rooted_tree <- ape::read.tree("tree.nwk")
+
+# make phyloseq object
+aob.physeq.unrare <- merge_phyloseq(aob.asv.physeq,aob.tax.physeq,aob.meta.physeq,AOB_rooted_tree)
+aob.physeq.unrare
+sample_data(aob.physeq.unrare)$SampleID <- paste0("S", sample_data(aob.physeq.unrare)$SampleID)
+sample_data(aob.physeq.unrare)
 # merge taxa by species
-aob.sp.unrare <- tax_glom(aob.physeq, taxrank = "Species", NArm = F)
+aob.sp.unrare <- tax_glom(aob.physeq.unrare, taxrank = "Species", NArm = F)
 aob.sp.unrare.ra <- transform_sample_counts(aob.sp.unrare, function(x) x/sum(x))
 aob.sp.unrare.ra
 
@@ -1860,7 +1934,7 @@ sp_col_x=c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD",
 install.packages("ggh4x")
 library(ggh4x)
 
-aob.sp.unrare.df$Date <- as.Date(aob.sp.unrare.df$Date , "%m/%d/%Y")
+#aob.sp.unrare.df$Date <- as.Date(aob.sp.unrare.df$Date , "%m/%d/%Y")
 aob.sp.unrare.df$Type <- factor(aob.sp.unrare.df$Type, levels = c("BS", "RS"),
                   labels = c("Bulk Soil", "Rhizosphere")
                   )
@@ -1872,7 +1946,7 @@ library(scales)
 aob.sp.unrare.plot <- ggplot(aob.sp.unrare.df, aes(x=interaction(Date, Irrigation), y=Mean, fill=Species)) + 
                      geom_bar(aes(), stat="identity", position="fill") + 
                      scale_fill_manual(legend, values=sp_col_x)+
-                     #scale_fill_manual(values=c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#77CCCC", "#117744", "#44AA77", "#88CCAA", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#C0C0C0"))+
+                     #scale_fill_manual(values=c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#77CCCC", "#1http://127.0.0.1:27015/graphics/plot_zoom_png?width=1920&height=101717744", "#44AA77", "#88CCAA", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#C0C0C0"))+
                      #scale_fill_manual(values=c('#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c','#f58231', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', 'lightslateblue', '#000000', 'tomato','hotpink2'))+
                      facet_nested(~Type+Treatment, nest_line = element_line(linetype = 1), scales="free")+
                      theme(legend.direction = "vertical",legend.position="right") + 
@@ -1905,7 +1979,11 @@ ggsave("AOB_meanRA_unrare_barplot.eps",
        aob.sp.unrare.plot, device = "eps",
        width = 15, height =6, 
        units= "in", dpi = 600)
-
+setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
+ggsave("AOB_meanRA_unrare_barplot.tiff",
+       aob.sp.unrare.plot, device = "tiff",
+       width = 15, height =6, 
+       units= "in", dpi = 600)
 
 ###################################################################################################
 # Compare the analyses with rarefaction to 1282 reads (remove sample with reads < 1000)
