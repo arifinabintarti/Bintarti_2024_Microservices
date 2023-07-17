@@ -245,7 +245,7 @@ carto_pal(n = NULL, 'Vivid')
 display_carto_pal(7, "Vivid")
 display_carto_pal(12, "Safe")
 color.trt <- c(D="#E58606", K="#5D69B1", M="#52BCA3")
-install.packages("ggnewscale")
+#install.packages("ggnewscale")
 library(ggnewscale)
 #install.packages("viridis")
 library(viridis)
@@ -690,7 +690,7 @@ aob.map.pcoa.uwUF <- cbind(aob.meta.df.sub,ax1.scores.uwUF,ax2.scores.uwUF)
 
 # 5. PCoA Plot 
 
-require("ggrepel")
+#require("ggrepel")
 library(ggrepel)
 library(viridis)
 
