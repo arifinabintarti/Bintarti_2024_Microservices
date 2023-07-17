@@ -1,54 +1,98 @@
-#################################################################################################
-#DIFFERENTIAL ABUNDANCE ANALYSIS: AOB 
-#################################################################################################
-
-# Date: 03/07/2023
-# Author: Ari Fina Bintarti
-
 library(phyloseq)
-#install.packages("picante")
 library(picante)
+# setwd("C:/Users/eperezvaler/OneDrive/GD/WORK/02.PROYECTOS/2023_NO-PIMS/DATA/03.ProcessedData/01.16SData2R/")
+# setwd("/home/eduardo/GDrive/WORK/02.PROYECTOS/2023_NO-PIMS/DATA/03.ProcessedData/01.16SData2R/")
 
-# upload phyloseq data 
-aob.physeq # unrarefied ASV table
-sort(colSums(otu_table(aob.physeq)), decreasing=F)
-# rarefied ASV table
-# rarefy to 1282 reads
-aob.rare.1282.seq
+# import all data
+physeq<-import_biom(BIOMfilename = "sampled_otu_table.biom",treefilename = "phylogeny.tre")
+metadata<-read.table("sampled_mapping_file_GENES.tsv",header = T,row.names = 1)
+sample_names(physeq)<-paste0("S",sample_names(physeq))
+sample_data(physeq)<-metadata
 
-# A. Bulk Soil
+# This step is to make the script working the same was as it was shared
+sample_data(physeq)$Treatment<-metadata$Genotype
+sample_data(physeq)$mesh_size_um<-metadata$Genotype
+sample_data(physeq)$sample_name<-row.names(sample_data(physeq))
 
-aob.physeq_bulk <- subset_samples(aob.rare.1282.seq, Type=="BS")
-aob.physeq_bulk1 <- prune_taxa(taxa_sums(aob.physeq_bulk)>0, aob.physeq_bulk)
-aob.physeq_bulk1
+sample_data(physeq)$Treatment<-factor(sample_data(physeq)$Treatment,levels=c("No","Col0","Nia1Nia2","Ahb1","Nox1","GSNOR1"))
+physeq<-subset_samples(physeq,row.names(sample_data(physeq))!="S5"&row.names(sample_data(physeq))!="S29")
+
+physeq<-subset_taxa(physeq, Rank5!="f__Mitochondria")
+physeq<-subset_taxa(physeq, Rank5!="f__Chloroplast")
+
+
+physeqr<-rarefy_even_depth(physeq,sample.size = 19000,replace = F,rngseed = 200)
+
+
+##########################################
+## BASIC STATS
+##########################################
+sum(otu_table(physeq))
+#  [1] 2329978
+
+mean(colSums(otu_table(physeq)))
+# [1] 40172.03
+
+str(otu_table(physeq))
+# 58 samples
+
+mean(colSums(otu_table(physeq)))/sqrt(58)
+# [1] 5274.847
+
+
 ################################
 # Filter low-abundant taxa
 ###############################
-aob.physeq.subset <- aob.physeq_bulk1
-aob.df <- as.data.frame(otu_table(aob.physeq.subset))
+physeq.subset <- physeqr
+data.obs <- as.data.frame(otu_table(physeq.subset))
 
-### keeping ASVs with at least 0.01 % relative abundance across all samples
-keep.taxa.id <- which((rowSums(aob.df)/sum(aob.df))>0.0001)
-aob.filt.df <- aob.df[keep.taxa.id,,drop=FALSE]
+### keeping OTUs with at least 0.02 % relative abundance across all samples
+keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0002)
+data.F=data.obs[keep.taxa.id,,drop=FALSE]
 
-aob.filt.mat <- as.matrix(aob.filt.df) # convert it into a matrix.
-aob.filt.mat <- otu_table(aob.filt.df, taxa_are_rows = TRUE) # convert into phyloseq compatible file.
-otu_table(aob.physeq.subset) <- aob.filt.mat # incroporate into phyloseq Object
+new.otu <- as.matrix(data.F) # convert it into a matrix.
+new.otu <- otu_table(data.F, taxa_are_rows = TRUE) # convert into phyloseq compatible file.
+otu_table(physeq.subset) <- new.otu # incroporate into phyloseq Object
 
-aob.physeq.subset
-# # it means only 428 taxa remain in the data set after filtering. 
+
+physeq.subset
+# # it means only 793 taxa remain in the dataset after filtering. 
+
+
+# # KEEPING THE SUM OF NON-INCLUDED TAXA AS OTU-104
+# physeq.subset <- physeq
+# data.obs <- as.data.frame(otu_table(physeq.subset))
+# 
+# ### keeping OTUs with at least 0.02 % relative abundance across all samples 
+# keep.taxa.id <- which((rowSums(data.obs)/sum(data.obs)) > 0.0002)
+# removed.taxa.id <- which((rowSums(data.obs)/sum(data.obs)) <= 0.0002)
+# removed.taxa.abundances <- colSums(data.obs[removed.taxa.id, ])
+# 
+# data.F <- data.obs[keep.taxa.id, , drop = FALSE] 
+# data.F <- rbind(data.F, removed.taxa.abundances)
+# 
+# row.names(data.F)[794]<-"OTU-104"
+# 
+# 
+# new.otu <- as.matrix(data.F) # convert it into a matrix.
+# new.otu <- otu_table(new.otu, taxa_are_rows = TRUE) # convert into phyloseq compatible file.
+# 
+# otu_table(physeq.subset) <- new.otu # incroporate into phyloseq Object
+# 
+# physeq.subset
+
 
 ########################################################################################
 #Lets generate a prevalence table (number of samples each taxa occurs in) for each taxa.
 ########################################################################################
 
-prevalencedf = apply(X = otu_table(aob.physeq.subset),
+prevalencedf = apply(X = otu_table(physeq.subset),
                      MARGIN = 1,
                      FUN = function(x){sum(x > 0)})
 
 # Add taxonomy and total read counts to this data.frame
 prevalencedf = data.frame(Prevalence = prevalencedf,
-                          TotalAbundance = taxa_sums(aob.physeq.subset)
+                          TotalAbundance = taxa_sums(physeq.subset)
 )
 prevalencedf[1:10,]
 #write.table(x=prevelancedf, file="Filtered_OTUtable-prevalence.csv")
@@ -57,21 +101,21 @@ dim(prevalencedf)
 
 ### calculate prevalence /!\ takes from 30min to 3h /!\
 
-ps <-  aob.physeq.subset 
+ps = physeq.subset 
 
 df_tmp <- psmelt(ps)
 df_tmp$sample <- 0
 df_tmp$sample[df_tmp$Abundance > 0] <- 1 #E: DON'T UNDERSTAND WHY THIS IS DONE
 
-df_otu_prev_ttt <- data.frame(matrix(ncol=nlevels(as.factor(df_tmp$var3)),
+df_otu_prev_ttt <- data.frame(matrix(ncol=nlevels(as.factor(df_tmp$Treatment)),
                                      nrow=nlevels(as.factor(df_tmp$OTU)), 
                                      dimnames=list(levels(as.factor(df_tmp$OTU)),
-                                                   levels(as.factor(df_tmp$var3)))))
+                                                   levels(as.factor(df_tmp$Treatment)))))
 #attention il ya Sample et sample
 
 for (i in unique(df_tmp$OTU)) {
-  for (j in unique(df_tmp$var3)) {
-    df_otu_prev_ttt[i,j] <- sum(df_tmp$sample[df_tmp$OTU == i & df_tmp$var3 == j],na.rm = T) / nrow(df_tmp[df_tmp$OTU == i & df_tmp$var3 == j,]) *100
+  for (j in unique(df_tmp$Treatment)) {
+    df_otu_prev_ttt[i,j] <- sum(df_tmp$sample[df_tmp$OTU == i & df_tmp$Treatment == j],na.rm = T) / nrow(df_tmp[df_tmp$OTU == i & df_tmp$Treatment == j,]) *100
     print(paste(i,j,df_otu_prev_ttt[i,j]),sep="\t")
     #print(df_otu_prev_ttt[i,j])
   }
@@ -127,20 +171,20 @@ library(UpSetR)
 
 # 
 
-tmp_T3s <- aob.physeq.subset
+tmp_T3s <- physeq.subset
 
 str(tmp_T3s)
 
 #  treatment
-a = tibble("sample"= tmp_T3s@sam_data$SampleID,
-           "treatment"= as.character(tmp_T3s@sam_data$var3))
+a = tibble("sample"= tmp_T3s@sam_data$sample_name,
+           "treatment"= as.character(tmp_T3s@sam_data$mesh_size_um))
 # force control as intercept
-#a[a == "Col0"] <- "1a"
+a[a == "Col0"] <- "1a"
 a = as.factor(a$treatment)
 # offset
 o = log(sample_sums(tmp_T3s))
 # random effect
-z <- as.factor(tmp_T3s@sam_data$SampleID)
+z <- as.factor(tmp_T3s@sam_data$sample_name)
 #tmp_T3s@sam_data$block <- paste(c("b"),tmp_T3s@sam_data$block, sep="")
 # x <- as.factor(tmp_T3s@sam_data$block)
 
@@ -190,14 +234,14 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
     #tmp_df[,"p.adjust"] <- p.adjust(tmp_df$p.value,"fdr",n=21)
     #tmp_df[,"p.adjust"] <- p.adjust(tmp_df$p.value,"bonferroni",n=21)
     
-    tmp_df = cbind("OTU" = OTU,tmp_df)
+    tmp_df = cbind("OTU"=OTU,tmp_df)
     
     glmT3s.pairwise.global = rbind(glmT3s.pairwise.global,tmp_df)
     
   },
   error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   
-  rm(ASV,y,glmT3s,glmT3s.sum)
+  rm(OTU,y,glmT3s,glmT3s.sum)
   
 }
 
@@ -804,10 +848,3 @@ dunn_test(value_abs ~ variable, data=RRT3s_mesh.melt[RRT3s_mesh.melt$group == "F
 PposRRT3s_mesh.melt <- RRT3s_mesh.melt[RRT3s_mesh.melt$group == "Fauna"&RRT3s_mesh.melt$sign== "positive",]
 ad.test((PposRRT3s_mesh.melt$value))
 dunn_test(value ~ sign_RR, data=PposRRT3s_mesh.melt)
-
-
-
- 
-
-
-

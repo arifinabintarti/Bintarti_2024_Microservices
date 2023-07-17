@@ -135,7 +135,7 @@ set.seed(13)
 aob.rare <- ggrare(aob.physeq, step = 1, color = "Type", label = "SampleID", se = FALSE)
 
 #set up your own color palette
-install.packages("colorBlindness")
+#install.packages("colorBlindness")
 library(colorBlindness)
 displayAvailablePalette(color="white")
 #Palette <- c("#1F968BFF","#FDE725FF")
@@ -245,7 +245,7 @@ carto_pal(n = NULL, 'Vivid')
 display_carto_pal(7, "Vivid")
 display_carto_pal(12, "Safe")
 color.trt <- c(D="#E58606", K="#5D69B1", M="#52BCA3")
-install.packages("ggnewscale")
+#install.packages("ggnewscale")
 library(ggnewscale)
 #install.packages("viridis")
 library(viridis)
@@ -944,7 +944,7 @@ aob.map.pcoa.uwUF.rh <- cbind(aob.meta.rh,ax1.scores.uwUF.rh,ax2.scores.uwUF.rh)
 
 #require("ggrepel")
 library(ggrepel)
-install.packages("viridis")
+#install.packages("viridis")
 library(viridis)
 
 # A. Bray-Curtis - Bulk Soil :
