@@ -201,7 +201,7 @@ sort(colSums(otu_table(aob.rare.1282.seq), na.rm = FALSE, dims = 1), decreasing 
 
 colSums(otu_table(aob.rare.1282.seq))
 aob.asv.rare1k <- as.data.frame(otu_table(aob.rare.1282.seq))
-dim(aob.asv.rare1k) # 1222 ASVs
+dim(aob.asv.rare1k) # 1222 ASVs, 191 samples
 aob.asv.rare1k_pa <- 1*(aob.asv.rare1k>0)
 aob.s <- specnumber(aob.asv.rare1k, MARGIN = 2) # richness
 aob.richness <- as.data.frame(aob.s) 
@@ -392,13 +392,43 @@ aob.rich.pwc.plot <- ggplot(aob.meta.df.sub, aes(x=Irrigation, y=Richness)) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 aob.rich.pwc.plot
+# adding treatment significance from the stats analyses
+trt.rich.all <- rbind(df.con.trt.bulk.tid,df.con.trt.rh.tid)
+# plotting the treatment significance
+trt.rich.all <- trt.rich.all %>% 
+  add_xy_position(x = "Irrigation", dodge = 0.8)
+
+aob.rich.pwc.plot2 <- aob.rich.pwc.plot + 
+  stat_pvalue_manual(trt.rich.all, x= "Irrigation",label = "p.adj.signif",
+                     #position = position_dodge(0.8),
+                     size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,
+                     y.position=max(aob.meta.df.sub$Richness)+sd(aob.meta.df.sub$Richness),
+                     bracket.shorten = 0, color = "blue",
+                     tip.length = 0.01, hide.ns = TRUE)+
+  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
+aob.rich.pwc.plot2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # adding treatment significance from the stats analyses
 aob.rich.pwc.all <- aob.meta.df.sub %>%
   group_by(Type, Date, Irrigation) %>%
   pairwise_t_test(Richness ~ Treatment, p.adjust.method = "BH") %>%
   select(-p, -p.signif)
-# plotting the treatment significances
+# plotting the treatment significance
 aob.rich.pwc.all <- aob.rich.pwc.all %>% 
   add_xy_position(x = "Irrigation", dodge = 0.8)
 aob.rich.pwc.plot2 <- aob.rich.pwc.plot + 
@@ -2212,7 +2242,7 @@ library(rstatix)
 library(sf)
 library(ggpattern)
 
-# Richness: plotting the pairwise comparisons across treatment
+# Richness: plotting the pairwise comparisons across treatment 
 aob.rich.pwc.plot <- ggplot(aob.meta.df.sub, aes(x=Irrigation, y=Richness)) +
   geom_boxplot(aes(fill=Treatment))+
   theme_bw() +
@@ -2231,19 +2261,22 @@ aob.rich.pwc.plot <- ggplot(aob.meta.df.sub, aes(x=Irrigation, y=Richness)) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 aob.rich.pwc.plot
-
-# adding treatment significance from the stats analyses
-aob.rich.pwc.all <- aob.meta.df.sub %>%
-  group_by(Type, Date, Irrigation) %>%
-  pairwise_t_test(Richness ~ Treatment, p.adjust.method = "BH") %>%
-  select(-p, -p.signif)
-# plotting the treatment significances
-aob.rich.pwc.all <- aob.rich.pwc.all %>% 
-  add_xy_position(x = "Irrigation", dodge = 0.8)
+# adding xy position for the pairwise comparisons among treatments (emmeans results)
+xy.rich.bulk <- emm.rich.bulk %>% 
+  add_xy_position(x = "Irrigation", dodge = 0.8) # bulk soil
+xy.rich.rh <- emm.rich.rh %>% 
+  add_xy_position(x = "Irrigation", dodge = 0.8)# rhizosphere
+# #combine two data frames and adding 'Type'
+df.xy.rich.bulk <- as.data.frame(xy.rich.bulk)
+df.xy.rich.rh <- as.data.frame(xy.rich.rh)
+df.xy.rich.all <- rbind(df.xy.rich.bulk, df.xy.rich.rh) 
+df.xy.rich.all$Type <-  c(rep("Bulk Soil", 30), rep("Rhizosphere", 18)) #adding 'Type'
+# plotting the pairwise comparisons among treatments (emmeans results)
 aob.rich.pwc.plot2 <- aob.rich.pwc.plot + 
-  stat_pvalue_manual(aob.rich.pwc.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
+  stat_pvalue_manual(df.xy.rich.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
   scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
 aob.rich.pwc.plot2
+
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
 ggsave("AOB_min_rich_mean_boxplot.eps",
        aob.min.rich.pwc.plot2, device = "eps",
@@ -2273,12 +2306,6 @@ aob.rich.pwc.irri.plot <- ggplot(aob.meta.df.sub, aes(x=Date, y=Richness)) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 aob.rich.pwc.irri.plot
-# adding irrigation significance from the stats analyses
-aob.rich.pwc.irri <- aob.meta.df.sub %>%
-  group_by(Type, Date, Treatment) %>%
-  pairwise_t_test(Richness ~ Irrigation, p.adjust.method = "BH") %>%
-  select(-p, -p.signif) #not significant
-
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
 ggsave("AOB_rich_irri_boxplot.eps",
        aob.rich.pwc.irri.plot, device = "eps",
@@ -2289,8 +2316,6 @@ ggsave("AOB_rich_irri_boxplot.tiff",
        aob.rich.pwc.irri.plot, device = "tiff",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
-
-
 
 # 2. Shannon
 
@@ -2314,16 +2339,19 @@ aob.sha.pwc.plot <- ggplot(aob.meta.df.sub, aes(x=Irrigation, y=Shannon)) +
         panel.grid.minor = element_blank())
 aob.sha.pwc.plot
 
-# adding asterix from the stats analyses
-aob.sha.pwc.all <- aob.meta.df.sub %>%
-  group_by(Type, Date, Irrigation) %>%
-  pairwise_t_test(Shannon ~ Treatment, p.adjust.method = "BH") %>%
-  select(-p, -p.signif)
-# plotting the significance
-aob.sha.pwc.all <- aob.sha.pwc.all %>%  
-  add_xy_position(x = "Irrigation", dodge = 0.8)
+# adding xy position for the pairwise comparisons among treatments (emmeans results)
+xy.sha.bulk <- emm.sha.bulk %>% 
+  add_xy_position(x = "Irrigation", dodge = 0.8) # bulk soil
+xy.sha.rh <- emm.sha.rh %>% 
+  add_xy_position(x = "Irrigation", dodge = 0.8)# rhizosphere
+# #combine two data frames and adding 'Type'
+df.xy.sha.bulk <- as.data.frame(xy.sha.bulk)
+df.xy.sha.rh <- as.data.frame(xy.sha.rh)
+df.xy.sha.all <- rbind(df.xy.sha.bulk, df.xy.sha.rh) 
+df.xy.sha.all$Type <-  c(rep("Bulk Soil", 30), rep("Rhizosphere", 18)) #adding 'Type'
+# plotting the pairwise comparisons among treatments (emmeans results)
 aob.sha.pwc.plot2 <- aob.sha.pwc.plot + 
-  stat_pvalue_manual(aob.sha.pwc.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
+  stat_pvalue_manual(df.xy.sha.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
   scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
 aob.sha.pwc.plot2
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
@@ -2332,7 +2360,7 @@ ggsave("AOB_min_sha_boxplot.eps",
        width = 14, height =5.8, 
        units= "in", dpi = 600)
 setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
-ggsave("AOB_min_sha_boxplot.tiff",
+ggsave("AOB_sha_boxplot.tiff",
        aob.sha.pwc.plot2, device = "tiff",
        width = 14, height =5.8, 
        units= "in", dpi = 600)
@@ -2356,26 +2384,14 @@ aob.sha.pwc.irri.plot <- ggplot(aob.meta.df.sub, aes(x=Date, y=Shannon)) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 aob.sha.pwc.irri.plot
-# adding irrigation significance from the stats analyses
-aob.sha.pwc.irri <- aob.meta.df.sub %>%
-  group_by(Type, Date, Treatment) %>%
-  pairwise_t_test(Shannon ~ Irrigation, p.adjust.method = "BH") %>%
-  select(-p, -p.signif)
-# plotting the irrigation significance
-aob.sha.pwc.irri <- aob.sha.pwc.irri %>% 
-  add_xy_position(x = "Date", dodge = 0.5)
-aob.sha.pwc.irri.plot2 <- aob.sha.pwc.irri.plot + 
-  stat_pvalue_manual(aob.sha.pwc.irri,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0.8, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
-  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
-aob.sha.pwc.irri.plot2
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
 ggsave("AOB_sha_irri_boxplot.eps",
-       aob.sha.pwc.irri.plot2, device = "eps",
+       aob.sha.pwc.irri.plot, device = "eps",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
 setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
 ggsave("AOB_sha_irri_boxplot.tiff",
-       aob.sha.pwc.irri.plot2, device = "tiff",
+       aob.sha.pwc.irri.plot, device = "tiff",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
 
@@ -2399,16 +2415,19 @@ aob.invsimp.pwc.plot <- ggplot(aob.meta.df.sub, aes(x=Irrigation, y=InvSimpson))
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 aob.invsimp.pwc.plot
-# adding asterix from the stats analyses
-aob.invsimp.pwc.all <- aob.meta.df.sub %>%
-  group_by(Type, Date, Irrigation) %>%
-  pairwise_t_test(InvSimpson ~ Treatment, p.adjust.method = "BH") %>%
-  select(-p, -p.signif)
-# plotting the significance
-aob.invsimp.pwc.all <- aob.invsimp.pwc.all %>% 
-  add_xy_position(x = "Irrigation", dodge = 0.8)
+# adding xy position for the pairwise comparisons among treatments (emmeans results)
+xy.invsimp.bulk <- emm.invsimp.bulk %>% 
+  add_xy_position(x = "Irrigation", dodge = 0.8) # bulk soil
+xy.invsimp.rh <- emm.invsimp.rh %>% 
+  add_xy_position(x = "Irrigation", dodge = 0.8)# rhizosphere
+# #combine two data frames and adding 'Type'
+df.xy.invsimp.bulk <- as.data.frame(xy.invsimp.bulk)
+df.xy.invsimp.rh <- as.data.frame(xy.invsimp.rh)
+df.xy.invsimp.all <- rbind(df.xy.invsimp.bulk, df.xy.invsimp.rh) 
+df.xy.invsimp.all$Type <-  c(rep("Bulk Soil", 30), rep("Rhizosphere", 18)) #adding 'Type'
+# plotting the pairwise comparisons among treatments (emmeans results)
 aob.invsimp.pwc.plot2 <- aob.invsimp.pwc.plot + 
-  stat_pvalue_manual(aob.invsimp.pwc.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
+  stat_pvalue_manual(df.xy.invsimp.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
   scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
 aob.invsimp.pwc.plot2
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
@@ -2440,16 +2459,19 @@ aob.invsimp.pwc.irri.plot <- ggplot(aob.meta.df.sub, aes(x=Date, y=InvSimpson)) 
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 aob.invsimp.pwc.irri.plot
-# adding irrigation significance from the stats analyses
-aob.invsimp.pwc.irri <- aob.meta.df.sub %>%
-  group_by(Type, Date, Treatment) %>%
-  pairwise_t_test(InvSimpson ~ Irrigation, p.adjust.method = "BH") %>%
-  select(-p, -p.signif)
-# plotting the irrigation significance
-aob.invsimp.pwc.irri <- aob.invsimp.pwc.irri %>% 
-  add_xy_position(x = "Date", dodge = 0.5)
+# adding xy position for the pairwise comparisons among treatments (emmeans results)
+xy.invsimp.irri.bulk <- emm.invsimp.irri.bulk %>% 
+  add_xy_position(x = "Date", dodge = 0.8) # bulk soil
+xy.invsimp.irri.rh <- emm.invsimp.irri.rh %>% 
+  add_xy_position(x = "Date", dodge = 0.8)# rhizosphere
+# #combine two data frames and adding 'Type'
+df.xy.invsimp.irri.bulk <- as.data.frame(xy.invsimp.irri.bulk)
+df.xy.invsimp.irri.rh <- as.data.frame(xy.invsimp.irri.rh)
+df.xy.invsimp.irri.all <- rbind(df.xy.invsimp.irri.bulk, df.xy.invsimp.irri.rh) 
+df.xy.invsimp.irri.all$Type <-  c(rep("Bulk Soil", 15), rep("Rhizosphere", 9)) #adding 'Type'
+# plotting the pairwise comparisons among treatments (emmeans results)
 aob.invsimp.pwc.irri.plot2 <- aob.invsimp.pwc.irri.plot + 
-  stat_pvalue_manual(aob.invsimp.pwc.irri,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0.8, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
+  stat_pvalue_manual(df.xy.invsimp.irri.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
   scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
 aob.invsimp.pwc.irri.plot2
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
@@ -2469,7 +2491,7 @@ ggsave("AOB_invsimp_irri_boxplot.tiff",
 
 # FOR ALL SAMPLES
 # 1. Calculating dissimilarity indices for community ecologist to make a distance structure (Bray-Curtis distance between samples)
-
+aob.asv.rare1k <- as.data.frame(otu_table(aob.rare.1282.seq))
 # Bray-Curtis using rarefied data:
 aob_dist_bc <- vegdist(t(aob.asv.rare1k), method = "bray")
 # Jaccard using rarefied data:
@@ -2646,6 +2668,7 @@ ggsave("AOB_UnweightedUniFrac_rarefied.tiff",
 # 1. Calculating dissimilarity indices for community ecologist to make a distance structure (Bray-Curtis distance between samples)
 
 # Bray-Curtis - Bulk Soil :
+aob.asv.rare1k <- as.data.frame(otu_table(aob.rare.1282.seq))
 aob.asv.bulk <- aob.asv.rare1k[,1:119]
 aob.asv.bulk1 <- aob.asv.bulk[rowSums(aob.asv.bulk)>0,]
 sort(rowSums(aob.asv.bulk1, na.rm = FALSE, dims = 1), decreasing = FALSE)
@@ -3290,6 +3313,7 @@ pw.bulk.dat_uwUF # none are significant
 # C. Pairwise Adonis Between Irrigation within Treatment and Date
 
 # separate the aob.asv table by date and treatment:
+
 # 1.04-28-2022
 # mineral:
 m04.asv <- aob.asv.bulk1 %>% select(S1, S2, S9, S10, S15, S16, S23, S24)
@@ -3497,10 +3521,10 @@ k09dist_bc <- vegdist(t(k09.asv1), method = "bray")
 ########################################################################################
 # Phyloseq object of rarefied data and unrarefied data:
 # 1. rarefied data
-aob.rare.min.physeq
-tax_table(aob.rare.min.physeq)
+aob.rare.1282.seq
+tax_table(aob.rare.1282.seq)
 # merge taxa by species
-aob.sp <- tax_glom(aob.rare.min.physeq, taxrank = "Species", NArm = F)
+aob.sp <- tax_glom(aob.rare.1282.seq, taxrank = "Species", NArm = F)
 aob.sp.ra <- transform_sample_counts(aob.sp, function(x) x/sum(x))
 sample_data(aob.sp.ra)
 
@@ -3525,27 +3549,27 @@ sp_col=c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD",
          "#117777", "#44AAAA", "#77CCCC", "#737373", "#117744", "#88CCAA",
          "#777711", "#fc8d59", "#fed976", 
          "#771122", "#AA4455", "#DD7788","#774411", "#AA7744", "#DDAA77")
-
-
+color <- c("#260F99","#422CB2", "#6551CC", "#8F7EE5", "#BFB2FF",
+           "#0F6B99", "#2C85B2", "#51A3CC", "#7EC3E5", "#B2E5FF",
+           "#6B990F", "#85B22C", "#A3CC51", "#C3E57E", "#E5FFB2",
+           "#990F0F", "#B22C2C", "#CC5151", "#E57E7E", "#FFB2B2","#99540F", "#B26F2C")
+displayAvailablePalette(color="white")
+SteppedSequential5Steps
 str(aob.sp.df)
-
 install.packages("ggh4x")
 library(ggh4x)
 
-aob.sp.df$Date <- as.Date(aob.sp.df$Date , "%m/%d/%Y")
 aob.sp.df$Type <- factor(aob.sp.df$Type, levels = c("BS", "RS"),
-                         labels = c("Bulk Soil", "Rhizosphere")
-)
+                         labels = c("Bulk Soil", "Rhizosphere"))
 aob.sp.df$Treatment <- factor(aob.sp.df$Treatment, levels = c("D", "K", "M"),
                               labels = c("Biodynamic", "Conventional", "Mineral"))
 legend <- "AOB Taxa"
 library(scales)
 #x_cols <- rep(hue_pal()(length(unique(interaction(aob.sp.df$Date, aob.sp.df$Irrigation)))))
+aob.sp.df$Date <- factor(aob.sp.df$Date, levels = unique(aob.sp.df$Date))
 aob.sp.plot <- ggplot(aob.sp.df, aes(x=interaction(Date, Irrigation), y=Mean, fill=Species)) + 
   geom_bar(aes(), stat="identity", position="fill") + 
-  scale_fill_manual(legend, values=sp_col)+
-  #scale_fill_manual(values=c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#77CCCC", "#117744", "#44AA77", "#88CCAA", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#C0C0C0"))+
-  #scale_fill_manual(values=c('#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c','#f58231', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', 'lightslateblue', '#000000', 'tomato','hotpink2'))+
+  scale_fill_manual(legend, values=SteppedSequential5Steps)+
   facet_nested(~Type+Treatment, nest_line = element_line(linetype = 1), scales="free")+
   theme(legend.direction = "vertical",legend.position="right") + 
   guides(fill=guide_legend(ncol=1))+
@@ -3566,15 +3590,17 @@ aob.sp.plot <- ggplot(aob.sp.df, aes(x=interaction(Date, Irrigation), y=Mean, fi
         strip.background = element_blank(),
         strip.text.x = element_text(size = 14, face = "bold"),
         panel.border = element_rect(colour = "black", fill = NA,linewidth= 0.2))+
-  #facet_grid(~plant, switch = "x", scales = "free_x")+
-  #guides(fill=guide_legend(nrow=2,byrow=TRUE))
-  scale_y_continuous(expand = c(0,0))+
-  guides(x="axis_nested")
-
+  scale_y_continuous(expand = c(0,0))+ guides(x="axis_nested")
 aob.sp.plot
+
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
 ggsave("AOB_meanRA_barplot2.eps",
        aob.sp.plot, device = "eps",
+       width = 15, height =6, 
+       units= "in", dpi = 600)
+setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
+ggsave("AOB_meanRA_barplot.tiff",
+       aob.sp.plot, device = "tiff",
        width = 15, height =6, 
        units= "in", dpi = 600)
 
@@ -3624,9 +3650,7 @@ library(scales)
 #x_cols <- rep(hue_pal()(length(unique(interaction(aob.sp.df$Date, aob.sp.df$Irrigation)))))
 aob.sp.unrare.plot <- ggplot(aob.sp.unrare.df, aes(x=interaction(Date, Irrigation), y=Mean, fill=Species)) + 
   geom_bar(aes(), stat="identity", position="fill") + 
-  scale_fill_manual(legend, values=sp_col_x)+
-  #scale_fill_manual(values=c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#77CCCC", "#1http://127.0.0.1:27015/graphics/plot_zoom_png?width=1920&height=101717744", "#44AA77", "#88CCAA", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#C0C0C0"))+
-  #scale_fill_manual(values=c('#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c','#f58231', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', 'lightslateblue', '#000000', 'tomato','hotpink2'))+
+  scale_fill_manual(legend, values=SteppedSequential5Steps)+
   facet_nested(~Type+Treatment, nest_line = element_line(linetype = 1), scales="free")+
   theme(legend.direction = "vertical",legend.position="right") + 
   guides(fill=guide_legend(ncol=1))+
@@ -3676,4 +3700,4 @@ ggsave("AOB_meanRA_unrare_barplot.tiff",
 
 
 
->>>>>>> 8490084a7912d18b71157071c41ac0b6bb3c8fb7
+

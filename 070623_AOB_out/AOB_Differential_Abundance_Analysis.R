@@ -10,8 +10,6 @@ library(phyloseq)
 library(picante)
 
 # upload phyloseq data 
-aob.physeq # unrarefied ASV table
-sort(colSums(otu_table(aob.physeq)), decreasing=F)
 # rarefied ASV table
 # rarefy to 1282 reads
 aob.rare.1282.seq
@@ -24,31 +22,32 @@ aob.physeq_bulk1
 ################################
 # Filter low-abundant taxa
 ###############################
-aob.physeq.subset <- aob.physeq_bulk1
-aob.df <- as.data.frame(otu_table(aob.physeq.subset))
+physeq.subset <- aob.physeq_bulk1
+data.obs <- as.data.frame(otu_table(physeq.subset))
 
-### keeping ASVs with at least 0.01 % relative abundance across all samples
-keep.taxa.id <- which((rowSums(aob.df)/sum(aob.df))>0.0001)
-aob.filt.df <- aob.df[keep.taxa.id,,drop=FALSE]
+### keeping OTUs with at least 0.01 % relative abundance across all samples
+keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
+data.F=data.obs[keep.taxa.id,,drop=FALSE]
 
-aob.filt.mat <- as.matrix(aob.filt.df) # convert it into a matrix.
-aob.filt.mat <- otu_table(aob.filt.df, taxa_are_rows = TRUE) # convert into phyloseq compatible file.
-otu_table(aob.physeq.subset) <- aob.filt.mat # incroporate into phyloseq Object
+new.otu <- as.matrix(data.F) # convert it into a matrix.
+new.otu <- otu_table(data.F, taxa_are_rows = TRUE) # convert into phyloseq compatible file.
+otu_table(physeq.subset) <- new.otu # incroporate into phyloseq Object
 
-aob.physeq.subset
+
+physeq.subset
 # # it means only 428 taxa remain in the data set after filtering. 
 
 ########################################################################################
 #Lets generate a prevalence table (number of samples each taxa occurs in) for each taxa.
 ########################################################################################
 
-prevalencedf = apply(X = otu_table(aob.physeq.subset),
+prevalencedf = apply(X = otu_table(physeq.subset),
                      MARGIN = 1,
                      FUN = function(x){sum(x > 0)})
 
 # Add taxonomy and total read counts to this data.frame
 prevalencedf = data.frame(Prevalence = prevalencedf,
-                          TotalAbundance = taxa_sums(aob.physeq.subset)
+                          TotalAbundance = taxa_sums(physeq.subset)
 )
 prevalencedf[1:10,]
 #write.table(x=prevelancedf, file="Filtered_OTUtable-prevalence.csv")
@@ -57,28 +56,28 @@ dim(prevalencedf)
 
 ### calculate prevalence /!\ takes from 30min to 3h /!\
 
-ps <-  aob.physeq.subset 
+ps = physeq.subset 
 
 df_tmp <- psmelt(ps)
 df_tmp$sample <- 0
 df_tmp$sample[df_tmp$Abundance > 0] <- 1 #E: DON'T UNDERSTAND WHY THIS IS DONE
 
-df_otu_prev_ttt <- data.frame(matrix(ncol=nlevels(as.factor(df_tmp$var3)),
+df_otu_prev_ttt <- data.frame(matrix(ncol=nlevels(as.factor(df_tmp$Treatment)),
                                      nrow=nlevels(as.factor(df_tmp$OTU)), 
                                      dimnames=list(levels(as.factor(df_tmp$OTU)),
-                                                   levels(as.factor(df_tmp$var3)))))
+                                                   levels(as.factor(df_tmp$Treatment)))))
 #attention il ya Sample et sample
 
 for (i in unique(df_tmp$OTU)) {
-  for (j in unique(df_tmp$var3)) {
-    df_otu_prev_ttt[i,j] <- sum(df_tmp$sample[df_tmp$OTU == i & df_tmp$var3 == j],na.rm = T) / nrow(df_tmp[df_tmp$OTU == i & df_tmp$var3 == j,]) *100
+  for (j in unique(df_tmp$Treatment)) {
+    df_otu_prev_ttt[i,j] <- sum(df_tmp$sample[df_tmp$OTU == i & df_tmp$Treatment == j],na.rm = T) / nrow(df_tmp[df_tmp$OTU == i & df_tmp$Treatment == j,]) *100
     print(paste(i,j,df_otu_prev_ttt[i,j]),sep="\t")
     #print(df_otu_prev_ttt[i,j])
   }
   
 }
 
-df_otu_prev_ttt$max_prev <- apply(df_otu_prev_ttt,MARGIN=1, FUN=max)
+df_otu_prev_ttt$max_prev <- apply(df_otu_prev_ttt,MARGIN=1, FUN=max) # DECIMAL NUMBER???
 
 # write.csv(df_otu_prev_ttt, file = "df_otu_prev_ttt.csv")
 
@@ -100,6 +99,8 @@ rm(ps,df_prev,tmp_otu_F)
 
 
 physeq.subset
+
+
 
 
 ####################################################
@@ -125,17 +126,18 @@ library(pals)
 library(rstatix)
 library(UpSetR)
 
-# 
 
-tmp_T3s <- aob.physeq.subset
+tmp_T3s <- physeq.subset
 
 str(tmp_T3s)
 
 #  treatment
 a = tibble("sample"= tmp_T3s@sam_data$SampleID,
-           "treatment"= as.character(tmp_T3s@sam_data$var3))
+           "treatment"= as.character(tmp_T3s@sam_data$Treatment),
+           "irrigation"= as.character(tmp_T3s@sam_data$Irrigation),
+           "date"= as.character(tmp_T3s@sam_data$Date))
 # force control as intercept
-#a[a == "Col0"] <- "1a"
+a[a == "Col0"] <- "1a"
 a = as.factor(a$treatment)
 # offset
 o = log(sample_sums(tmp_T3s))
@@ -190,14 +192,14 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
     #tmp_df[,"p.adjust"] <- p.adjust(tmp_df$p.value,"fdr",n=21)
     #tmp_df[,"p.adjust"] <- p.adjust(tmp_df$p.value,"bonferroni",n=21)
     
-    tmp_df = cbind("OTU" = OTU,tmp_df)
+    tmp_df = cbind("OTU"=OTU,tmp_df)
     
     glmT3s.pairwise.global = rbind(glmT3s.pairwise.global,tmp_df)
     
   },
   error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
   
-  rm(ASV,y,glmT3s,glmT3s.sum)
+  rm(OTU,y,glmT3s,glmT3s.sum)
   
 }
 
@@ -327,7 +329,7 @@ tmp1T3s$OTU <- gsub("-", "\\.", tmp1T3s$OTU)
 # relative abundance by treatment
 
 relabund_T3s = as_tibble(tmp1T3s %>% group_by(OTU,mesh_size_um, gp_sum) %>% summarise(sum=sum(Abundance), 
-                                                                                             avg=mean(Abundance)) %>% summarise(rel_abund=(sum*100/gp_sum), avg=avg)) 
+                                                                                      avg=mean(Abundance)) %>% summarise(rel_abund=(sum*100/gp_sum), avg=avg)) 
 tmp1T3s <- tmp1T3s[!duplicated(tmp1T3s),]
 #relabund_T3s = as_tibble(tmp0 %>% group_by(OTU,mesh_size_um) %>% summarise(avg=mean(Abundance)))
 
@@ -565,24 +567,24 @@ BT3s.shift.counts <- data.frame(RR_No = c(nrow(RRT3s_mesh[RRT3s_mesh$RR_No > 0,]
 
 
 # FT3s.shift.counts <- data.frame(RR_31 = c(nrow(RRT3s_meshF[RRT3s_meshF$RR_31 > 0,]), nrow(RRT3s_meshF[RRT3s_meshF$RR_31 < 0,])),
-                                # RR_50 = c(nrow(RRT3s_meshF[RRT3s_meshF$RR_50 > 0,]), nrow(RRT3s_meshF[RRT3s_meshF$RR_50 < 0,])),
-                                # RR_100 = c(nrow(RRT3s_meshF[RRT3s_meshF$RR_100 > 0,]), nrow(RRT3s_meshF[RRT3s_meshF$RR_100 < 0,])),
-                                # RR_250 = c(nrow(RRT3s_meshF[RRT3s_meshF$RR_250 > 0,]), nrow(RRT3s_meshF[RRT3s_meshF$RR_250 < 0,])),
-                                # RR_500 = c(nrow(RRT3s_meshF[RRT3s_meshF$RR_500 > 0,]), nrow(RRT3s_meshF[RRT3s_meshF$RR_500 < 0,])),
-                                # RR_1000 = c(nrow(RRT3s_meshF[RRT3s_meshF$RR_1000 > 0,]), nrow(RRT3s_meshF[RRT3s_meshF$RR_1000 < 0,])),
-                                # row.names = c("F-positive", "F-negative"))
+# RR_50 = c(nrow(RRT3s_meshF[RRT3s_meshF$RR_50 > 0,]), nrow(RRT3s_meshF[RRT3s_meshF$RR_50 < 0,])),
+# RR_100 = c(nrow(RRT3s_meshF[RRT3s_meshF$RR_100 > 0,]), nrow(RRT3s_meshF[RRT3s_meshF$RR_100 < 0,])),
+# RR_250 = c(nrow(RRT3s_meshF[RRT3s_meshF$RR_250 > 0,]), nrow(RRT3s_meshF[RRT3s_meshF$RR_250 < 0,])),
+# RR_500 = c(nrow(RRT3s_meshF[RRT3s_meshF$RR_500 > 0,]), nrow(RRT3s_meshF[RRT3s_meshF$RR_500 < 0,])),
+# RR_1000 = c(nrow(RRT3s_meshF[RRT3s_meshF$RR_1000 > 0,]), nrow(RRT3s_meshF[RRT3s_meshF$RR_1000 < 0,])),
+# row.names = c("F-positive", "F-negative"))
 
 # RRT3s_meshP <- RRT3s_mesh[RRT3s_mesh$group == "P",]
 # head(RRT3s_meshP)
 
 
 # PT3s.shift.counts <- data.frame(RR_31 = c(nrow(RRT3s_meshP[RRT3s_meshP$RR_31 > 0,]), nrow(RRT3s_meshP[RRT3s_meshP$RR_31 < 0,])),
-                                # RR_50 = c(nrow(RRT3s_meshP[RRT3s_meshP$RR_50 > 0,]), nrow(RRT3s_meshP[RRT3s_meshP$RR_50 < 0,])),
-                                # RR_100 = c(nrow(RRT3s_meshP[RRT3s_meshP$RR_100 > 0,]), nrow(RRT3s_meshP[RRT3s_meshP$RR_100 < 0,])),
-                                # RR_250 = c(nrow(RRT3s_meshP[RRT3s_meshP$RR_250 > 0,]), nrow(RRT3s_meshP[RRT3s_meshP$RR_250 < 0,])),
-                                # RR_500 = c(nrow(RRT3s_meshP[RRT3s_meshP$RR_500 > 0,]), nrow(RRT3s_meshP[RRT3s_meshP$RR_500 < 0,])),
-                                # RR_1000 = c(nrow(RRT3s_meshP[RRT3s_meshP$RR_1000 > 0,]), nrow(RRT3s_meshP[RRT3s_meshP$RR_1000 < 0,])),
-                                # row.names = c("P-positive", "P-negative"))
+# RR_50 = c(nrow(RRT3s_meshP[RRT3s_meshP$RR_50 > 0,]), nrow(RRT3s_meshP[RRT3s_meshP$RR_50 < 0,])),
+# RR_100 = c(nrow(RRT3s_meshP[RRT3s_meshP$RR_100 > 0,]), nrow(RRT3s_meshP[RRT3s_meshP$RR_100 < 0,])),
+# RR_250 = c(nrow(RRT3s_meshP[RRT3s_meshP$RR_250 > 0,]), nrow(RRT3s_meshP[RRT3s_meshP$RR_250 < 0,])),
+# RR_500 = c(nrow(RRT3s_meshP[RRT3s_meshP$RR_500 > 0,]), nrow(RRT3s_meshP[RRT3s_meshP$RR_500 < 0,])),
+# RR_1000 = c(nrow(RRT3s_meshP[RRT3s_meshP$RR_1000 > 0,]), nrow(RRT3s_meshP[RRT3s_meshP$RR_1000 < 0,])),
+# row.names = c("P-positive", "P-negative"))
 
 # BFPT3s.shift.counts <- rbind(BT3s.shift.counts, FT3s.shift.counts, PT3s.shift.counts)
 
@@ -643,7 +645,7 @@ head(abund_counts_responseT3s.melt0)
 # plots------
 
 # abund_counts_responseT3s.melt00 <- abund_counts_responseT3s.melt0[abund_counts_responseT3s.melt0$variable == "rel_abund" | 
-                                                                    # abund_counts_responseT3s.melt0$variable == "rel_otu_nb_total",]
+# abund_counts_responseT3s.melt0$variable == "rel_otu_nb_total",]
 abund_counts_responseT3s.melt00 <- abund_counts_responseT3s.melt0[abund_counts_responseT3s.melt0$variable == "rel_otu_nb_total",]
 
 abund_counts_responseT3s.melt00$RR <- gsub("RR_", "", abund_counts_responseT3s.melt00$RR)
@@ -656,11 +658,11 @@ abund_counts_responseT3s.melt00$RR <- factor(abund_counts_responseT3s.melt00$RR,
 abund_counts_responseT3s.p <- ggplot(abund_counts_responseT3s.melt00, aes(x = RR, y = value, fill = response)) + 
   geom_bar(stat = "identity")+geom_hline(yintercept =0,color="white")+ scale_fill_manual(values=c("#FF6666","#6666FF"))+geom_hline(yintercept=0, color="black")+
   theme_bw() + theme(axis.text.x = element_text(angle=90, size = 12, hjust=1, vjust=0.5),
-                                                  strip.text.x= element_text(size = 16),
-                                                  axis.text.y = element_text(size = 12),
-                                                  axis.title.y = element_text(size=16),
-                                                  axis.title.x = element_blank(),
-                                                  panel.grid = element_blank())+ylab("affected OTUs (%)")
+                     strip.text.x= element_text(size = 16),
+                     axis.text.y = element_text(size = 12),
+                     axis.title.y = element_text(size=16),
+                     axis.title.x = element_blank(),
+                     panel.grid = element_blank())+ylab("affected OTUs (%)")
 
 abund_counts_responseT3s.p
 
@@ -710,11 +712,11 @@ head(rep_all_T3s_sum.melt)
 
 overall_resp_T3s <- ggplot(subset(rep_all_T3s_sum.melt,rep_all_T3s_sum.melt$variable=="total_prevalence"), aes(x = overall, y = value, fill = overall)) + geom_bar(stat = "identity")+geom_hline(yintercept =0,color="white")+ 
   theme_bw() + theme(axis.text.x = element_text(angle=90, size = 10, hjust=1),
-                                                 strip.text.x= element_text(size = 11),
-                                                 axis.text.y = element_text(size = 10),
-                                                 axis.title.y = element_blank(),
-                                                 axis.title.x = element_blank(),
-                                                 panel.grid = element_blank())+
+                     strip.text.x= element_text(size = 11),
+                     axis.text.y = element_text(size = 10),
+                     axis.title.y = element_blank(),
+                     axis.title.x = element_blank(),
+                     panel.grid = element_blank())+
   labs(title = "")+ facet_wrap(~ variable)#+ scale_y_continuous(limits = c(-600, 250))
 
 
@@ -804,10 +806,3 @@ dunn_test(value_abs ~ variable, data=RRT3s_mesh.melt[RRT3s_mesh.melt$group == "F
 PposRRT3s_mesh.melt <- RRT3s_mesh.melt[RRT3s_mesh.melt$group == "Fauna"&RRT3s_mesh.melt$sign== "positive",]
 ad.test((PposRRT3s_mesh.melt$value))
 dunn_test(value ~ sign_RR, data=PposRRT3s_mesh.melt)
-
-
-
- 
-
-
-

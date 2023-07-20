@@ -13,254 +13,226 @@ library(rstatix)
 # 1. Response variable: Richness
 ###########################################################################
 # 1a. Analyses of Bulk Soil
-str(aob.min.meta.df)
-aob.min.meta.bulk <- aob.min.meta.df[1:120,]
-str(aob.min.meta.bulk)
-aob.min.meta.bulk.sum.rich <- aob.min.meta.bulk %>%
+aob.meta.bulk <- aob.meta.df.sub[1:119,]
+str(aob.meta.bulk)
+aob.meta.bulk.sum.rich <- aob.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   get_summary_stats(Richness, type = "mean_sd")
 aob.bulk.sum.rich.plot <- ggboxplot(
-  aob.min.meta.bulk, x = "Irrigation", y = "Richness",
+  aob.meta.bulk, x = "Irrigation", y = "Richness",
   color = "Treatment", palette = "jco",
   facet.by =  "Date")
 aob.bulk.sum.rich.plot
 # check assumption (outliers)
-aob.bulk.rich.out <- aob.min.meta.bulk %>%
+aob.bulk.rich.out <- aob.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   identify_outliers(Richness) # no extreme outliers
 # Saphiro-Wilk for normality
-aob.bulk.rich.SW <- aob.min.meta.bulk %>%
+aob.bulk.rich.SW <- aob.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   shapiro_test(Richness)
-ggqqplot(aob.min.meta.bulk, "Richness", ggtheme = theme_bw()) +
+ggqqplot(aob.meta.bulk, "Richness", ggtheme = theme_bw()) +
   facet_grid(Date ~ Treatment, labeller = "label_both") #All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
 # Lavene test
-aob.bulk.rich.Lave <- aob.min.meta.bulk %>%
+aob.bulk.rich.Lave <- aob.meta.bulk %>%
   group_by(Date) %>%
   levene_test(Richness ~ Irrigation*Treatment)
 #If group sample sizes are (approximately) equal, run the three-way mixed ANOVA anyway because it is somewhat robust to heterogeneity of variance in these circumstances.
 # Three-Way Mixed (Split-Plot) ANOVA 
-aob.min.meta.bulk$SampleID <- as.factor(aob.min.meta.bulk$SampleID)
-aob.min.meta.bulk$PlotID <- as.factor(aob.min.meta.bulk$PlotID)
+set.seed(13)
 aob.bulk.rich.aov <- anova_test(
-  data = aob.min.meta.bulk, type=3, dv = Richness, wid = PlotID,
+  data = aob.meta.bulk, type=2, dv = Richness, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aob.bulk.rich.aov)
-# RESULT: Significant effect of treatment but not irrigation within date on the AOB richness
-# There are no significant three-way interaction on the AOB richnesss
-# ANOVA table (type I tests)
-# Effect      DFn    DFd      F        p p<.05       ges
-# Irrigation  1     18     0.124      7.28e-01       0.002
-# Treatment   2     18    18.130      4.87e-05     * 0.404
-# Date        4     72     6.705      2.00e-03     * 0.198
-# Check other methods:
-# Test Method 1
-model1 <- aov(aob.min.meta.bulk$Richness ~ Irrigation*Treatment*Date + Error(PlotID/(Date)) + Irrigation*Treatment, data=aob.min.meta.bulk)
-summary(model1)
-# Test Method 2
-install.packages("lmerTest")
-library(lmerTest)
-str(aob.min.meta.bulk)
-aob.min.meta.bulk$Date <- as.factor(aob.min.meta.bulk$Date)
-aob.min.meta.bulk$var <- as.factor(aob.min.meta.bulk$var)
-aob.min.meta.bulk$var2 <- as.factor(aob.min.meta.bulk$var2)
-model2 <- lmerTest::lmer(aob.min.meta.bulk$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.min.meta.bulk)
-anova(model2)
-# Test Method 3
-model3 <- lme(Richness ~ Irrigation*Treatment*Date, random=~1 | PlotID, method="ML", data=aob.min.meta.bulk)
-anova(model3)
-# Test Method 4
-aob.bulk.rich.aov <- anova_test(
-  data = aob.min.meta.bulk, type=1, dv = Richness, wid = PlotID,
-  within = Date, between = c(Irrigation, Treatment))
-get_anova_table(aob.bulk.rich.aov)
-# two-way interaction
-aob.bulk.rich.aov.two.way <- aob.min.meta.bulk %>%
-  group_by(Date) %>%
-  anova_test(dv = Richness, wid = PlotID, between = c(Irrigation, Treatment))
-aob.bulk.rich.aov.two.way # there are no significant two-way interactions
-# There are only main effect significance in specific date
-# simple simple test for main effect
-aob.rich.trt.effect <- aob.min.meta.bulk %>%
-  group_by(Date, Irrigation) %>%
-  anova_test(dv = Richness, wid = PlotID, between = Treatment)
-aob.rich.trt.effect
-# simple simple multiple paiwaise comparisons or posthoc test
+# Test Method 3 
+#model3 <- lme(Richness ~ Irrigation*Treatment*Date, random=~1 | PlotID, method="REML", data=aob.meta.bulk)
+#anova(model3)
+#model1 <- aov(aob.meta.bulk$Richness ~ Irrigation*Treatment*Date + Error(PlotID/Irrigation*Treatment) , data=aob.meta.bulk)
+#summary(model1)
+
+############################################################################################################
+# Model Fit
+set.seed(13)
+rich.bulk.mod <- lmerTest::lmer(aob.meta.bulk$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.bulk)
+anova(rich.bulk.mod, type = 2)
 # Fit pairwise comparisons
-aob.min.meta.bulk$Treatment <- factor(aob.min.meta.bulk$Treatment, levels = c("D", "K", "M"),
-                  labels = c("Biodynamic", "Conventional", "Mineral fertilized"))
-aob.min.meta.bulk$Date  <- as.Date(aob.min.meta.bulk$Date , "%m/%d/%Y")
-aob.rich.pwc <- aob.min.meta.bulk %>%
+# Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
+# 1. between fertilization treatment:
+emm.rich.bulk <- aob.meta.bulk %>%
+  group_by(Date, Irrigation) %>%
+  emmeans_test(Richness ~ Treatment, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = rich.bulk.mod)
+# 2. between irrigation:
+emm.rich.irri.bulk <- aob.meta.bulk %>%
   group_by(Date, Treatment) %>%
-  pairwise_t_test(Richness ~ Irrigation, p.adjust.method = "BH") %>%
-  select(-p, -p.signif) # Remove details
-aob.rich.pwc
+  emmeans_test(Richness ~ Irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = rich.bulk.mod)
+#############################################################################################################
+
+# Check other methods:
+# pairwise comparisons
+# library(emmeans)
+# emm.bulk <- emmeans(rich.bulk.mod, ~ Irrigation*Treatment*Date)
+# con <- contrast(emm.bulk, "pairwise", simple = "Irrigation")
+# summary(con, adjust="fdr")
+
+# 1. between irrigation treatments
+#emm.irri.bulk <- emmeans(rich.bulk.mod,~Irrigation|Treatment*Date, lmer.df = "satterthwaite")
+#con.irri.bulk <- contrast(emm.irri.bulk, "pairwise", adjust="fdr")
+#df.con.irri.bulk <-  as.data.frame(con.irri.bulk)
+
+# 2. among fertilization treatments
+#emm.trt.bulk <- emmeans(rich.bulk.mod,~Treatment|Irrigation*Date, lmer.df = "satterthwaite")
+#con.trt.bulk <- contrast(emm.trt.bulk, "pairwise", adjust="fdr")
+#df.con.trt.bulk <-  as.data.frame(con.trt.bulk)
+
+# adding significance codes
+#df.con.trt.bulk$p.adj.signif <- ifelse(df.con.trt.bulk$p.value>0.05,"ns", 
+                                       #ifelse(df.con.trt.bulk$p.value>=0.01&df.con.trt.bulk$p.value<=0.05,"*",
+                                       #ifelse(df.con.trt.bulk$p.value>=0.001&df.con.trt.bulk$p.value<=0.01,"**",
+                                       #ifelse(df.con.trt.bulk$p.value>=0&df.con.trt.bulk$p.value<=0.001,"***", "ns"))))
+#df.con.trt.bulk.tid <- separate(data = df.con.trt.bulk, col = contrast, into = c("group1", "group2"), sep = "\\-")
+#df.con.trt.bulk.tid$Type <- "Bulk Soil"
+
+#df.con.irri.bulk$p.adj.signif <- ifelse(df.con.irri.bulk$p.value>0.05,"ns", 
+                                        #ifelse(df.con.irri.bulk$p.value>=0.01&df.con.irri.bulk$p.value<=0.05,"*",
+                                        #ifelse(df.con.irri.bulk$p.value>=0.001&df.con.irri.bulk$p.value<=0.01,"**",
+                                        #ifelse(df.con.irri.bulk$p.value>=0&df.con.irri.bulk$p.value<=0.001,"***", "ns"))))
+#df.con.irri.bulk.tid <- separate(data = df.con.irri.bulk, col = contrast, into = c("group1", "group2"), sep = "\\-")
+#df.con.irri.bulk.tid$Type <- "Bulk Soil"
+
 ######################################################################
 # 1b. Analyses of rhizosphere Soil
-aob.min.meta.rh <- aob.min.meta.df[121:192,]
-str(aob.min.meta.rh)
-aob.min.meta.rh$SampleID <- as.factor(aob.min.meta.rh$SampleID)
-aob.min.meta.rh$PlotID <- as.factor(aob.min.meta.rh$PlotID)
-aob.min.meta.rh$Date <- as.factor(aob.min.meta.rh$Date)
-aob.min.meta.rh.sum.rich <- aob.min.meta.rh %>%
+aob.meta.rh <- aob.meta.df.sub[120:191,]
+str(aob.meta.rh)
+aob.meta.rh.sum.rich <- aob.meta.rh %>%
   group_by(Irrigation, Treatment, Date) %>%
   get_summary_stats(Richness, type = "mean_sd")
 aob.rh.sum.rich.plot <- ggboxplot(
-  aob.min.meta.rh, x = "Irrigation", y = "Richness",
+  aob.meta.rh, x = "Irrigation", y = "Richness",
   color = "Treatment", palette = "jco",
   facet.by =  "Date")
 aob.rh.sum.rich.plot
 # check assumption (outliers)
-aob.rh.rich.out <- aob.min.meta.rh %>%
+aob.rh.rich.out <- aob.meta.rh %>%
   group_by(Irrigation, Treatment, Date) %>%
   identify_outliers(Richness) # no extreme outliers
 # Saphiro-Wilk for normality
-aob.rh.rich.SW <- aob.min.meta.rh %>%
+aob.rh.rich.SW <- aob.meta.rh %>%
   group_by(Irrigation, Treatment, Date) %>%
   shapiro_test(Richness)
-ggqqplot(aob.min.meta.rh, "Richness", ggtheme = theme_bw()) +
+ggqqplot(aob.meta.rh, "Richness", ggtheme = theme_bw()) +
   facet_grid(Date ~ Treatment, labeller = "label_both") #All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
 # Lavene test
-aob.rh.rich.Lave <- aob.min.meta.rh %>%
+aob.rh.rich.Lave <- aob.meta.rh %>%
   group_by(Date) %>%
   levene_test(Richness ~ Irrigation*Treatment)
 #If group sample sizes are (approximately) equal, run the three-way mixed ANOVA anyway because it is somewhat robust to heterogeneity of variance in these circumstances.
 # Three-Way Mixed (Split-Plot) ANOVA 
-aob.min.meta.rh$SampleID <- as.factor(aob.min.meta.rh$SampleID)
-aob.min.meta.rh$PlotID <- as.factor(aob.min.meta.rh$PlotID)
 aob.rh.rich.aov <- anova_test(
-  data = aob.min.meta.rh, dv = Richness, wid = PlotID,
+  data = aob.meta.rh, dv = Richness, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aob.rh.rich.aov)
-# RESULT: Significant effect of treatment but not irrigation within date on the AOB richness
-# There are no significant three-way interaction on the AOB richnesss
-# ANOVA table (type I/II tests)
-# Effect      DFn    DFd      F       p p<.05     ges
-# Irrigation  1     18     0.133      0.72        0.002
-# Treatment   2     18    13.291      0.000285  * 0.404
-# Date        4     72     1.657      0.205       0.198
-# Check other methods:
-# Test Method 1
-model1 <- aov(aob.min.meta.rh$Richness ~ Irrigation*Treatment*Date + Error(PlotID/(Date)) + Irrigation*Treatment, data=aob.min.meta.rh)
-summary(model1)
-# Test Method 2
-#install.packages("lmerTest")
-library(lmerTest)
-str(aob.min.meta.rh)
-model2 <- lmerTest::lmer(aob.min.meta.rh$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.min.meta.rh)
-anova(model2)
+# other model
+# model1 <- aov(aob.meta.rh$Richness ~ Irrigation*Treatment*Date + Error(PlotID/Irrigation*Treatment), data=aob.meta.rh)
+# summary(model1)
 # Test Method 3
-model3 <- lme(Richness ~ Irrigation*Treatment*Date, random=~1 | PlotID, method="ML", data=aob.min.meta.rh)
-anova(model3)
-# two-way interaction
-aob.rh.rich.aov.two.way <- aob.min.meta.rh %>%
-  group_by(Date) %>%
-  anova_test(dv = Richness, wid = PlotID, between = c(Irrigation, Treatment))
-aob.rh.rich.aov.two.way # there are no significant two-way interactions
-# There are only main effect significance in specific date
-# simple simple test for main effect
-aob.rich.trt.effect.rh <- aob.min.meta.rh %>%
-  group_by(Date, Irrigation) %>%
-  anova_test(dv = Richness, wid = PlotID, between = Treatment)
-aob.rich.trt.effect.rh
-# simple simple multiple paiwaise comparisons or posthoc test
-# Fit pairwise comparisons
-aob.min.meta.rh$Treatment <- factor(aob.min.meta.rh$Treatment, levels = c("D", "K", "M"),
-                  labels = c("Biodynamic", "Conventional", "Mineral fertilized"))
-aob.min.meta.rh$Date  <- as.Date(aob.min.meta.rh$Date , "%m/%d/%Y")
-aob.rich.pwc.rh <- aob.min.meta.rh %>%
-  group_by(Date, Irrigation) %>%
-  pairwise_t_test(Richness ~ Treatment, p.adjust.method = "BH") %>%
-  select(-p, -p.signif) # Remove details
-aob.rich.pwc.rh
+# model3 <- lme(Richness ~ Irrigation*Treatment*Date, random=~1 | PlotID, method="ML", data=aob.meta.rh)
+# anova(model3)
 
-# pairwise comparisons for all data
-aob.min.meta$Treatment <- factor(aob.min.meta$Treatment, levels = c("D", "K", "M"),
-                  labels = c("Biodynamic", "Conventional", "Mineral fertilized"))
-aob.min.meta$Date  <- as.Date(aob.min.meta$Date , "%m/%d/%Y")
-aob.min.meta$Type <- factor(aob.min.meta$Type, levels = c("BS", "RS"),
-                  labels = c("Bulk Soil", "Rhizosphere"))
-aob.rich.pwc.all <- aob.min.meta %>%
-  group_by(Type, Date, Irrigation) %>%
-  pairwise_t_test(Richness ~ Treatment, p.adjust.method = "BH") %>%
-  select(-p, -p.signif)
-
+# Model Fit
+set.seed(13)
+rich.rhizo.mod <- lmerTest::lmer(aob.meta.rh$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.rh)
+#library(pbkrtest)
+#anova(rich.rhizo.mod, type = 2, ddf= "Kenward-Roger") # similar with below
+anova(rich.rhizo.mod, type = 2)
+# pairwise comparisons
+# 1. between fertilization treatment:
+emm.rich.rh <- aob.meta.rh %>%
+  group_by(Date, Irrigation) %>%
+  emmeans_test(Richness ~ Treatment, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = rich.rhizo.mod)
+# 2. between irrigation:
+emm.rich.irri.rh <- aob.meta.rh %>%
+  group_by(Date, Treatment) %>%
+  emmeans_test(Richness ~ Irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = rich.rhizo.mod)
 ###########################################################################
 # 2. Response variable: Shannon
 ###########################################################################
 # 2a. Analyses of Bulk Soil
-str(aob.min.meta.bulk)
-aob.min.meta.bulk.sum.sha <- aob.min.meta.bulk %>%
+aob.meta.bulk.sum.sha <- aob.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   get_summary_stats(Shannon, type = "mean_sd")
 aob.bulk.sum.sha.plot <- ggboxplot(
-  aob.min.meta.bulk, x = "Irrigation", y = "Shannon",
+  aob.meta.bulk, x = "Irrigation", y = "Shannon",
   color = "Treatment", palette = "jco",
   facet.by =  "Date")
 aob.bulk.sum.sha.plot
 # check assumption (outliers)
-aob.bulk.sha.out <- aob.min.meta.bulk %>%
+aob.bulk.sha.out <- aob.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   identify_outliers(Shannon) # no extreme outliers
 # Saphiro-Wilk for normality
-aob.bulk.sha.SW <- aob.min.meta.bulk %>%
+aob.bulk.sha.SW <- aob.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   shapiro_test(Shannon)
-ggqqplot(aob.min.meta.bulk, "Shannon", ggtheme = theme_bw()) +
+ggqqplot(aob.meta.bulk, "Shannon", ggtheme = theme_bw()) +
   facet_grid(Date ~ Treatment, labeller = "label_both") #All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
 # Lavene test
-aob.bulk.sha.Lave <- aob.min.meta.bulk %>%
+aob.bulk.sha.Lave <- aob.meta.bulk %>%
   group_by(Date) %>%
   levene_test(Shannon ~ Irrigation*Treatment)
 #If group sample sizes are (approximately) equal, run the three-way mixed ANOVA anyway because it is somewhat robust to heterogeneity of variance in these circumstances.
 # Three-Way Mixed (Split-Plot) ANOVA 
-str(aob.min.meta.bulk)
 aob.bulk.sha.aov <- anova_test(
-  data = aob.min.meta.bulk, type=3, dv = Shannon, wid = PlotID,
+  data = aob.meta.bulk, type=2, dv = Shannon, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aob.bulk.sha.aov)
-# other method with lmer
-model2 <- lmerTest::lmer(aob.min.meta.bulk$Shannon ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.min.meta.bulk)
-anova(model2)
-# two-way interaction
-aob.bulk.sha.aov.two.way <- aob.min.meta.bulk %>%
-  group_by(Date) %>%
-  anova_test(dv = Shannon, wid = PlotID, between = c(Irrigation, Treatment))
-aob.bulk.sha.aov.two.way # there are no significant two-way interactions
-# There are only main effect significance of Treatment in specific date
-# simple simple test for main effect
-aob.sha.trt.effect.bulk <- aob.min.meta.bulk %>%
-  group_by(Date, Irrigation) %>%
-  anova_test(dv = Shannon, wid = PlotID, between = Treatment)
-aob.sha.trt.effect.bulk
-# simple simple multiple paiwaise comparisons or posthoc test
+############################################################################################################
+# Model Fit
+set.seed(13)
+sha.bulk.mod <- lmerTest::lmer(aob.meta.bulk$Shannon ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.bulk)
+anova(sha.bulk.mod, type = 2)
 # Fit pairwise comparisons
-str(aob.min.meta.bulk)
-aob.sha.pwc.bulk <- aob.min.meta.bulk %>%
+# Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
+# 1. between fertilization treatment:
+emm.sha.bulk <- aob.meta.bulk %>%
   group_by(Date, Irrigation) %>%
-  pairwise_t_test(Shannon ~ Treatment, p.adjust.method = "BH") %>%
-  select(-p, -p.signif) # Remove details
-aob.sha.pwc.bulk
+  emmeans_test(Shannon ~ Treatment, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = sha.bulk.mod)
+# 2. between irrigation:
+emm.sha.irri.bulk <- aob.meta.bulk %>%
+  group_by(Date, Treatment) %>%
+  emmeans_test(Shannon ~ Irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = sha.bulk.mod)
+#############################################################################################################
+
 ##################################################################
 # 2b. Analyses of Rhizosphere
-str(aob.min.meta.rh)
-aob.min.meta.rh.sum.sha <- aob.min.meta.rh %>%
+aob.meta.rh.sum.sha <- aob.meta.rh %>%
   group_by(Irrigation, Treatment, Date) %>%
   get_summary_stats(Shannon, type = "mean_sd")
 aob.rh.sum.sha.plot <- ggboxplot(
-  aob.min.meta.rh, x = "Irrigation", y = "Shannon",
+  aob.meta.rh, x = "Irrigation", y = "Shannon",
   color = "Treatment", palette = "jco",
   facet.by =  "Date")
 aob.rh.sum.sha.plot
 # check assumption (outliers)
-aob.rh.sha.out <- aob.min.meta.rh %>%
+aob.rh.sha.out <- aob.meta.rh %>%
   group_by(Irrigation, Treatment, Date) %>%
   identify_outliers(Shannon) # no extreme outliers
 # Saphiro-Wilk for normality
-aob.rh.sha.SW <- aob.min.meta.rh %>%
+aob.rh.sha.SW <- aob.meta.rh %>%
   group_by(Irrigation, Treatment, Date) %>%
   shapiro_test(Shannon)
-ggqqplot(aob.min.meta.rh, "Shannon", ggtheme = theme_bw()) +
+ggqqplot(aob.meta.rh, "Shannon", ggtheme = theme_bw()) +
   facet_grid(Date ~ Treatment, labeller = "label_both") #All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
 # Lavene test
 aob.rh.sha.Lave <- aob.min.meta.rh %>%
@@ -268,252 +240,135 @@ aob.rh.sha.Lave <- aob.min.meta.rh %>%
   levene_test(Shannon ~ Irrigation*Treatment)
 #If group sample sizes are (approximately) equal, run the three-way mixed ANOVA anyway because it is somewhat robust to heterogeneity of variance in these circumstances.
 # Three-Way Mixed (Split-Plot) ANOVA 
-str(aob.min.meta.rh)
+str(aob.meta.rh)
 aob.rh.sha.aov <- anova_test(
-  data = aob.min.meta.rh, type=3, dv = Shannon, wid = PlotID,
+  data = aob.meta.rh, type=3, dv = Shannon, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aob.rh.sha.aov)
-# other method with lmer
-model2 <- lmerTest::lmer(aob.min.meta.rh$Shannon ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.min.meta.rh)
-anova(model2)
-# two-way interaction
-aob.rh.sha.aov.two.way <- aob.min.meta.rh %>%
-  group_by(Date) %>%
-  anova_test(dv = Shannon, wid = PlotID, between = c(Irrigation, Treatment))
-aob.rh.sha.aov.two.way # there are no significant two-way interactions
-# There are only main effect significance of Treatment in specific date
-# simple simple test for main effect
-aob.sha.trt.effect.rh <- aob.min.meta.rh %>%
-  group_by(Date, Irrigation) %>%
-  anova_test(dv = Shannon, wid = PlotID, between = Treatment)
-aob.sha.trt.effect.rh
-# simple simple multiple pairwaise comparisons or posthoc test
+############################################################################################################
+# Model Fit
+set.seed(13)
+sha.rh.mod <- lmerTest::lmer(aob.meta.rh$Shannon ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.rh)
+anova(sha.rh.mod, type = 2)
 # Fit pairwise comparisons
-aob.sha.pwc.rh <- aob.min.meta.rh %>%
+# Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
+# 1. between fertilization treatment:
+emm.sha.rh <- aob.meta.rh %>%
   group_by(Date, Irrigation) %>%
-  pairwise_t_test(Shannon ~ Treatment, p.adjust.method = "BH") %>%
-  select(-p, -p.signif) # Remove details
-aob.sha.pwc.rh
-###########################################################################
-# 3. Response variable: Simpson
-###########################################################################
-# 3a. Analyses of Bulk Soil
-str(aob.min.meta.bulk)
-aob.min.meta.bulk.sum.simp <- aob.min.meta.bulk %>%
-  group_by(Irrigation, Treatment, Date) %>%
-  get_summary_stats(Simpson, type = "mean_sd")
-aob.bulk.sum.simp.plot <- ggboxplot(
-  aob.min.meta.bulk, x = "Irrigation", y = "Simpson",
-  color = "Treatment", palette = "jco",
-  facet.by =  "Date")
-aob.bulk.sum.simp.plot
-# check assumption (outliers)
-aob.bulk.simp.out <- aob.min.meta.bulk %>%
-  group_by(Irrigation, Treatment, Date) %>%
-  identify_outliers(Simpson) # no extreme outliers
-# Saphiro-Wilk for normality
-aob.bulk.simp.SW <- aob.min.meta.bulk %>%
-  group_by(Irrigation, Treatment, Date) %>%
-  shapiro_test(Simpson)
-ggqqplot(aob.min.meta.bulk, "Simpson", ggtheme = theme_bw()) +
-  facet_grid(Date ~ Treatment, labeller = "label_both") #All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
-# Lavene test
-aob.bulk.simp.Lave <- aob.min.meta.bulk %>%
-  group_by(Date) %>%
-  levene_test(Simpson ~ Irrigation*Treatment)
-#If group sample sizes are (approximately) equal, run the three-way mixed ANOVA anyway because it is somewhat robust to heterogeneity of variance in these circumstances.
-# Three-Way Mixed (Split-Plot) ANOVA 
-str(aob.min.meta.bulk)
-aob.bulk.simp.aov <- anova_test(
-  data = aob.min.meta.bulk, dv = Simpson, wid = PlotID,
-  within = Date, between = c(Irrigation, Treatment))
-get_anova_table(aob.bulk.simp.aov)
-# other method with lmer
-model2 <- lmerTest::lmer(aob.min.meta.bulk$Simpson ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.min.meta.bulk)
-anova(model2, type =2)
-# two-way interaction
-aob.bulk.simp.aov.two.way <- aob.min.meta.bulk %>%
-  group_by(Date) %>%
-  anova_test(dv = InvSimpson, wid = PlotID, between = c(Irrigation, Treatment))
-aob.bulk.simp.aov.two.way # there are no significant two-way interactions
-# There are only main effect significance of Treatment in specific date
-# simple simple test for main effect
-aob.simp.trt.effect.bulk <- aob.min.meta.bulk %>%
-  group_by(Date, Irrigation) %>%
-  anova_test(dv = Simpson, wid = PlotID, between = Treatment)
-aob.simp.trt.effect.bulk
-# simple simple multiple paiwaise comparisons or posthoc test
-# Fit pairwise comparisons
-str(aob.min.meta.bulk)
-aob.simp.pwc.bulk <- aob.min.meta.bulk %>%
-  group_by(Date, Irrigation) %>%
-  pairwise_t_test(Simpson ~ Treatment, p.adjust.method = "BH") %>%
-  select(-p, -p.signif) # Remove details
-aob.simp.pwc.bulk
-##################################################################
-# 3b. Analyses of Rhizosphere
-str(aob.min.meta.rh)
-aob.min.meta.rh.sum.simp <- aob.min.meta.rh %>%
-  group_by(Irrigation, Treatment, Date) %>%
-  get_summary_stats(Simpson, type = "mean_sd")
-aob.rh.sum.simp.plot <- ggboxplot(
-  aob.min.meta.rh, x = "Irrigation", y = "Simpson",
-  color = "Treatment", palette = "jco",
-  facet.by =  "Date")
-aob.rh.sum.simp.plot
-# check assumption (outliers)
-aob.rh.simp.out <- aob.min.meta.rh %>%
-  group_by(Irrigation, Treatment, Date) %>%
-  identify_outliers(Simpson) # no extreme outliers
-# Saphiro-Wilk for normality
-aob.rh.simp.SW <- aob.min.meta.rh %>%
-  group_by(Irrigation, Treatment, Date) %>%
-  shapiro_test(Simpson)
-ggqqplot(aob.min.meta.rh, "Simpson", ggtheme = theme_bw()) +
-  facet_grid(Date ~ Treatment, labeller = "label_both") #All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
-# Lavene test
-aob.rh.simp.Lave <- aob.min.meta.rh %>%
-  group_by(Date) %>%
-  levene_test(Simpson ~ Irrigation*Treatment)
-#If group sample sizes are (approximately) equal, run the three-way mixed ANOVA anyway because it is somewhat robust to heterogeneity of variance in these circumstances.
-# Three-Way Mixed (Split-Plot) ANOVA 
-str(aob.min.meta.rh)
-aob.rh.simp.aov <- anova_test(
-  data = aob.min.meta.rh, type=3, dv = Simpson, wid = PlotID,
-  within = Date, between = c(Irrigation, Treatment))
-get_anova_table(aob.rh.simp.aov)
-# other method with lmer
-model2 <- lmerTest::lmer(aob.min.meta.rh$Simpson ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.min.meta.rh)
-anova(model2)
-# two-way interaction
-aob.rh.simp.aov.two.way <- aob.min.meta.rh %>%
-  group_by(Date) %>%
-  anova_test(dv = Simpson, wid = PlotID, between = c(Irrigation, Treatment))
-aob.rh.simp.aov.two.way # there are no significant two-way interactions
-# There are only main effect significance of Treatment in specific date
-# simple simple test for main effect
-aob.simp.trt.effect.rh <- aob.min.meta.rh %>%
-  group_by(Date, Irrigation) %>%
-  anova_test(dv = Simpson, wid = PlotID, between = Treatment)
-aob.simp.trt.effect.rh
-# simple simple multiple pairwaise comparisons or posthoc test
-# Fit pairwise comparisons
-aob.simp.pwc.rh <- aob.min.meta.rh %>%
-  group_by(Date, Irrigation) %>%
-  pairwise_t_test(Simpson ~ Treatment, p.adjust.method = "BH") %>%
-  select(-p, -p.signif) # Remove details
-aob.simp.pwc.rh
+  emmeans_test(Shannon ~ Treatment, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = sha.rh.mod)
+# 2. between irrigation:
+emm.sha.irri.rh <- aob.meta.rh %>%
+  group_by(Date, Treatment) %>%
+  emmeans_test(Shannon ~ Irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = sha.rh.mod)
+#############################################################################################################
 
 ###########################################################################
-# 4. Response variable: Inverse Simpson
+# 3. Response variable: Inverse Simpson
 ###########################################################################
 # 4a. Analyses of Bulk Soil
-str(aob.min.meta.bulk)
-aob.min.meta.bulk.invsum.simp <- aob.min.meta.bulk %>%
+aob.meta.bulk.invsum.simp <- aob.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   get_summary_stats(InvSimpson, type = "mean_sd")
 aob.bulk.sum.invsimp.plot <- ggboxplot(
-  aob.min.meta.bulk, x = "Irrigation", y = "InvSimpson",
+  aob.meta.bulk, x = "Irrigation", y = "InvSimpson",
   color = "Treatment", palette = "jco",
   facet.by =  "Date")
 aob.bulk.sum.invsimp.plot
 # check assumption (outliers)
-aob.bulk.invsimp.out <- aob.min.meta.bulk %>%
+aob.bulk.invsimp.out <- aob.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   identify_outliers(InvSimpson) # no extreme outliers
 # Saphiro-Wilk for normality
-aob.bulk.invsimp.SW <- aob.min.meta.bulk %>%
+aob.bulk.invsimp.SW <- aob.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   shapiro_test(InvSimpson)
-ggqqplot(aob.min.meta.bulk, "InvSimpson", ggtheme = theme_bw()) +
+ggqqplot(aob.meta.bulk, "InvSimpson", ggtheme = theme_bw()) +
   facet_grid(Date ~ Treatment, labeller = "label_both") #All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
 # Lavene test
-aob.bulk.invsimp.Lave <- aob.min.meta.bulk %>%
+aob.bulk.invsimp.Lave <- aob.meta.bulk %>%
   group_by(Date) %>%
   levene_test(InvSimpson ~ Irrigation*Treatment)
 #If group sample sizes are (approximately) equal, run the three-way mixed ANOVA anyway because it is somewhat robust to heterogeneity of variance in these circumstances.
 # Three-Way Mixed (Split-Plot) ANOVA 
-str(aob.min.meta.bulk)
 aob.bulk.invsimp.aov <- anova_test(
-  data = aob.min.meta.bulk, dv = InvSimpson, wid = PlotID,
+  data = aob.meta.bulk, dv = InvSimpson, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aob.bulk.invsimp.aov)
-# other method with lmer
-model2 <- lmerTest::lmer(aob.min.meta.bulk$InvSimpson ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.min.meta.bulk)
-anova(model2)
-# two-way interaction
-aob.bulk.invsimp.aov.two.way <- aob.min.meta.bulk %>%
-  group_by(Date) %>%
-  anova_test(dv = InvSimpson, wid = PlotID, between = c(Irrigation, Treatment))
-aob.bulk.invsimp.aov.two.way # there are no significant two-way interactions
-# There are only main effect significance of Treatment in specific date
-# simple simple test for main effect
-aob.invsimp.trt.effect.bulk <- aob.min.meta.bulk %>%
-  group_by(Date, Irrigation) %>%
-  anova_test(dv = InvSimpson, wid = PlotID, between = Treatment)
-aob.invsimp.trt.effect.bulk
-# simple simple multiple paiwaise comparisons or posthoc test
+############################################################################################################
+# Model Fit
+set.seed(13)
+invsimp.bulk.mod <- lmerTest::lmer(aob.meta.bulk$InvSimpson ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.bulk)
+anova(invsimp.bulk.mod, type = 2)
 # Fit pairwise comparisons
-str(aob.min.meta.bulk)
-aob.invsimp.pwc.bulk <- aob.min.meta.bulk %>%
+# Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
+# 1. between fertilization treatment:
+emm.invsimp.bulk <- aob.meta.bulk %>%
   group_by(Date, Irrigation) %>%
-  pairwise_t_test(InvSimpson ~ Treatment, p.adjust.method = "BH") %>%
-  select(-p, -p.signif) # Remove details
-aob.invsimp.pwc.bulk
+  emmeans_test(InvSimpson ~ Treatment, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = invsimp.bulk.mod)
+# 2. between irrigation:
+emm.invsimp.irri.bulk <- aob.meta.bulk %>%
+  group_by(Date, Treatment) %>%
+  emmeans_test(InvSimpson ~ Irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = invsimp.bulk.mod)
+#############################################################################################################
+
 ##################################################################
-# 4b. Analyses of Rhizosphere
-str(aob.min.meta.rh)
-aob.min.meta.rh.sum.invsimp <- aob.min.meta.rh %>%
+# 3b. Analyses of Rhizosphere
+aob.meta.rh.sum.invsimp <- aob.meta.rh %>%
   group_by(Irrigation, Treatment, Date) %>%
   get_summary_stats(InvSimpson, type = "mean_sd")
 aob.rh.sum.invsimp.plot <- ggboxplot(
-  aob.min.meta.rh, x = "Irrigation", y = "InvSimpson",
+  aob.meta.rh, x = "Irrigation", y = "InvSimpson",
   color = "Treatment", palette = "jco",
   facet.by =  "Date")
 aob.rh.sum.invsimp.plot
 # check assumption (outliers)
-aob.rh.invsimp.out <- aob.min.meta.rh %>%
+aob.rh.invsimp.out <- aob.meta.rh %>%
   group_by(Irrigation, Treatment, Date) %>%
   identify_outliers(InvSimpson) # no extreme outliers
 # Saphiro-Wilk for normality
-aob.rh.invsimp.SW <- aob.min.meta.rh %>%
+aob.rh.invsimp.SW <- aob.meta.rh %>%
   group_by(Irrigation, Treatment, Date) %>%
   shapiro_test(InvSimpson)
-ggqqplot(aob.min.meta.rh, "InvSimpson", ggtheme = theme_bw()) +
+ggqqplot(aob.meta.rh, "InvSimpson", ggtheme = theme_bw()) +
   facet_grid(Date ~ Treatment, labeller = "label_both") #All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
 # Lavene test
-aob.rh.invsimp.Lave <- aob.min.meta.rh %>%
+aob.rh.invsimp.Lave <- aob.meta.rh %>%
   group_by(Date) %>%
   levene_test(InvSimpson ~ Irrigation*Treatment)
 #If group sample sizes are (approximately) equal, run the three-way mixed ANOVA anyway because it is somewhat robust to heterogeneity of variance in these circumstances.
 # Three-Way Mixed (Split-Plot) ANOVA 
-str(aob.min.meta.rh)
 aob.rh.invsimp.aov <- anova_test(
   data = aob.min.meta.rh, dv = InvSimpson, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aob.rh.invsimp.aov)
-# other method with lmer
-aob.min.meta.rh$var2 <- as.factor(aob.min.meta.rh$var2)
-model2 <- lmerTest::lmer(aob.min.meta.rh$InvSimpson ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.min.meta.rh)
-anova(model2)
-# two-way interaction
-aob.rh.invsimp.aov.two.way <- aob.min.meta.rh %>%
-  group_by(Date) %>%
-  anova_test(dv = InvSimpson, wid = PlotID, between = c(Irrigation, Treatment))
-aob.rh.invsimp.aov.two.way # there are no significant two-way interactions
-# There are only main effect significance of Treatment in specific date
-# simple simple test for main effect
-aob.invsimp.trt.effect.rh <- aob.min.meta.rh %>%
-  group_by(Date, Irrigation) %>%
-  anova_test(dv = InvSimpson, wid = PlotID, between = Treatment)
-aob.invsimp.trt.effect.rh
-# simple simple multiple pairwise comparisons or posthoc test
+############################################################################################################
+# Model Fit
+set.seed(13)
+invsimp.rh.mod <- lmerTest::lmer(aob.meta.rh$InvSimpson ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.rh)
+anova(invsimp.rh.mod, type = 2)
 # Fit pairwise comparisons
-aob.invsimp.pwc.rh <- aob.min.meta.rh %>%
+# Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
+# 1. between fertilization treatment:
+emm.invsimp.rh <- aob.meta.rh %>%
   group_by(Date, Irrigation) %>%
-  pairwise_t_test(InvSimpson ~ Treatment, p.adjust.method = "BH") %>%
-  select(-p, -p.signif) # Remove details
-aob.invsimp.pwc.rh
+  emmeans_test(InvSimpson ~ Treatment, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = invsimp.rh.mod)
+# 2. between irrigation:
+emm.invsimp.irri.rh <- aob.meta.rh %>%
+  group_by(Date, Treatment) %>%
+  emmeans_test(InvSimpson ~ Irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = invsimp.rh.mod)
+#############################################################################################################
 
 
 
