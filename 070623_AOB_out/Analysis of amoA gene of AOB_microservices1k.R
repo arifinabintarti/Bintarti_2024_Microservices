@@ -407,22 +407,6 @@ aob.rich.pwc.plot2 <- aob.rich.pwc.plot +
                      tip.length = 0.01, hide.ns = TRUE)+
   scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
 aob.rich.pwc.plot2
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # adding treatment significance from the stats analyses
 aob.rich.pwc.all <- aob.meta.df.sub %>%
   group_by(Type, Date, Irrigation) %>%
@@ -480,8 +464,6 @@ ggsave("AOB_rich_irri_boxplot.tiff",
        aob.rich.pwc.irri.plot, device = "tiff",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
-
-
 
 # 2. Shannon
 
@@ -3161,9 +3143,9 @@ aob.adonis.uwuF.rh <- adonis2(aob.rh_dist_uwUF ~ Irrigation*Treatment*Date, data
 aob.adonis.uwuF.rh
 
 ########################################################################################
-# Pairwise ccomparison analyses accross treatments and between irrigation within date
+# Pairwise comparison analyses across treatments and between irrigation within date
 ########################################################################################
-devtools::install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
+#devtools::install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
 library(pairwiseAdonis)
 
 # Plotting the Distance Matrices
@@ -3507,15 +3489,6 @@ m09dist_bc <- vegdist(t(m09.asv1), method = "bray")
 d09dist_bc <- vegdist(t(d09.asv1), method = "bray")
 k09dist_bc <- vegdist(t(k09.asv1), method = "bray")
 
-
-
-
-
-
-
-
-
-
 #########################################################################################
 # AOB Community Composition
 ########################################################################################
@@ -3535,7 +3508,7 @@ aob.sp.df <- psmelt(aob.sp.ra) %>%
 
 colours <- ColourPalleteMulti(aob.sp.df, "Genus", "Species")
 colours
-install.packages("Polychrome")
+#install.packages("Polychrome")
 library(Polychrome)
 # build-in color palette
 mycol = glasbey.colors(21)
@@ -3556,7 +3529,7 @@ color <- c("#260F99","#422CB2", "#6551CC", "#8F7EE5", "#BFB2FF",
 displayAvailablePalette(color="white")
 SteppedSequential5Steps
 str(aob.sp.df)
-install.packages("ggh4x")
+#install.packages("ggh4x")
 library(ggh4x)
 
 aob.sp.df$Type <- factor(aob.sp.df$Type, levels = c("BS", "RS"),
@@ -3566,7 +3539,7 @@ aob.sp.df$Treatment <- factor(aob.sp.df$Treatment, levels = c("D", "K", "M"),
 legend <- "AOB Taxa"
 library(scales)
 #x_cols <- rep(hue_pal()(length(unique(interaction(aob.sp.df$Date, aob.sp.df$Irrigation)))))
-aob.sp.df$Date <- factor(aob.sp.df$Date, levels = unique(aob.sp.df$Date))
+#aob.sp.df$Date <- factor(aob.sp.df$Date, levels = unique(aob.sp.df$Date))
 aob.sp.plot <- ggplot(aob.sp.df, aes(x=interaction(Date, Irrigation), y=Mean, fill=Species)) + 
   geom_bar(aes(), stat="identity", position="fill") + 
   scale_fill_manual(legend, values=SteppedSequential5Steps)+
