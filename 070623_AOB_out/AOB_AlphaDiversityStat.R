@@ -74,13 +74,26 @@ emm.rich.irri.bulk <- aob.meta.bulk %>%
 # Check other methods:
 # pairwise comparisons
 # library(emmeans)
-# emm.bulk <- emmeans(rich.bulk.mod, ~ Irrigation*Treatment*Date)
-# con <- contrast(emm.bulk, "pairwise", simple = "Irrigation")
+emm.bulk <- emmeans(rich.bulk.mod, ~ Irrigation*Treatment*Date)
+con <- contrast(emm.bulk, "pairwise", simple = "Irrigation")
 # summary(con, adjust="fdr")
+meta04 <- aob.meta.bulk[which(aob.meta.bulk$Date == "04-28-22"),]
+rich.bulk.mod1 <- lmer(meta04$Richness ~ Irrigation*Treatment + (1|var2), data=meta04)
+sum.mod = summary(rich.bulk.mod1)$coefficients
+rownames(sum.mod)
+
 
 # 1. between irrigation treatments
-#emm.irri.bulk <- emmeans(rich.bulk.mod,~Irrigation|Treatment*Date, lmer.df = "satterthwaite")
-#con.irri.bulk <- contrast(emm.irri.bulk, "pairwise", adjust="fdr")
+emm.irri.bulk <- emmeans(rich.bulk.mod1, pairwise~Irrigation|Treatment)
+sum=summary(emm.irri.bulk)
+sum.con=sum[["contrasts"]]
+tmp = unlist(strsplit(as.character(sum.con$contrast)," - "))
+tmp
+sum.con[,"a"] <- tmp[seq(1,length(tmp),by=2)]
+sum.con[,"b"] <- tmp[seq(2,length(tmp),by=2)]
+v = sum.con[sum.con$a == "1a" | sum.con$b == "1a" ,]
+
+con.irri.bulk <- contrast(emm.irri.bulk, "pairwise", adjust="fdr")
 #df.con.irri.bulk <-  as.data.frame(con.irri.bulk)
 
 # 2. among fertilization treatments

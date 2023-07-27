@@ -338,7 +338,7 @@ tmp1T3s <- left_join(tmp, CBFPT3s.mesh.sum)
 # tmp1T3s$gp_sum <- c(tmp1T3s[tmp1T3s$group == "B",]$B, tmp1T3s[tmp1T3s$group == "F",]$F, tmp1T3s[tmp1T3s$group == "P",]$P)
 tmp1T3s$gp_sum<-tmp1T3s$B
 
-str(tmp1T3s )
+ str(tmp1T3s )
 
 ################################
 # load("C:/Users/eperezvaler/OneDrive/GD/WORK/Scripts/Mathilde_differential_abundance/CBFPT3s.mesh.OTUsum.filtered.RData")

@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 #############################################################################################
 # Analysis of amoA gene of AOB Illumina MiSeq Data - rarefied 1282
 #############################################################################################
@@ -1313,7 +1313,7 @@ aob.adonis.uwuF.rh
 ########################################################################################
 # Pairwise ccomparison analyses accross treatments and between irrigation within date
 ########################################################################################
-devtools::install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
+#devtools::install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
 library(pairwiseAdonis)
 
 # Plotting the Distance Matrices
@@ -1849,7 +1849,6 @@ ggsave("AOB_meanRA_unrare_barplot.tiff",
 
 
 
-=======
 #############################################################################################
 # Analysis of amoA gene of AOB Illumina MiSeq Data - rarefied 1282
 #############################################################################################

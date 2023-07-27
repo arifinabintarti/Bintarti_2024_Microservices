@@ -1,4 +1,5 @@
 aob.physeq_bulk1
+bulkT1.seq <- 
 
 # filtering low abundance of ASV
 physeq.subset <- aob.physeq_bulk1
@@ -25,15 +26,15 @@ str(tmp_T3s)
 #  treatment
 a = tibble("sample"= tmp_T3s@sam_data$SampleID,
            #"date" = tmp_T3s@sam_data$Date,
-           #"fertilization" = tmp_T3s@sam_data$Treatment,
+           "fertilization" = tmp_T3s@sam_data$Treatment,
            "treatment"= tmp_T3s@sam_data$Irrigation)
 # force control as intercept
 a[a == "Control"] <- "1a"
 a = as.factor(a$treatment)
 #a.ed = a$treatment
-#a. <- as.factor(a.ed)
+a. <- as.factor(a.ed)
 #b
-#b <- as.factor(tmp_T3s@sam_data$Treatment)
+b <- as.factor(tmp_T3s@sam_data$Treatment)
 #c
 #c <- as.factor(tmp_T3s@sam_data$Date)
 # offset
@@ -68,7 +69,7 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
     
     glmT3s.sum.global = rbind(glmT3s.sum.global,glmT3s.sum)
     
-    ### multiple comparaison
+    ### multiple comparison
     
     glmT3s.pairwise = emmeans(glmT3s,pairwise~a)
     
@@ -103,7 +104,7 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
 glmT3s.model.global = glmT3s.sum.global
 glmT3s.pairwise.global = glmT3s.pairwise.global
 
- glmT3s.pairwise.global$p.adjust <- p.adjust(glmT3s.pairwise.global$p.value, method = "fdr")
+glmT3s.pairwise.global$p.adjust <- p.adjust(glmT3s.pairwise.global$p.value, method = "fdr")
 
 nrow(glmT3s.pairwise.global[glmT3s.pairwise.global$p.value < glmT3s.pairwise.global$p.adjust,])
 nrow(glmT3s.pairwise.global[glmT3s.pairwise.global$p.value > glmT3s.pairwise.global$p.adjust,])

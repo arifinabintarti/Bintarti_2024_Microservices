@@ -8,17 +8,22 @@
 aob.physeq_bulk <- subset_samples(aob.rare.1282.seq, Type=="BS")
 aob.physeq_bulk1 <- prune_taxa(taxa_sums(aob.physeq_bulk)>0, aob.physeq_bulk)
 aob.physeq_bulk1
+
 # Date: 04-28-2022
+
 # 1. MINERAL
 M04seq<- subset_samples(aob.physeq_bulk1, Date=="04-28-22" & Treatment=="M")
 M04seq1 <- prune_taxa(taxa_sums(M04seq)>0, M04seq)
+sort(rowSums(otu_table(M04seq1), na.rm = FALSE, dims = 1), decreasing = F)
 # 2. BIODYNAMIC
 D04seq<- subset_samples(aob.physeq_bulk1, Date=="04-28-22" & Treatment=="D")
 D04seq1 <- prune_taxa(taxa_sums(D04seq)>0, D04seq)
 # 3. CONVENTIONAL
 K04seq<- subset_samples(aob.physeq_bulk1, Date=="04-28-22" & Treatment=="K")
 K04seq1 <- prune_taxa(taxa_sums(K04seq)>0, K04seq)
+
 # Date: 06-01-2022
+
 # 1. MINERAL
 M06seq<- subset_samples(aob.physeq_bulk1, Date=="06-01-22" & Treatment=="M")
 M06seq1 <- prune_taxa(taxa_sums(M06seq)>0, M06seq)
@@ -28,7 +33,9 @@ D06seq1 <- prune_taxa(taxa_sums(D06seq)>0, D06seq)
 # 3. CONVENTIONAL
 K06seq<- subset_samples(aob.physeq_bulk1, Date=="06-01-22" & Treatment=="K")
 K06seq1 <- prune_taxa(taxa_sums(K06seq)>0, K06seq)
+
 # Date: 07-05-2022
+
 # 1. MINERAL
 M0705seq<- subset_samples(aob.physeq_bulk1, Date=="07-05-22" & Treatment=="M")
 M0705seq1 <- prune_taxa(taxa_sums(M0705seq)>0, M0705seq)
@@ -38,7 +45,9 @@ D0705seq1 <- prune_taxa(taxa_sums(D0705seq)>0, D0705seq)
 # 3. CONVENTIONAL
 K0705seq<- subset_samples(aob.physeq_bulk1, Date=="07-05-22" & Treatment=="K")
 K0705seq1 <- prune_taxa(taxa_sums(K0705seq)>0, K0705seq)
+
 # Date: 07-20-2022
+
 # 1. MINERAL
 M0720seq<- subset_samples(aob.physeq_bulk1, Date=="07-20-22" & Treatment=="M")
 M0720seq1 <- prune_taxa(taxa_sums(M0720seq)>0, M0720seq)
@@ -48,7 +57,9 @@ D0720seq1 <- prune_taxa(taxa_sums(D0720seq)>0, D0720seq)
 # 3. CONVENTIONAL
 K0720seq<- subset_samples(aob.physeq_bulk1, Date=="07-20-22" & Treatment=="K")
 K0720seq1 <- prune_taxa(taxa_sums(K0720seq)>0, K0720seq)
-# Date: 07-05-2022
+
+# Date: 09-13-2022
+
 # 1. MINERAL
 M09seq<- subset_samples(aob.physeq_bulk1, Date=="09-13-22" & Treatment=="M")
 M09seq1 <- prune_taxa(taxa_sums(M09seq)>0, M09seq)
@@ -58,33 +69,101 @@ D09seq1 <- prune_taxa(taxa_sums(D09seq)>0, D09seq)
 # 3. CONVENTIONAL
 K09seq<- subset_samples(aob.physeq_bulk1, Date=="09-13-22" & Treatment=="K")
 K09seq1 <- prune_taxa(taxa_sums(K09seq)>0, K09seq)
+
 ################################################################################
 # Filter low-abundant taxa
 ################################################################################
-# 1. BULK SOIL : 04-28-22 : MINERAL
-physeq.subset1 <- M04seq1
-data.obs1 <- as.data.frame(otu_table(physeq.subset1))
-
 ### keeping OTUs with at least 0.01 % relative abundance across all samples
-keep.taxa.id1=which((rowSums(data.obs1)/sum(data.obs1))>0.0001)
-data.F1=data.obs1[keep.taxa.id1,,drop=FALSE]
 
-new.otu1 <- as.matrix(data.F1) # convert it into a matrix.
-new.otu1 <- otu_table(data.F1, taxa_are_rows = TRUE) # convert into phyloseq compatible file.
-otu_table(physeq.subset1) <- new.otu1 # incorporate into phyloseq Object
+physeq.subset <- M04seq1
+physeq.subset #219 Taxa, 8 Samples
+data.obs <- as.data.frame(otu_table(physeq.subset))
+
+keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
+data.F=data.obs[keep.taxa.id,,drop=FALSE]
+
+new.otu <- as.matrix(data.F) # convert it into a matrix.
+new.otu <- otu_table(data.F, taxa_are_rows = TRUE) # convert into phyloseq compatible file.
+otu_table(physeq.subset) <- new.otu # incorporate into phyloseq Object
 
 
-physeq.subset1 # 197 taxa remain in the data set after filtering
+physeq.subset # 197 taxa, 8 samples remain in the data set after filtering
+
+
+########################################################################################
+#Lets generate a prevalence table (number of samples each taxa occurs in) for each taxa.
+########################################################################################
+
+prevalencedf = apply(X = otu_table(physeq.subset),
+                     MARGIN = 1,
+                     FUN = function(x){sum(x > 0)})
+
+# Add taxonomy and total read counts to this data.frame
+prevalencedf = data.frame(Prevalence = prevalencedf,
+                          TotalAbundance = taxa_sums(physeq.subset))
+prevalencedf[1:10,]
+#write.table(x=prevelancedf, file="Filtered_OTUtable-prevalence.csv")
+dim(prevalencedf)
+
+
+### calculate prevalence /!\ takes from 30min to 3h /!\
+
+ps = physeq.subset
+
+df_tmp <- psmelt(ps)
+df_tmp$sample <- 0
+df_tmp$sample[df_tmp$Abundance > 0] <- 1 #E: DON'T UNDERSTAND WHY THIS IS DONE
+
+df_otu_prev_ttt <- data.frame(matrix(ncol=nlevels(as.factor(df_tmp$Irrigation)),
+                                     nrow=nlevels(as.factor(df_tmp$OTU)), 
+                                     dimnames=list(levels(as.factor(df_tmp$OTU)),
+                                                   levels(as.factor(df_tmp$Irrigation)))))
+#attention il ya Sample et sample
+
+for (i in unique(df_tmp$OTU)) {
+  for (j in unique(df_tmp$Irrigation)) {
+    df_otu_prev_ttt[i,j] <- sum(df_tmp$sample[df_tmp$OTU == i & df_tmp$Irrigation == j],na.rm = T) / nrow(df_tmp[df_tmp$OTU == i & df_tmp$Irrigation == j,]) *100
+    print(paste(i,j,df_otu_prev_ttt[i,j]),sep="\t")
+    #print(df_otu_prev_ttt[i,j])
+  }
+  
+}
+
+df_otu_prev_ttt$max_prev <- apply(df_otu_prev_ttt,MARGIN=1, FUN=max)
+
+# write.csv(df_otu_prev_ttt, file = "df_otu_prev_ttt.csv")
+
+
+#____________________________
+### filtre otu par prevalence
+
+ps =  physeq.subset 
+df_prev = df_otu_prev_ttt
+
+tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 50,])
+
+physeq.subset <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
+
+# physeqT1F.Bacteria <- physeq.subset #416 #72 samples
+#write.csv(as.data.frame(otu_table(physeqT1F)), file = "otu_table_filteredT1.csv")
+
+rm(ps,df_prev,tmp_otu_F)
+
+
+physeq.subset # 68 taxa, 8 samples
+
+
 ####################################################
 # DIFFERENTIAL ABUNDANCE
 ##################################################
+library(emmeans)
 
-tmp_T3s <- physeq.subset1
+tmp_T3s <- physeq.subset
 
 str(tmp_T3s)
 
 #  treatment
-a = tibble("sample"= tmp_T3s@sam_data$SampleID,
+a = tibble("sample"= as.factor(tmp_T3s@sam_data$SampleID),
            "treatment"= as.character(tmp_T3s@sam_data$Irrigation))
 # force control as intercept
 a[a == "Control"] <- "1a"
@@ -95,8 +174,6 @@ o = log(sample_sums(tmp_T3s))
 z <- as.factor(tmp_T3s@sam_data$SampleID)
 #tmp_T3s@sam_data$block <- paste(c("b"),tmp_T3s@sam_data$block, sep="")
 # x <- as.factor(tmp_T3s@sam_data$block)
-
-
 
 # model with pairwise comparison ---------------------------------------------------------------------------------
 glmT3s.sum.global = data.frame()
@@ -121,7 +198,7 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
     
     glmT3s.sum.global = rbind(glmT3s.sum.global,glmT3s.sum)
     
-    ### multiple comparaison
+    ### multiple comparison
     
     glmT3s.pairwise = emmeans(glmT3s,pairwise~a)
     
@@ -165,7 +242,7 @@ nrow(glmT3s.pairwise.global[glmT3s.pairwise.global$p.value == glmT3s.pairwise.gl
 
 
 ## nb of pval <= 0.05 before and after filter
-table(glmT3s.pairwise.global$p.value <= 0.05) 
+table(glmT3s.pairwise.global$p.value <= 0.05)
 table(glmT3s.pairwise.global$p.adjust <= 0.05)
 
 ## nb of OTU with a pval <= 0.05 before and after filter
@@ -205,14 +282,707 @@ ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub !=1] <- 0
 head(ctrst.glm.CBFP.T3s.sub)
 colSums(ctrst.glm.CBFP.T3s.sub)
 
-###### IT'S NOT WORKING FOR MY DATA #######
+
 upset.CBFP.T3s <- UpSetR::upset(ctrst.glm.CBFP.T3s.sub, sets = colnames(ctrst.glm.CBFP.T3s.sub),
                                 order.by = "freq", keep.order = T)
 upset.CBFP.T3s
 ctrst.glm.CBFP.T3s.sub[rowSums(ctrst.glm.CBFP.T3s.sub) == 0,]
 
 T3s.sig.OTUs <- rownames(ctrst.glm.CBFP.T3s.sub)
-#####
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#############################################################################################################################################
+
+################
+# 1. BULK SOIL : 04-28-22 : MINERAL
+################
+
+#glmT3s.model.global_m04 = glmT3s.sum.global
+glmT3s.model.global_m04
+#glmT3s.pairwise.global_m04 = glmT3s.pairwise.global
+glmT3s.pairwise.global_m04
+
+glmT3s.pairwise.global_m04$p.adjust <- p.adjust(glmT3s.pairwise.global_m04$p.value, method = "fdr")
+
+nrow(glmT3s.pairwise.global_m04[glmT3s.pairwise.global_m04$p.value < glmT3s.pairwise.global_m04$p.adjust,])
+nrow(glmT3s.pairwise.global_m04[glmT3s.pairwise.global_m04$p.value > glmT3s.pairwise.global_m04$p.adjust,])
+nrow(glmT3s.pairwise.global_m04[glmT3s.pairwise.global_m04$p.value == glmT3s.pairwise.global_m04$p.adjust,])
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global_m04$p.value <= 0.05) 
+table(glmT3s.pairwise.global_m04$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s_m04 = unique(glmT3s.pairwise.global_m04$OTU[glmT3s.pairwise.global_m04$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif_m04 = glmT3s.pairwise.global_m04[glmT3s.pairwise.global_m04$p.adjust <=0.05,]
+
+length(tmp_otu3s_m04) 
+
+######### OJO
+# save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
+# load("/home/mathilde/Bureau/STAT/R-objects/glm-T3s.RData")
+
+# cast pvalues
+contrasts.glm.CBFP.T3s_m04 <- glmT3s.pairwise.global_m04[,c(10,1,2)]
+
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s_m04) <- c("value", "OTU_names", "contrast")
+contrasts.glm.CBFP.T3s_m04$fertil <- "Mineral"
+contrasts.glm.CBFP.T3s_m04$date <- "04-28-22"
+contrasts.glm.CBFP.T3s_m04
+
+
+################
+# 2. BULK SOIL : 04-28-22 : BIODYNAMIC (D)
+###############
+
+#glmT3s.model.global_d04 = glmT3s.sum.global
+glmT3s.model.global_d04
+#glmT3s.pairwise.global_d04 = glmT3s.pairwise.global
+glmT3s.pairwise.global_d04
+
+glmT3s.pairwise.global_d04$p.adjust <- p.adjust(glmT3s.pairwise.global_d04$p.value, method = "fdr")
+
+nrow(glmT3s.pairwise.global_d04[glmT3s.pairwise.global_d04$p.value < glmT3s.pairwise.global_d04$p.adjust,])
+nrow(glmT3s.pairwise.global_d04[glmT3s.pairwise.global_d04$p.value > glmT3s.pairwise.global_d04$p.adjust,])
+nrow(glmT3s.pairwise.global_d04[glmT3s.pairwise.global_d04$p.value == glmT3s.pairwise.global_d04$p.adjust,])
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global_d04$p.value <= 0.05) 
+table(glmT3s.pairwise.global_d04$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s_d04 = unique(glmT3s.pairwise.global_d04$OTU[glmT3s.pairwise.global_d04$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif_d04 = glmT3s.pairwise.global_d04[glmT3s.pairwise.global_d04$p.adjust <=0.05,]
+
+length(tmp_otu3s_d04) 
+
+######### OJO
+# save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
+# load("/home/mathilde/Bureau/STAT/R-objects/glm-T3s.RData")
+
+# cast pvalues
+contrasts.glm.CBFP.T3s_d04 <- glmT3s.pairwise.global_d04[,c(10,1,2)]
+
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s_d04) <- c("value", "OTU_names", "contrast")
+contrasts.glm.CBFP.T3s_d04$fertil <- "Biodynamic"
+contrasts.glm.CBFP.T3s_d04$date <- "04-28-22"
+contrasts.glm.CBFP.T3s_d04
+
+################
+# 3. BULK SOIL : 04-28-22 : CONVENTIONAL (K)
+################
+
+#glmT3s.model.global_k04 = glmT3s.sum.global
+glmT3s.model.global_k04
+#glmT3s.pairwise.global_k04 = glmT3s.pairwise.global
+glmT3s.pairwise.global_k04
+
+glmT3s.pairwise.global_k04$p.adjust <- p.adjust(glmT3s.pairwise.global_k04$p.value, method = "fdr")
+
+nrow(glmT3s.pairwise.global_k04[glmT3s.pairwise.global_k04$p.value < glmT3s.pairwise.global_k04$p.adjust,])
+nrow(glmT3s.pairwise.global_k04[glmT3s.pairwise.global_k04$p.value > glmT3s.pairwise.global_k04$p.adjust,])
+nrow(glmT3s.pairwise.global_k04[glmT3s.pairwise.global_k04$p.value == glmT3s.pairwise.global_k04$p.adjust,])
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global_k04$p.value <= 0.05) 
+table(glmT3s.pairwise.global_k04$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s_k04 = unique(glmT3s.pairwise.global_k04$OTU[glmT3s.pairwise.global_k04$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif_k04 = glmT3s.pairwise.global_k04[glmT3s.pairwise.global_k04$p.adjust <=0.05,]
+
+length(tmp_otu3s_k04) 
+
+######### OJO
+# save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
+# load("/home/mathilde/Bureau/STAT/R-objects/glm-T3s.RData")
+
+# cast pvalues
+contrasts.glm.CBFP.T3s_k04 <- glmT3s.pairwise.global_k04[,c(10,1,2)]
+
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s_k04) <- c("value", "OTU_names", "contrast")
+contrasts.glm.CBFP.T3s_k04$fertil <- "Conventional"
+contrasts.glm.CBFP.T3s_k04$date <- "04-28-22"
+contrasts.glm.CBFP.T3s_k04
+
+############################################################################################################################################
+
+################
+# 1. BULK SOIL : 06-01-22 : MINERAL
+################
+
+#glmT3s.model.global_m06 = glmT3s.sum.global
+glmT3s.model.global_m06
+#glmT3s.pairwise.global_m06 = glmT3s.pairwise.global
+glmT3s.pairwise.global_m06
+
+glmT3s.pairwise.global_m06$p.adjust <- p.adjust(glmT3s.pairwise.global_m06$p.value, method = "fdr")
+
+nrow(glmT3s.pairwise.global_m06[glmT3s.pairwise.global_m06$p.value < glmT3s.pairwise.global_m06$p.adjust,])
+nrow(glmT3s.pairwise.global_m06[glmT3s.pairwise.global_m06$p.value > glmT3s.pairwise.global_m06$p.adjust,])
+nrow(glmT3s.pairwise.global_m06[glmT3s.pairwise.global_m06$p.value == glmT3s.pairwise.global_m06$p.adjust,])
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global_m06$p.value <= 0.05) 
+table(glmT3s.pairwise.global_m06$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s_m06 = unique(glmT3s.pairwise.global_m06$OTU[glmT3s.pairwise.global_m06$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif_m06 = glmT3s.pairwise.global_m06[glmT3s.pairwise.global_m06$p.adjust <=0.05,]
+
+length(tmp_otu3s_m06) 
+
+######### OJO
+# save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
+# load("/home/mathilde/Bureau/STAT/R-objects/glm-T3s.RData")
+
+# cast pvalues
+contrasts.glm.CBFP.T3s_m06 <- glmT3s.pairwise.global_m06[,c(10,1,2)]
+
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s_m06) <- c("value", "OTU_names", "contrast")
+contrasts.glm.CBFP.T3s_m06$fertil <- "Mineral"
+contrasts.glm.CBFP.T3s_m06$date <- "06-01-22"
+contrasts.glm.CBFP.T3s_m06
+
+
+################
+# 2. BULK SOIL : 06-01-22 : BIODYNAMIC (D)
+###############
+
+#glmT3s.model.global_d06 = glmT3s.sum.global
+glmT3s.model.global_d06
+#glmT3s.pairwise.global_d06 = glmT3s.pairwise.global
+glmT3s.pairwise.global_d06
+
+glmT3s.pairwise.global_d06$p.adjust <- p.adjust(glmT3s.pairwise.global_d06$p.value, method = "fdr")
+
+nrow(glmT3s.pairwise.global_d06[glmT3s.pairwise.global_d06$p.value < glmT3s.pairwise.global_d06$p.adjust,])
+nrow(glmT3s.pairwise.global_d06[glmT3s.pairwise.global_d06$p.value > glmT3s.pairwise.global_d06$p.adjust,])
+nrow(glmT3s.pairwise.global_d06[glmT3s.pairwise.global_d06$p.value == glmT3s.pairwise.global_d06$p.adjust,])
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global_d06$p.value <= 0.05) 
+table(glmT3s.pairwise.global_d06$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s_d06 = unique(glmT3s.pairwise.global_d06$OTU[glmT3s.pairwise.global_d06$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif_d06 = glmT3s.pairwise.global_d06[glmT3s.pairwise.global_d06$p.adjust <=0.05,]
+
+length(tmp_otu3s_d06) 
+
+######### OJO
+# save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
+# load("/home/mathilde/Bureau/STAT/R-objects/glm-T3s.RData")
+
+# cast pvalues
+contrasts.glm.CBFP.T3s_d06 <- glmT3s.pairwise.global_d06[,c(10,1,2)]
+
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s_d06) <- c("value", "OTU_names", "contrast")
+contrasts.glm.CBFP.T3s_d06$fertil <- "Biodynamic"
+contrasts.glm.CBFP.T3s_d06$date <- "06-01-22"
+contrasts.glm.CBFP.T3s_d06
+
+################
+# 3. BULK SOIL : 06-01-22 : CONVENTIONAL (K)
+################
+
+#glmT3s.model.global_k06 = glmT3s.sum.global
+glmT3s.model.global_k06
+#glmT3s.pairwise.global_k06 = glmT3s.pairwise.global
+glmT3s.pairwise.global_k06
+
+glmT3s.pairwise.global_k06$p.adjust <- p.adjust(glmT3s.pairwise.global_k06$p.value, method = "fdr")
+
+nrow(glmT3s.pairwise.global_k06[glmT3s.pairwise.global_k06$p.value < glmT3s.pairwise.global_k06$p.adjust,])
+nrow(glmT3s.pairwise.global_k06[glmT3s.pairwise.global_k06$p.value > glmT3s.pairwise.global_k06$p.adjust,])
+nrow(glmT3s.pairwise.global_k06[glmT3s.pairwise.global_k06$p.value == glmT3s.pairwise.global_k06$p.adjust,])
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global_k06$p.value <= 0.05) 
+table(glmT3s.pairwise.global_k06$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s_k06 = unique(glmT3s.pairwise.global_k06$OTU[glmT3s.pairwise.global_k06$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif_k06 = glmT3s.pairwise.global_k06[glmT3s.pairwise.global_k06$p.adjust <=0.05,]
+
+length(tmp_otu3s_k06) 
+
+######### OJO
+# save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
+# load("/home/mathilde/Bureau/STAT/R-objects/glm-T3s.RData")
+
+# cast pvalues
+contrasts.glm.CBFP.T3s_k06 <- glmT3s.pairwise.global_k06[,c(10,1,2)]
+
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s_k06) <- c("value", "OTU_names", "contrast")
+contrasts.glm.CBFP.T3s_k06$fertil <- "Conventional"
+contrasts.glm.CBFP.T3s_k06$date <- "06-01-22"
+contrasts.glm.CBFP.T3s_k06
+
+############################################################################################################################################
+
+################
+# 1. BULK SOIL : 07-05-22 : MINERAL
+################
+
+#glmT3s.model.global_m0705 = glmT3s.sum.global
+glmT3s.model.global_m0705
+#glmT3s.pairwise.global_m0705 = glmT3s.pairwise.global
+glmT3s.pairwise.global_m0705
+
+glmT3s.pairwise.global_m0705$p.adjust <- p.adjust(glmT3s.pairwise.global_m0705$p.value, method = "fdr")
+
+nrow(glmT3s.pairwise.global_m0705[glmT3s.pairwise.global_m0705$p.value < glmT3s.pairwise.global_m0705$p.adjust,])
+nrow(glmT3s.pairwise.global_m0705[glmT3s.pairwise.global_m0705$p.value > glmT3s.pairwise.global_m0705$p.adjust,])
+nrow(glmT3s.pairwise.global_m0705[glmT3s.pairwise.global_m0705$p.value == glmT3s.pairwise.global_m0705$p.adjust,])
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global_m0705$p.value <= 0.05) 
+table(glmT3s.pairwise.global_m0705$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s_m0705 = unique(glmT3s.pairwise.global_m0705$OTU[glmT3s.pairwise.global_m0705$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif_m0705 = glmT3s.pairwise.global_m0705[glmT3s.pairwise.global_m0705$p.adjust <=0.05,]
+
+length(tmp_otu3s_m0705) 
+
+######### OJO
+# save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
+# load("/home/mathilde/Bureau/STAT/R-objects/glm-T3s.RData")
+
+# cast pvalues
+contrasts.glm.CBFP.T3s_m0705 <- glmT3s.pairwise.global_m0705[,c(10,1,2)]
+
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s_m0705) <- c("value", "OTU_names", "contrast")
+contrasts.glm.CBFP.T3s_m0705$fertil <- "Mineral"
+contrasts.glm.CBFP.T3s_m0705$date <- "07-05-22"
+contrasts.glm.CBFP.T3s_m0705
+
+
+################
+# 2. BULK SOIL : 07-05-22 : BIODYNAMIC (D)
+###############
+
+#glmT3s.model.global_d0705 = glmT3s.sum.global
+glmT3s.model.global_d0705
+#glmT3s.pairwise.global_d0705 = glmT3s.pairwise.global
+glmT3s.pairwise.global_d0705
+
+glmT3s.pairwise.global_d0705$p.adjust <- p.adjust(glmT3s.pairwise.global_d0705$p.value, method = "fdr")
+
+nrow(glmT3s.pairwise.global_d0705[glmT3s.pairwise.global_d0705$p.value < glmT3s.pairwise.global_d0705$p.adjust,])
+nrow(glmT3s.pairwise.global_d0705[glmT3s.pairwise.global_d0705$p.value > glmT3s.pairwise.global_d0705$p.adjust,])
+nrow(glmT3s.pairwise.global_d0705[glmT3s.pairwise.global_d0705$p.value == glmT3s.pairwise.global_d0705$p.adjust,])
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global_d0705$p.value <= 0.05) 
+table(glmT3s.pairwise.global_d0705$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s_d0705 = unique(glmT3s.pairwise.global_d0705$OTU[glmT3s.pairwise.global_d0705$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif_d0705 = glmT3s.pairwise.global_d0705[glmT3s.pairwise.global_d0705$p.adjust <=0.05,]
+
+length(tmp_otu3s_d0705) 
+
+######### OJO
+# save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
+# load("/home/mathilde/Bureau/STAT/R-objects/glm-T3s.RData")
+
+# cast pvalues
+contrasts.glm.CBFP.T3s_d0705 <- glmT3s.pairwise.global_d0705[,c(10,1,2)]
+
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s_d0705) <- c("value", "OTU_names", "contrast")
+contrasts.glm.CBFP.T3s_d0705$fertil <- "Biodynamic"
+contrasts.glm.CBFP.T3s_d0705$date <- "07-05-22"
+contrasts.glm.CBFP.T3s_d0705
+
+################
+# 3. BULK SOIL : 07-05-22 : CONVENTIONAL (K)
+################
+
+#glmT3s.model.global_k0705 = glmT3s.sum.global
+glmT3s.model.global_k0705
+#glmT3s.pairwise.global_k0705 = glmT3s.pairwise.global
+glmT3s.pairwise.global_k0705
+
+glmT3s.pairwise.global_k0705$p.adjust <- p.adjust(glmT3s.pairwise.global_k0705$p.value, method = "fdr")
+
+nrow(glmT3s.pairwise.global_k0705[glmT3s.pairwise.global_k0705$p.value < glmT3s.pairwise.global_k0705$p.adjust,])
+nrow(glmT3s.pairwise.global_k0705[glmT3s.pairwise.global_k0705$p.value > glmT3s.pairwise.global_k0705$p.adjust,])
+nrow(glmT3s.pairwise.global_k0705[glmT3s.pairwise.global_k0705$p.value == glmT3s.pairwise.global_k0705$p.adjust,])
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global_k0705$p.value <= 0.05) 
+table(glmT3s.pairwise.global_k0705$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s_k0705 = unique(glmT3s.pairwise.global_k0705$OTU[glmT3s.pairwise.global_k0705$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif_k0705 = glmT3s.pairwise.global_k0705[glmT3s.pairwise.global_k0705$p.adjust <=0.05,]
+
+length(tmp_otu3s_k0705) 
+
+######### OJO
+# save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
+# load("/home/mathilde/Bureau/STAT/R-objects/glm-T3s.RData")
+
+# cast pvalues
+contrasts.glm.CBFP.T3s_k0705 <- glmT3s.pairwise.global_k0705[,c(10,1,2)]
+
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s_k0705) <- c("value", "OTU_names", "contrast")
+contrasts.glm.CBFP.T3s_k0705$fertil <- "Conventional"
+contrasts.glm.CBFP.T3s_k0705$date <- "07-05-22"
+contrasts.glm.CBFP.T3s_k0705
+
+############################################################################################################################################
+
+################
+# 1. BULK SOIL : 07-20-22 : MINERAL
+################
+
+#glmT3s.model.global_m0720 = glmT3s.sum.global
+glmT3s.model.global_m0720
+#glmT3s.pairwise.global_m0720 = glmT3s.pairwise.global
+glmT3s.pairwise.global_m0720
+
+glmT3s.pairwise.global_m0720$p.adjust <- p.adjust(glmT3s.pairwise.global_m0720$p.value, method = "fdr")
+
+nrow(glmT3s.pairwise.global_m0720[glmT3s.pairwise.global_m0720$p.value < glmT3s.pairwise.global_m0720$p.adjust,])
+nrow(glmT3s.pairwise.global_m0720[glmT3s.pairwise.global_m0720$p.value > glmT3s.pairwise.global_m0720$p.adjust,])
+nrow(glmT3s.pairwise.global_m0720[glmT3s.pairwise.global_m0720$p.value == glmT3s.pairwise.global_m0720$p.adjust,])
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global_m0720$p.value <= 0.05) 
+table(glmT3s.pairwise.global_m0720$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s_m0720 = unique(glmT3s.pairwise.global_m0720$OTU[glmT3s.pairwise.global_m0720$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif_m0720 = glmT3s.pairwise.global_m0720[glmT3s.pairwise.global_m0720$p.adjust <=0.05,]
+
+length(tmp_otu3s_m0720) 
+
+######### OJO
+# save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
+# load("/home/mathilde/Bureau/STAT/R-objects/glm-T3s.RData")
+
+# cast pvalues
+contrasts.glm.CBFP.T3s_m0720 <- glmT3s.pairwise.global_m0720[,c(10,1,2)]
+
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s_m0720) <- c("value", "OTU_names", "contrast")
+contrasts.glm.CBFP.T3s_m0720$fertil <- "Mineral"
+contrasts.glm.CBFP.T3s_m0720$date <- "07-20-22"
+contrasts.glm.CBFP.T3s_m0720
+
+
+################
+# 2. BULK SOIL : 07-20-22 : BIODYNAMIC (D)
+###############
+
+#glmT3s.model.global_d0720 = glmT3s.sum.global
+glmT3s.model.global_d0720
+#glmT3s.pairwise.global_d0720 = glmT3s.pairwise.global
+glmT3s.pairwise.global_d0720
+
+glmT3s.pairwise.global_d0720$p.adjust <- p.adjust(glmT3s.pairwise.global_d0720$p.value, method = "fdr")
+
+nrow(glmT3s.pairwise.global_d0720[glmT3s.pairwise.global_d0720$p.value < glmT3s.pairwise.global_d0720$p.adjust,])
+nrow(glmT3s.pairwise.global_d0720[glmT3s.pairwise.global_d0720$p.value > glmT3s.pairwise.global_d0720$p.adjust,])
+nrow(glmT3s.pairwise.global_d0720[glmT3s.pairwise.global_d0720$p.value == glmT3s.pairwise.global_d0720$p.adjust,])
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global_d0720$p.value <= 0.05) 
+table(glmT3s.pairwise.global_d0720$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s_d0720 = unique(glmT3s.pairwise.global_d0720$OTU[glmT3s.pairwise.global_d0720$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif_d0720 = glmT3s.pairwise.global_d0720[glmT3s.pairwise.global_d0720$p.adjust <=0.05,]
+
+length(tmp_otu3s_d0720) 
+
+######### OJO
+# save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
+# load("/home/mathilde/Bureau/STAT/R-objects/glm-T3s.RData")
+
+# cast pvalues
+contrasts.glm.CBFP.T3s_d0720 <- glmT3s.pairwise.global_d0720[,c(10,1,2)]
+
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s_d0720) <- c("value", "OTU_names", "contrast")
+contrasts.glm.CBFP.T3s_d0720$fertil <- "Biodynamic"
+contrasts.glm.CBFP.T3s_d0720$date <- "07-20-22"
+contrasts.glm.CBFP.T3s_d0720
+
+################
+# 3. BULK SOIL : 07-20-22 : CONVENTIONAL (K)
+################
+
+#glmT3s.model.global_k0720 = glmT3s.sum.global
+glmT3s.model.global_k0720
+#glmT3s.pairwise.global_k0720 = glmT3s.pairwise.global
+glmT3s.pairwise.global_k0720
+
+glmT3s.pairwise.global_k0720$p.adjust <- p.adjust(glmT3s.pairwise.global_k0720$p.value, method = "fdr")
+
+nrow(glmT3s.pairwise.global_k0720[glmT3s.pairwise.global_k0720$p.value < glmT3s.pairwise.global_k0720$p.adjust,])
+nrow(glmT3s.pairwise.global_k0720[glmT3s.pairwise.global_k0720$p.value > glmT3s.pairwise.global_k0720$p.adjust,])
+nrow(glmT3s.pairwise.global_k0720[glmT3s.pairwise.global_k0720$p.value == glmT3s.pairwise.global_k0720$p.adjust,])
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global_k0720$p.value <= 0.05) 
+table(glmT3s.pairwise.global_k0720$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s_k0720 = unique(glmT3s.pairwise.global_k0720$OTU[glmT3s.pairwise.global_k0720$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif_k0720 = glmT3s.pairwise.global_k0720[glmT3s.pairwise.global_k0720$p.adjust <=0.05,]
+
+length(tmp_otu3s_k0720) 
+
+######### OJO
+# save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
+# load("/home/mathilde/Bureau/STAT/R-objects/glm-T3s.RData")
+
+# cast pvalues
+contrasts.glm.CBFP.T3s_k0720 <- glmT3s.pairwise.global_k0720[,c(10,1,2)]
+
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s_k0720) <- c("value", "OTU_names", "contrast")
+contrasts.glm.CBFP.T3s_k0720$fertil <- "Conventional"
+contrasts.glm.CBFP.T3s_k0720$date <- "07-20-22"
+contrasts.glm.CBFP.T3s_k0720
+
+############################################################################################################################################
+
+################
+# 1. BULK SOIL : 09-13-22 : MINERAL
+################
+
+#glmT3s.model.global_m09 = glmT3s.sum.global
+glmT3s.model.global_m09
+#glmT3s.pairwise.global_m09 = glmT3s.pairwise.global
+glmT3s.pairwise.global_m09
+
+glmT3s.pairwise.global_m09$p.adjust <- p.adjust(glmT3s.pairwise.global_m09$p.value, method = "fdr")
+
+nrow(glmT3s.pairwise.global_m09[glmT3s.pairwise.global_m09$p.value < glmT3s.pairwise.global_m09$p.adjust,])
+nrow(glmT3s.pairwise.global_m09[glmT3s.pairwise.global_m09$p.value > glmT3s.pairwise.global_m09$p.adjust,])
+nrow(glmT3s.pairwise.global_m09[glmT3s.pairwise.global_m09$p.value == glmT3s.pairwise.global_m09$p.adjust,])
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global_m09$p.value <= 0.05) 
+table(glmT3s.pairwise.global_m09$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s_m09 = unique(glmT3s.pairwise.global_m09$OTU[glmT3s.pairwise.global_m09$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif_m09 = glmT3s.pairwise.global_m09[glmT3s.pairwise.global_m09$p.adjust <=0.05,]
+
+length(tmp_otu3s_m09) 
+
+######### OJO
+# save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
+# load("/home/mathilde/Bureau/STAT/R-objects/glm-T3s.RData")
+
+# cast pvalues
+contrasts.glm.CBFP.T3s_m09 <- glmT3s.pairwise.global_m09[,c(10,1,2)]
+
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s_m09) <- c("value", "OTU_names", "contrast")
+contrasts.glm.CBFP.T3s_m09$fertil <- "Mineral"
+contrasts.glm.CBFP.T3s_m09$date <- "09-13-22"
+contrasts.glm.CBFP.T3s_m09
+
+
+################
+# 2. BULK SOIL : 09-13-22 : BIODYNAMIC (D)
+###############
+
+#glmT3s.model.global_d09 = glmT3s.sum.global
+glmT3s.model.global_d09
+#glmT3s.pairwise.global_d09 = glmT3s.pairwise.global
+glmT3s.pairwise.global_d09
+
+glmT3s.pairwise.global_d09$p.adjust <- p.adjust(glmT3s.pairwise.global_d09$p.value, method = "fdr")
+
+nrow(glmT3s.pairwise.global_d09[glmT3s.pairwise.global_d09$p.value < glmT3s.pairwise.global_d09$p.adjust,])
+nrow(glmT3s.pairwise.global_d09[glmT3s.pairwise.global_d09$p.value > glmT3s.pairwise.global_d09$p.adjust,])
+nrow(glmT3s.pairwise.global_d09[glmT3s.pairwise.global_d09$p.value == glmT3s.pairwise.global_d09$p.adjust,])
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global_d09$p.value <= 0.05) 
+table(glmT3s.pairwise.global_d09$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s_d09 = unique(glmT3s.pairwise.global_d09$OTU[glmT3s.pairwise.global_d09$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif_d09 = glmT3s.pairwise.global_d09[glmT3s.pairwise.global_d09$p.adjust <=0.05,]
+
+length(tmp_otu3s_d09) 
+
+######### OJO
+# save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
+# load("/home/mathilde/Bureau/STAT/R-objects/glm-T3s.RData")
+
+# cast pvalues
+contrasts.glm.CBFP.T3s_d09 <- glmT3s.pairwise.global_d09[,c(10,1,2)]
+
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s_d09) <- c("value", "OTU_names", "contrast")
+contrasts.glm.CBFP.T3s_d09$fertil <- "Biodynamic"
+contrasts.glm.CBFP.T3s_d09$date <- "09-13-22"
+contrasts.glm.CBFP.T3s_d09
+
+################
+# 3. BULK SOIL : 09-13-22 : CONVENTIONAL (K)
+################
+
+#glmT3s.model.global_k09= glmT3s.sum.global
+glmT3s.model.global_k09
+#glmT3s.pairwise.global_k09 = glmT3s.pairwise.global
+glmT3s.pairwise.global_k09
+
+glmT3s.pairwise.global_k09$p.adjust <- p.adjust(glmT3s.pairwise.global_k09$p.value, method = "fdr")
+
+nrow(glmT3s.pairwise.global_k09[glmT3s.pairwise.global_k09$p.value < glmT3s.pairwise.global_k09$p.adjust,])
+nrow(glmT3s.pairwise.global_k09[glmT3s.pairwise.global_k09$p.value > glmT3s.pairwise.global_k09$p.adjust,])
+nrow(glmT3s.pairwise.global_k09[glmT3s.pairwise.global_k09$p.value == glmT3s.pairwise.global_k09$p.adjust,])
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global_k09$p.value <= 0.05) 
+table(glmT3s.pairwise.global_k09$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s_k09 = unique(glmT3s.pairwise.global_k09$OTU[glmT3s.pairwise.global_k09$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif_k09 = glmT3s.pairwise.global_k09[glmT3s.pairwise.global_k09$p.adjust <=0.05,]
+
+length(tmp_otu3s_k09) 
+
+######### OJO
+# save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
+# load("/home/mathilde/Bureau/STAT/R-objects/glm-T3s.RData")
+
+# cast pvalues
+contrasts.glm.CBFP.T3s_k09 <- glmT3s.pairwise.global_k09[,c(10,1,2)]
+
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s_k09) <- c("value", "OTU_names", "contrast")
+contrasts.glm.CBFP.T3s_k09$fertil <- "Conventional"
+contrasts.glm.CBFP.T3s_k09$date <- "09-13-22"
+contrasts.glm.CBFP.T3s_k09
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#############################################################################################################################################
+
+#contrasts.glm.CBFP.T3s <- subset(contrasts.glm.CBFP.T3s, (contrasts.glm.CBFP.T3s$OTU_names %in% BFPOTUs.T3snet.sig))
+contrasts.glm.CBFP.T3s_m04 <- data.frame(cast(contrasts.glm.CBFP.T3s_m04, contrast ~ OTU_names, value="value"))
+str(contrasts.glm.CBFP.T3s_m04)
+rownames(contrasts.glm.CBFP.T3s_m04) <- contrasts.glm.CBFP.T3s_m04$contrast
+contrasts.glm.CBFP.T3s_m04$contrast <- NULL
+contrasts.glm.CBFP.T3s_m04
+
+# keep OTUs with at least one contrast <0.05 
+contrasts.glm.CBFP.T3s_m04.sub <- contrasts.glm.CBFP.T3s_m04[,colSums(contrasts.glm.CBFP.T3s_m04<0.05) >= 1]
+dim(contrasts.glm.CBFP.T3s_m04.sub)
+head(contrasts.glm.CBFP.T3s_m04.sub)
+str(contrasts.glm.CBFP.T3s_m04.sub)
+
+contrasts.glm.CBFP.T3s_m04.sub <- data.frame(t(contrasts.glm.CBFP.T3s_m04.sub))
+
+contrasts.glm.CBFP.T3s_m04.sub[contrasts.glm.CBFP.T3s_m04.sub >0.05] <- 1
+contrasts.glm.CBFP.T3s_m04.sub[contrasts.glm.CBFP.T3s_m04.sub !=1] <- 0
+head(contrasts.glm.CBFP.T3s_m04.sub)
+colSums(contrasts.glm.CBFP.T3s_m04.sub)
+
+#############################################################################################################################################
+
+
+
+
+
+
+
+
+###########################################################################################################################################
+###### UPSET: IT'S NOT WORKING FOR MY DATA #######
+upset.CBFP.T3s <- UpSetR::upset(ctrst.glm.CBFP.T3s.sub, sets = colnames(ctrst.glm.CBFP.T3s.sub),
+                                order.by = "freq", keep.order = T)
+upset.CBFP.T3s
+ctrst.glm.CBFP.T3s.sub[rowSums(ctrst.glm.CBFP.T3s.sub) == 0,]
+
+T3s.sig.OTUs <- rownames(ctrst.glm.CBFP.T3s.sub)
+###########################################################################################################################################
 
 # need to add the sign of the contrast
 #load("/home/mathilde/Bureau/STAT/R-objects/BFPOTUs.T3snet.RData") # subset of OTUs used for network : > 2% for bacteria, > 20 occ for all
@@ -231,12 +1001,12 @@ tmp$Irrigation <- as.character(tmp$Irrigation)
 # load(file="C:/Users/eperezvaler/OneDrive/GD/WORK/Scripts/Mathilde_differential_abundance/CBFPT3s.mesh.sum.filtered.RData")
 
 
-metadata<-as(sample_data(M04seq1),"data.frame")
+metadata1<-as(sample_data(M04seq1),"data.frame")
 
-CBFPT3s.mesh.sum<-aggregate(rowSums(t(otu_table(M04seq1)))~Genotype,data=metadata,sum)
-colnames(CBFPT3s.mesh.sum)<-c("Genotype","B")
-row.names(CBFPT3s.mesh.sum)<-CBFPT3s.mesh.sum$Genotype
-CBFPT3s.mesh.sum$mesh_size_um<-CBFPT3s.mesh.sum$Genotype
+CBFPT3s.mesh.sum<-aggregate(rowSums(t(otu_table(M04seq1)))~Irrigation,data=metadata1,sum)
+colnames(CBFPT3s.mesh.sum)<-c("Irrigation","B")
+row.names(CBFPT3s.mesh.sum)<-CBFPT3s.mesh.sum$Irrigation
+CBFPT3s.mesh.sum$Irrigation<-CBFPT3s.mesh.sum$Irrigation
 
 tmp1T3s <- left_join(tmp, CBFPT3s.mesh.sum) 
 
@@ -249,7 +1019,7 @@ str(tmp1T3s )
 ################################
 # load("C:/Users/eperezvaler/OneDrive/GD/WORK/Scripts/Mathilde_differential_abundance/CBFPT3s.mesh.OTUsum.filtered.RData")
 
-physeq.subset.merge<-merge_samples(physeq.subset, "mesh_size_um")
+physeq.subset.merge<-merge_samples(M04seq1, "Irrigation")
 CBFPT3s.mesh.OTUsum<-as.data.frame(rowSums(decostand(otu_table(physeq.subset.merge),"pa")))
 colnames(CBFPT3s.mesh.OTUsum)<-c("B")
 CBFPT3s.mesh.OTUsum$mesh_size_um<-row.names(CBFPT3s.mesh.OTUsum)
