@@ -74,6 +74,9 @@ K09seq1 <- prune_taxa(taxa_sums(K09seq)>0, K09seq)
 # Filter low-abundant taxa
 ################################################################################
 ### keeping OTUs with at least 0.01 % relative abundance across all samples
+bulkT1.seq <- subset_samples(aob.physeq_bulk1, Date=="04-28-22")
+bulkT1.seq1 <- prune_taxa(taxa_sums(bulkT1.seq)>0, bulkT1.seq)
+
 
 physeq.subset <- M04seq1
 physeq.subset #219 Taxa, 8 Samples
@@ -131,6 +134,7 @@ for (i in unique(df_tmp$OTU)) {
 
 df_otu_prev_ttt$max_prev <- apply(df_otu_prev_ttt,MARGIN=1, FUN=max)
 
+
 # write.csv(df_otu_prev_ttt, file = "df_otu_prev_ttt.csv")
 
 
@@ -156,9 +160,11 @@ physeq.subset # 68 taxa, 8 samples
 ####################################################
 # DIFFERENTIAL ABUNDANCE
 ##################################################
+install.packages("glmmTMB")
+library(glmmTMB)
 library(emmeans)
 
-tmp_T3s <- physeq.subset
+tmp_T3s <- M04seq1
 
 str(tmp_T3s)
 
@@ -188,7 +194,7 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
   
   tryCatch({
     ### model
-    glmT3s <- glmer(y ~ a + (1 | z), family='poisson', offset = o)
+    glmT3s <- glmer(y ~ 0 + a + (1 | z), family='poisson',offset = o)
     glmT3s.sum = summary(glmT3s)$coefficients
     #glmT3s.sum = summary(glmT3s)$coefficients$cond
     glmT3s.sum = tibble("OTU"= OTU,
@@ -1528,10 +1534,30 @@ PposRRT3s_mesh.melt <- RRT3s_mesh.melt[RRT3s_mesh.melt$group == "Fauna"&RRT3s_me
 ad.test((PposRRT3s_mesh.melt$value))
 dunn_test(value ~ sign_RR, data=PposRRT3s_mesh.melt)
 
+library(DESeq2)
+bulkT1.seq <- subset_samples(aob.physeq_bulk1, Date=="04-28-22")
+bulkT1.seq1 <- prune_taxa(taxa_sums(bulkT1.seq)>0, bulkT1.seq)
+ 
+d <- M04seq1  # Phyloseq data
+ds2 <- phyloseq_to_deseq2(d, ~ Irrigation)
 
+# Run DESeq2 analysis (all taxa at once!)
+dds <- DESeq(ds2)
 
+# Investigate results
+deseq.results <- as.data.frame(results(dds))
+deseq.results$taxon <- rownames(results(dds))
 
+# Sort (arrange) by pvalue and effect size
+library(knitr)
+deseq.results <- deseq.results %>%
+  arrange(pvalue, log2FoldChange)
 
+# Print the result table
+# Let us only show significant hits
+knitr::kable(deseq.results %>%
+               filter(pvalue < 0.05 & log2FoldChange > 1.5),
+             digits = 5)
 
 
 
