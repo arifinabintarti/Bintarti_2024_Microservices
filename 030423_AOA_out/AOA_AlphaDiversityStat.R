@@ -239,104 +239,104 @@ aoa.emm.sha.irri.rh <- aoa.meta.rh %>%
 # 3. Response variable: Inverse Simpson
 ###########################################################################
 # 4a. Analyses of Bulk Soil
-aob.meta.bulk.invsum.simp <- aob.meta.bulk %>%
+aoa.meta.bulk.invsum.simp <- aoa.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   get_summary_stats(InvSimpson, type = "mean_sd")
-aob.bulk.sum.invsimp.plot <- ggboxplot(
-  aob.meta.bulk, x = "Irrigation", y = "InvSimpson",
+aoa.bulk.sum.invsimp.plot <- ggboxplot(
+  aoa.meta.bulk, x = "Irrigation", y = "InvSimpson",
   color = "Treatment", palette = "jco",
   facet.by =  "Date")
-aob.bulk.sum.invsimp.plot
+aoa.bulk.sum.invsimp.plot
 # check assumption (outliers)
-aob.bulk.invsimp.out <- aob.meta.bulk %>%
+aoa.bulk.invsimp.out <- aoa.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   identify_outliers(InvSimpson) # no extreme outliers
 # Saphiro-Wilk for normality
-aob.bulk.invsimp.SW <- aob.meta.bulk %>%
+aoa.bulk.invsimp.SW <- aoa.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   shapiro_test(InvSimpson)
-ggqqplot(aob.meta.bulk, "InvSimpson", ggtheme = theme_bw()) +
+ggqqplot(aoa.meta.bulk, "InvSimpson", ggtheme = theme_bw()) +
   facet_grid(Date ~ Treatment, labeller = "label_both") #All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
 # Lavene test
-aob.bulk.invsimp.Lave <- aob.meta.bulk %>%
+aoa.bulk.invsimp.Lave <- aoa.meta.bulk %>%
   group_by(Date) %>%
   levene_test(InvSimpson ~ Irrigation*Treatment)
 #If group sample sizes are (approximately) equal, run the three-way mixed ANOVA anyway because it is somewhat robust to heterogeneity of variance in these circumstances.
 # Three-Way Mixed (Split-Plot) ANOVA 
-aob.bulk.invsimp.aov <- anova_test(
-  data = aob.meta.bulk, dv = InvSimpson, wid = PlotID,
+aoa.bulk.invsimp.aov <- anova_test(
+  data = aoa.meta.bulk, dv = InvSimpson, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
-get_anova_table(aob.bulk.invsimp.aov)
+get_anova_table(aoa.bulk.invsimp.aov)
 ############################################################################################################
 # Model Fit
 set.seed(13)
-invsimp.bulk.mod <- lmerTest::lmer(aob.meta.bulk$InvSimpson ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.bulk)
-anova(invsimp.bulk.mod, type = 2)
+aoa.invsimp.bulk.mod <- lmerTest::lmer(aoa.meta.bulk$InvSimpson ~ Irrigation*Treatment*Date +(1|PlotID), data=aoa.meta.bulk)
+anova(aoa.invsimp.bulk.mod, type = 2)
 # Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
 # 1. between fertilization treatment:
-emm.invsimp.bulk <- aob.meta.bulk %>%
+aoa.emm.invsimp.bulk <- aoa.meta.bulk %>%
   group_by(Date, Irrigation) %>%
   emmeans_test(InvSimpson ~ Treatment, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = invsimp.bulk.mod)
+               conf.level = 0.95, model = aoa.invsimp.bulk.mod)
 # 2. between irrigation:
-emm.invsimp.irri.bulk <- aob.meta.bulk %>%
+aoa.emm.invsimp.irri.bulk <- aoa.meta.bulk %>%
   group_by(Date, Treatment) %>%
   emmeans_test(InvSimpson ~ Irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = invsimp.bulk.mod)
+               conf.level = 0.95, model = aoa.invsimp.bulk.mod)
 #############################################################################################################
 
 ##################################################################
 # 3b. Analyses of Rhizosphere
-aob.meta.rh.sum.invsimp <- aob.meta.rh %>%
+aoa.meta.rh.sum.invsimp <- aoa.meta.rh %>%
   group_by(Irrigation, Treatment, Date) %>%
   get_summary_stats(InvSimpson, type = "mean_sd")
-aob.rh.sum.invsimp.plot <- ggboxplot(
-  aob.meta.rh, x = "Irrigation", y = "InvSimpson",
+aoa.rh.sum.invsimp.plot <- ggboxplot(
+  aoa.meta.rh, x = "Irrigation", y = "InvSimpson",
   color = "Treatment", palette = "jco",
   facet.by =  "Date")
-aob.rh.sum.invsimp.plot
+aoa.rh.sum.invsimp.plot
 # check assumption (outliers)
-aob.rh.invsimp.out <- aob.meta.rh %>%
+aoa.rh.invsimp.out <- aoa.meta.rh %>%
   group_by(Irrigation, Treatment, Date) %>%
   identify_outliers(InvSimpson) # no extreme outliers
 # Saphiro-Wilk for normality
-aob.rh.invsimp.SW <- aob.meta.rh %>%
+aoa.rh.invsimp.SW <- aoa.meta.rh %>%
   group_by(Irrigation, Treatment, Date) %>%
   shapiro_test(InvSimpson)
-ggqqplot(aob.meta.rh, "InvSimpson", ggtheme = theme_bw()) +
+ggqqplot(aoa.meta.rh, "InvSimpson", ggtheme = theme_bw()) +
   facet_grid(Date ~ Treatment, labeller = "label_both") #All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
 # Lavene test
-aob.rh.invsimp.Lave <- aob.meta.rh %>%
+aoa.rh.invsimp.Lave <- aoa.meta.rh %>%
   group_by(Date) %>%
   levene_test(InvSimpson ~ Irrigation*Treatment)
 #If group sample sizes are (approximately) equal, run the three-way mixed ANOVA anyway because it is somewhat robust to heterogeneity of variance in these circumstances.
 # Three-Way Mixed (Split-Plot) ANOVA 
-aob.rh.invsimp.aov <- anova_test(
-  data = aob.min.meta.rh, dv = InvSimpson, wid = PlotID,
+aoa.rh.invsimp.aov <- anova_test(
+  data = aoa.min.meta.rh, dv = InvSimpson, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
-get_anova_table(aob.rh.invsimp.aov)
+get_anova_table(aoa.rh.invsimp.aov)
 ############################################################################################################
 # Model Fit
 set.seed(13)
-invsimp.rh.mod <- lmerTest::lmer(aob.meta.rh$InvSimpson ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.rh)
-anova(invsimp.rh.mod, type = 2)
+aoa.invsimp.rh.mod <- lmerTest::lmer(aoa.meta.rh$InvSimpson ~ Irrigation*Treatment*Date +(1|PlotID), data=aoa.meta.rh)
+anova(aoa.invsimp.rh.mod, type = 2)
 # Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
 # 1. between fertilization treatment:
-emm.invsimp.rh <- aob.meta.rh %>%
+aoa.emm.invsimp.rh <- aoa.meta.rh %>%
   group_by(Date, Irrigation) %>%
   emmeans_test(InvSimpson ~ Treatment, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = invsimp.rh.mod)
+               conf.level = 0.95, model = aoa.invsimp.rh.mod)
 # 2. between irrigation:
-emm.invsimp.irri.rh <- aob.meta.rh %>%
+aoa.emm.invsimp.irri.rh <- aoa.meta.rh %>%
   group_by(Date, Treatment) %>%
   emmeans_test(InvSimpson ~ Irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = invsimp.rh.mod)
+               conf.level = 0.95, model = aoa.invsimp.rh.mod)
 #############################################################################################################
 
 

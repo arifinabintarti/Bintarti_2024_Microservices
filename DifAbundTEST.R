@@ -6,6 +6,7 @@
 
 # 1. BULK SOIL
 aob.physeq_bulk <- subset_samples(aob.rare.1282.seq, Type=="BS")
+aob.physeq_bulk
 aob.physeq_bulk1 <- prune_taxa(taxa_sums(aob.physeq_bulk)>0, aob.physeq_bulk)
 aob.physeq_bulk1
 
@@ -1559,23 +1560,47 @@ knitr::kable(deseq.results %>%
                filter(pvalue < 0.05 & log2FoldChange > 1.5),
              digits = 5)
 
+#########################################################################################################################
+BiocManager::install("ALDEx2")
+library(ALDEx2)
+# non-rarefied ASV table BULK SOIL
+aob.bulk.unrare <- subset_samples(aob.physeq, Type=="BS")
+aob.bulk.unrare
+aob.bulk.unrare1 <- prune_taxa(taxa_sums(aob.bulk.unrare)>0, aob.bulk.unrare)
+aob.bulk.unrare1 #1008 taxa, 120 samples
+aob.bulk.unrare.df <- as.data.frame(otu_table(aob.bulk.unrare1))
+head(aob.bulk.unrare.df)
+
+# ASV table (phyloseq object)
+M04seq1
+M04_table <- as.data.frame(otu_table(M04seq1))
+cond.aldx <- sample_data(M04seq1)$Irrigation
+
+results <- aldex(reads=M04_table, conditions = cond.aldx, mc.samples = 128, test="t", effect=TRUE,
+                 include.sample.summary = FALSE, verbose=T, denom="all")
+results
+
+D04seq1
+D04_table <- as.data.frame(otu_table(D04seq1))
+cond.aldx_D <- sample_data(D04seq1)$Irrigation
+
+results_D04 <- aldex(reads=D04_table, conditions = cond.aldx_D, mc.samples = 128, test="t", effect=TRUE,
+                 include.sample.summary = FALSE, verbose=T, denom="all")
+results_D04
+
+K04seq1
+K04_table <- as.data.frame(otu_table(K04seq1))
+cond.aldx_K <- sample_data(K04seq1)$Irrigation
+
+results_K04 <- aldex(reads=K04_table, conditions = cond.aldx_K, mc.samples = 128, test="t", effect=TRUE,
+                     include.sample.summary = FALSE, verbose=T, denom="all")
+results_K04
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+#cond.aldx <- 
 
 
 
