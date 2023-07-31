@@ -66,6 +66,7 @@ library(lme4)
 library(nlme)
 library(ape)
 library(devtools)
+library(phyloseq)
 
 # SET THE WORKING DIRECTORY
 setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/AOA.ASV-analysis')
@@ -94,7 +95,6 @@ aoa.tre <- ape::read.tree("tree.AOA.nwk")
 set.seed(13)
 rarecurve(t(aoa.asv), step=50, cex=0.5, lwd=2, ylab="ASV", label=F)
 #BiocManager::install("phyloseq")
-library(phyloseq)
 
 ## make a phyloseq object of the asv table, taxonomy table, metadata
 
@@ -176,6 +176,7 @@ ggsave("AOA_rarecurve.tiff",
 set.seed(13)
 aoa.rare.min.physeq <- rarefy_even_depth(aoa.physeq, sample.size = min(sample_sums(aoa.physeq)),
   rngseed = 13, replace = FALSE, trimOTUs = TRUE, verbose = TRUE)
+aoa.rare.min.physeq
 sort(sample_sums(aoa.rare.min.physeq), decreasing = F) # 54 OTUs were removed because they are no longer present in any sample after random subsampling
                                                 # no sample removed
 sort(rowSums(otu_table(aoa.rare.min.physeq), na.rm = FALSE, dims = 1), decreasing = F)
