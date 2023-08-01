@@ -126,11 +126,6 @@ sample_names(com.meta.physeq)
 setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/COM-rooted-tree/')
 COM_rooted_tree <- ape::read.tree("tree.nwk")
 
-setwd('D:/Bioinformatics/AMOA-SEQ/090623_COM_out/COM.ASV-analysis/qiime2_tree/COM-rooted-tree/')
-COM_rooted_tree <- ape::read.tree("tree.nwk")
-COM_rooted_tree
-
-
 # make phyloseq object
 com.physeq <- merge_phyloseq(com.asv.physeq,com.tax.physeq,com.meta.physeq,COM_rooted_tree)
 com.physeq
@@ -138,20 +133,20 @@ sample_data(com.physeq)$SampleID <- paste0("S", sample_data(com.physeq)$SampleID
 sample_data(com.physeq)
 
 # run the ggrare function attached in the file "generating_rarecurve.r"
-aoa.rare <- ggrare(aoa.physeq, step = 1, color = "Type", label = "SampleID", se = FALSE)
+com.rare <- ggrare(com.physeq, step = 1, color = "Type", label = "SampleID", se = FALSE)
 
 #set up your own color palette
 Palette <- c("#FF7F00", "#662F00")
-names(Palette) <- levels(sample_data(aoa.physeq)$Type)
+names(Palette) <- levels(sample_data(com.physeq)$Type)
 Palette
 legend_title <- "Sample Type"
 
 library(ggtext)
-plot.aoa.rare <- aoa.rare + 
+plot.com.rare <- com.rare + 
   theme_bw()+
   scale_color_manual(legend_title,values = Palette, labels = c("Bulk Soil", "Rhizosphere"))+
   scale_size_manual(values = 60)+
-  labs(title = "(b) AOA", )+
+  labs(title = "(c) COMAMMOX", )+
   theme( strip.text.x = element_text(size=14, face='bold'),
          axis.text.x=element_text(size = 14),
          axis.text.y = element_text(size = 14),
@@ -166,44 +161,43 @@ plot.aoa.rare <- aoa.rare +
          panel.grid.major = element_blank(),
          panel.grid.minor = element_blank())+
   ylab("Number of ASVs")+xlab("Reads")
+plot.com.rare
 
-plot.aoa.rare
-
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_rarecurve.jpg",
-       plot.aoa.rare, device = "jpg",
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("COM_rarecurve.jpg",
+       plot.com.rare, device = "jpg",
        width = 10, height = 7, 
        units= "in", dpi = 600)
 
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA/')
-ggsave("AOA_rarecurve.tiff",
-       plot.aoa.rare, device = "tiff",
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM/')
+ggsave("COM_rarecurve.tiff",
+       plot.com.rare, device = "tiff",
        width = 10, height = 7, 
        units= "in", dpi = 600)
 
-# rarefy to minimum sequencing depth (minimum reads = 3832 reads)
+# rarefy to minimum sequencing depth (minimum reads =  reads)
 set.seed(13)
-aoa.rare.min.physeq <- rarefy_even_depth(aoa.physeq, sample.size = min(sample_sums(aoa.physeq)),
+com.rare.min.physeq <- rarefy_even_depth(com.physeq, sample.size = 5242,
                                          rngseed = 13, replace = FALSE, trimOTUs = TRUE, verbose = TRUE)
-aoa.rare.min.physeq
-sort(sample_sums(aoa.rare.min.physeq), decreasing = F) # 54 OTUs were removed because they are no longer present in any sample after random subsampling
-# no sample removed
-sort(rowSums(otu_table(aoa.rare.min.physeq), na.rm = FALSE, dims = 1), decreasing = F)
+com.rare.min.physeq
+sort(sample_sums(com.rare.min.physeq), decreasing = F) # 23 OTUs were removed because they are no longer present in any sample after random subsampling
+# 1 sample removed (S52)
+sort(rowSums(otu_table(com.rare.min.physeq), na.rm = FALSE, dims = 1), decreasing = F)
 
 # run the ggrare function attached in the file "generating_rarecurve.r"
-aoa.rare.min <- ggrare(aoa.rare.min.physeq, step = 1, color = "Type", label = "SampleID", se = FALSE)
+com.rare.min <- ggrare(com.rare.min.physeq, step = 1, color = "Type", label = "SampleID", se = FALSE)
 #set up your own color palette
 Palette <- c("#FF7F00", "#662F00")
-names(Palette) <- levels(sample_data(aoa.rare.min.physeq)$Type)
+names(Palette) <- levels(sample_data(com.rare.min.physeq)$Type)
 Palette
 legend_title <- "Sample Type"
 # plot after rarefaction
 library(ggtext)
-plot.aoa.rare.min <- aoa.rare.min + 
+plot.com.rare.min <- com.rare.min + 
   theme_bw()+
   scale_color_manual(legend_title,values = Palette, labels = c("Bulk Soil", "Rhizosphere"))+
   scale_size_manual(values = 60)+
-  labs(title = "(b) AOA", )+
+  labs(title = "(c) COMAMMOX", )+
   theme( strip.text.x = element_text(size=14, face='bold'),
          axis.text.x=element_text(size = 14),
          axis.text.y = element_text(size = 14),
@@ -218,16 +212,16 @@ plot.aoa.rare.min <- aoa.rare.min +
          panel.grid.major = element_blank(),
          panel.grid.minor = element_blank())+
   ylab("Number of ASVs") + xlab("Reads")
-plot.aoa.rare.min
+plot.com.rare.min
 
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_rarecurve_min.jpg",
-       plot.aoa.rare.min, device = "jpg",
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("COM_rarecurve_min.jpg",
+       plot.com.rare.min, device = "jpg",
        width = 10, height = 7, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA/')
-ggsave("AOA_rarecurve_min.tiff",
-       plot.aoa.rare.min, device = "tiff",
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM/')
+ggsave("COM_rarecurve_min.tiff",
+       plot.com.rare.min, device = "tiff",
        width = 10, height = 7, 
        units= "in", dpi = 600)
 
@@ -235,35 +229,36 @@ ggsave("AOA_rarecurve_min.tiff",
 # Calculate the alpha diversity (Richness, Shannon, and Inverse Simpson) 
 ########################################################################################################
 
-colSums(otu_table(aoa.rare.min.physeq))
-aoarare.asv.df <- as.data.frame(otu_table(aoa.rare.min.physeq))
-dim(aoarare.asv.df) # 592 ASVs, 192 samples
-aoarare.asv.df_pa <- 1*(aoarare.asv.df>0)
-aoa.s <- specnumber(aoarare.asv.df, MARGIN = 2) # richness
-aoa.richness <- as.data.frame(aoa.s) 
-aoa.h <- diversity(t(aoarare.asv.df), index = 'shannon') # Shannon index
-aoa.shannon <- as.data.frame(aoa.h)
-aoa.d <- diversity(t(aoarare.asv.df), index = 'simpson') # Simpson index
-aoa.simpson <- as.data.frame(aoa.d)
-aoa.inv.d <- diversity(t(aoarare.asv.df), index = 'invsimpson')
+colSums(otu_table(com.rare.min.physeq))
+com.rare.asv.df <- as.data.frame(otu_table(com.rare.min.physeq))
+dim(com.rare.asv.df) # 630 ASVs, 190 samples
+com.rare.asv.df_pa <- 1*(com.rare.asv.df>0)
+com.s <- specnumber(com.rare.asv.df, MARGIN = 2) # richness
+com.richness <- as.data.frame(com.s) 
+com.h <- diversity(t(com.rare.asv.df), index = 'shannon') # Shannon index
+com.shannon <- as.data.frame(com.h)
+com.d <- diversity(t(com.rare.asv.df), index = 'simpson') # Simpson index
+com.simpson <- as.data.frame(com.d)
+com.inv.d <- diversity(t(com.rare.asv.df), index = 'invsimpson')
 
 # 1. Richness
 
-# Line plot of AOA richness 
-aoa.meta.df <- data.frame(meta_micro)
-aoa.meta.df$Richness <- aoa.s
-aoa.meta.df$Shannon <- aoa.h
-aoa.meta.df$Simpson <- aoa.d
-aoa.meta.df$InvSimpson <- aoa.inv.d
-#aob.min.meta.df$Date  <- as.Date(aob.min.meta.df$Date , "%m/%d/%Y")
-str(aoa.meta.df)
-aoa.meta.df$Type <- factor(aoa.meta.df$Type, levels = c("BS", "RS"),
+# Line plot of COM richness 
+meta_micro_sub <- meta_micro_sub %>% filter(SampleID != 52)
+com.meta.df <- data.frame(meta_micro_sub)
+com.meta.df$Richness <- com.s
+com.meta.df$Shannon <- com.h
+com.meta.df$Simpson <- com.d
+com.meta.df$InvSimpson <- com.inv.d
+#com.min.meta.df$Date  <- as.Date(com.meta.df$Date , "%m/%d/%Y")
+str(com.meta.df)
+com.meta.df$Type <- factor(com.meta.df$Type, levels = c("BS", "RS"),
                            labels = c("Bulk Soil", "Rhizosphere"))
-aoa.meta.df$Treatment <- factor(aoa.meta.df$Treatment, levels = c("D", "K", "M"),
+com.meta.df$Treatment <- factor(com.meta.df$Treatment, levels = c("D", "K", "M"),
                                 labels = c("Biodynamic", "Conventional", "Mineral fertilized"))
-aoa.meta.df$SampleID<-as.factor(aoa.meta.df$SampleID)
-aoa.meta.df$PlotID<-as.factor(aoa.meta.df$PlotID)
-aoa.meta.df$Irrigation<-as.factor(aoa.meta.df$Irrigation)
+com.meta.df$SampleID<-as.factor(com.meta.df$SampleID)
+com.meta.df$PlotID<-as.factor(com.meta.df$PlotID)
+com.meta.df$Irrigation<-as.factor(com.meta.df$Irrigation)
 # tidy up the data frame
 aoa.meta.df.tidy <- aoa.meta.df %>%
   group_by(Irrigation, Treatment, Date, Type, var2,var3) %>%
