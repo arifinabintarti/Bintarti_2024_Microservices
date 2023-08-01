@@ -1,7 +1,7 @@
 #############################################################################################
-# Analysis of amoA gene of AOA Illumina MiSeq Data 
+# Analysis of amoA gene of Comammox Illumina MiSeq Data 
 #############################################################################################
-# Date : 13 July 2023
+# Date : 1 August 2023
 # Author : Ari Fina BINTARTI
 
 # Install packages
@@ -69,64 +69,73 @@ library(devtools)
 library(phyloseq)
 
 # SET THE WORKING DIRECTORY
-setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/AOA.ASV-analysis')
-setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/AOA.ASV-analysis')
+setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/COM.ASV-analysis')
+setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/COM.ASV-analysis')
 wd <- print(getwd())
 # load the asv table
-aoa.asv <- read.table('annotated.AOA.ASVs.counts.tsv', sep='\t', header=T, row.names = 1, check.names = FALSE)
-dim(aoa.asv) # 646  192
-sort(rowSums(aoa.asv, na.rm = FALSE, dims = 1), decreasing = F) # there are no asv that does not exist in at least one sample.
+com.asv <- read.table('annotated.COM.ASVs.counts.tsv', sep='\t', header=T, row.names = 1, check.names = FALSE)
+dim(com.asv) # 686 192
+# remove the bad sample (sample # 26) from the OTU table
+com.asv.sub <- com.asv[, -which(names(com.asv) == "26" )]
+sort(rowSums(com.asv.sub, na.rm = FALSE, dims = 1), decreasing = FALSE)
+dim(com.asv.sub)
 # load the taxonomy table
-setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/')
-setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/')
-aoa.tax <- read.table("besthit.diamond.output.curateddb.AOA.ASVs.edited.csv", sep = ';', header=T)
-dim(aoa.tax) # 646
+setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/')
+setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/')
+com.tax <- read.table("besthit.diamond.output.curateddb.COM.ASVs.edited.csv", sep = ';', header=T)
+dim(com.tax) # 680 
 # load the metadata
 setwd('/Users/arifinabintarti/Documents/France/microservices/')
 setwd('D:/Fina/INRAE_Project/microservices/')
 meta_micro <- read.csv("meta_microservices.csv")
+# remove the bad sample (sample # 26) from the metadata
+meta_micro_sub <- meta_micro[-26,]
 # load phylogenetic tree (nwk file)
-setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/AOA-rooted-tree/')
-AOA_rooted_tree <- ape::read.tree("tree.nwk")
-AOA_rooted_tree
+setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/COM-rooted-tree/')
+COM_rooted_tree <- ape::read.tree("tree.nwk")
 
 ############################################################################
 # rarefaction curve
 set.seed(13)
-rarecurve(t(aoa.asv), step=50, cex=0.5, lwd=2, ylab="ASV", label=F)
+rarecurve(t(com.asv), step=50, cex=0.5, lwd=2, ylab="ASV", label=F)
 #BiocManager::install("phyloseq")
 
 ## make a phyloseq object of the asv table, taxonomy table, metadata
 
 # re-order the rownames of the asv table to match the colnames of the metadata.
-re_order <- match(rownames(meta_micro), colnames(aoa.asv))
-aoa.asv.ord  <- aoa.asv[ ,re_order]
-aoa.asv.physeq = otu_table(aoa.asv.ord, taxa_are_rows = TRUE) # asv table
-sample_names(aoa.asv.physeq)
+re_order <- match(rownames(meta_micro_sub), colnames(com.asv.sub))
+com.asv.ord  <- com.asv.sub[ ,re_order]
+com.asv.physeq = otu_table(com.asv.ord, taxa_are_rows = TRUE) # asv table
+sample_names(com.asv.physeq)
 # adding "S" for sample names to avoid possible problem later on
-sample_names(aoa.asv.physeq) <- paste0("S", sample_names(aoa.asv.physeq))
+sample_names(com.asv.physeq) <- paste0("S", sample_names(com.asv.physeq))
 
 # phyloseq object of the taxonomy table
-aoa.tax <- column_to_rownames(aoa.tax, var = "ASVid")
-#row.names(aoa.tax) <- aoa.tax$ASVid
-aoa.tax.physeq = tax_table(as.matrix(aoa.tax)) # taxonomy table
- 
+com.tax <- column_to_rownames(com.tax, var = "ASVid")
+#row.names(com.tax) <- com.tax$ASVid
+com.tax.physeq = tax_table(as.matrix(com.tax)) # taxonomy table
+
 # phyloseq object of the metadata
-meta_micro$Date <- factor(meta_micro$Date, levels = c("4/28/22", "6/1/22", "7/5/22", "7/20/22", "9/13/22"),
+meta_micro_sub$Date <- factor(meta_micro_sub$Date, levels = c("4/28/22", "6/1/22", "7/5/22", "7/20/22", "9/13/22"),
                           labels = c("04-28-22", "06-01-22", "07-05-22", "07-20-22", "09-13-22"))
-rownames(meta_micro) <- sample_names(aoa.asv.physeq)
-aoa.meta.physeq <- sample_data(meta_micro)# meta data
-sample_names(aoa.meta.physeq)
+rownames(meta_micro_sub) <- sample_names(com.asv.physeq)
+com.meta.physeq <- sample_data(meta_micro_sub)# meta data
+sample_names(com.meta.physeq)
 
 # read the rooted tree
-setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/AOA-rooted-tree/')
-AOA_rooted_tree <- ape::read.tree("tree.nwk")
+setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/COM-rooted-tree/')
+COM_rooted_tree <- ape::read.tree("tree.nwk")
+
+setwd('D:/Bioinformatics/AMOA-SEQ/090623_COM_out/COM.ASV-analysis/qiime2_tree/COM-rooted-tree/')
+COM_rooted_tree <- ape::read.tree("tree.nwk")
+COM_rooted_tree
+
 
 # make phyloseq object
-aoa.physeq <- merge_phyloseq(aoa.asv.physeq,aoa.tax.physeq,aoa.meta.physeq,AOA_rooted_tree)
-aoa.physeq
-sample_data(aoa.physeq)$SampleID <- paste0("S", sample_data(aoa.physeq)$SampleID)
-sample_data(aoa.physeq)
+com.physeq <- merge_phyloseq(com.asv.physeq,com.tax.physeq,com.meta.physeq,COM_rooted_tree)
+com.physeq
+sample_data(com.physeq)$SampleID <- paste0("S", sample_data(com.physeq)$SampleID)
+sample_data(com.physeq)
 
 # run the ggrare function attached in the file "generating_rarecurve.r"
 aoa.rare <- ggrare(aoa.physeq, step = 1, color = "Type", label = "SampleID", se = FALSE)
@@ -139,25 +148,25 @@ legend_title <- "Sample Type"
 
 library(ggtext)
 plot.aoa.rare <- aoa.rare + 
- theme_bw()+
- scale_color_manual(legend_title,values = Palette, labels = c("Bulk Soil", "Rhizosphere"))+
- scale_size_manual(values = 60)+
- labs(title = "(b) AOA", )+
- theme( strip.text.x = element_text(size=14, face='bold'),
-        axis.text.x=element_text(size = 14),
-        axis.text.y = element_text(size = 14),
-        strip.text.y = element_text(size=18, face = 'bold'),
-        plot.title = element_text(size =20 ,face='bold'),
-        axis.title.y = element_text(size=15,face="bold"),
-        axis.title.x = element_text(size=15,face="bold"),
-        legend.position = "right",
-        legend.title = element_text(size=15),
-        legend.text = element_text(size = 13),
-        plot.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
-        ylab("Number of ASVs")+xlab("Reads")
- 
+  theme_bw()+
+  scale_color_manual(legend_title,values = Palette, labels = c("Bulk Soil", "Rhizosphere"))+
+  scale_size_manual(values = 60)+
+  labs(title = "(b) AOA", )+
+  theme( strip.text.x = element_text(size=14, face='bold'),
+         axis.text.x=element_text(size = 14),
+         axis.text.y = element_text(size = 14),
+         strip.text.y = element_text(size=18, face = 'bold'),
+         plot.title = element_text(size =20 ,face='bold'),
+         axis.title.y = element_text(size=15,face="bold"),
+         axis.title.x = element_text(size=15,face="bold"),
+         legend.position = "right",
+         legend.title = element_text(size=15),
+         legend.text = element_text(size = 13),
+         plot.background = element_blank(),
+         panel.grid.major = element_blank(),
+         panel.grid.minor = element_blank())+
+  ylab("Number of ASVs")+xlab("Reads")
+
 plot.aoa.rare
 
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
@@ -175,10 +184,10 @@ ggsave("AOA_rarecurve.tiff",
 # rarefy to minimum sequencing depth (minimum reads = 3832 reads)
 set.seed(13)
 aoa.rare.min.physeq <- rarefy_even_depth(aoa.physeq, sample.size = min(sample_sums(aoa.physeq)),
-  rngseed = 13, replace = FALSE, trimOTUs = TRUE, verbose = TRUE)
+                                         rngseed = 13, replace = FALSE, trimOTUs = TRUE, verbose = TRUE)
 aoa.rare.min.physeq
 sort(sample_sums(aoa.rare.min.physeq), decreasing = F) # 54 OTUs were removed because they are no longer present in any sample after random subsampling
-                                                # no sample removed
+# no sample removed
 sort(rowSums(otu_table(aoa.rare.min.physeq), na.rm = FALSE, dims = 1), decreasing = F)
 
 # run the ggrare function attached in the file "generating_rarecurve.r"
@@ -191,25 +200,25 @@ legend_title <- "Sample Type"
 # plot after rarefaction
 library(ggtext)
 plot.aoa.rare.min <- aoa.rare.min + 
-                     theme_bw()+
-                     scale_color_manual(legend_title,values = Palette, labels = c("Bulk Soil", "Rhizosphere"))+
-                     scale_size_manual(values = 60)+
-                     labs(title = "(b) AOA", )+
-                     theme( strip.text.x = element_text(size=14, face='bold'),
-                            axis.text.x=element_text(size = 14),
-                            axis.text.y = element_text(size = 14),
-                            strip.text.y = element_text(size=18, face = 'bold'),
-                            plot.title = element_text(size =20 ,face='bold'),
-                            axis.title.y = element_text(size=15,face="bold"),
-                            axis.title.x = element_text(size=15,face="bold"),
-                            legend.position = "right",
-                            legend.title = element_text(size=15),
-                            legend.text = element_text(size = 13),
-                            plot.background = element_blank(),
-                            panel.grid.major = element_blank(),
-                            panel.grid.minor = element_blank())+
-                            ylab("Number of ASVs") + xlab("Reads")
- plot.aoa.rare.min
+  theme_bw()+
+  scale_color_manual(legend_title,values = Palette, labels = c("Bulk Soil", "Rhizosphere"))+
+  scale_size_manual(values = 60)+
+  labs(title = "(b) AOA", )+
+  theme( strip.text.x = element_text(size=14, face='bold'),
+         axis.text.x=element_text(size = 14),
+         axis.text.y = element_text(size = 14),
+         strip.text.y = element_text(size=18, face = 'bold'),
+         plot.title = element_text(size =20 ,face='bold'),
+         axis.title.y = element_text(size=15,face="bold"),
+         axis.title.x = element_text(size=15,face="bold"),
+         legend.position = "right",
+         legend.title = element_text(size=15),
+         legend.text = element_text(size = 13),
+         plot.background = element_blank(),
+         panel.grid.major = element_blank(),
+         panel.grid.minor = element_blank())+
+  ylab("Number of ASVs") + xlab("Reads")
+plot.aoa.rare.min
 
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
 ggsave("AOA_rarecurve_min.jpg",
@@ -249,9 +258,9 @@ aoa.meta.df$InvSimpson <- aoa.inv.d
 #aob.min.meta.df$Date  <- as.Date(aob.min.meta.df$Date , "%m/%d/%Y")
 str(aoa.meta.df)
 aoa.meta.df$Type <- factor(aoa.meta.df$Type, levels = c("BS", "RS"),
-                               labels = c("Bulk Soil", "Rhizosphere"))
+                           labels = c("Bulk Soil", "Rhizosphere"))
 aoa.meta.df$Treatment <- factor(aoa.meta.df$Treatment, levels = c("D", "K", "M"),
-                                    labels = c("Biodynamic", "Conventional", "Mineral fertilized"))
+                                labels = c("Biodynamic", "Conventional", "Mineral fertilized"))
 aoa.meta.df$SampleID<-as.factor(aoa.meta.df$SampleID)
 aoa.meta.df$PlotID<-as.factor(aoa.meta.df$PlotID)
 aoa.meta.df$Irrigation<-as.factor(aoa.meta.df$Irrigation)
@@ -418,9 +427,9 @@ aoa.rich.pwc.plot <- ggplot(aoa.meta.df, aes(x=Irrigation, y=Richness)) +
 aoa.rich.pwc.plot
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
 #aoa.xy.rich.bulk <- emm.rich.bulk %>% 
-  #add_xy_position(x = "Irrigation", dodge = 0.8) # bulk soil
+#add_xy_position(x = "Irrigation", dodge = 0.8) # bulk soil
 #xy.rich.rh <- emm.rich.rh %>% 
-  #add_xy_position(x = "Irrigation", dodge = 0.8)# rhizosphere
+#add_xy_position(x = "Irrigation", dodge = 0.8)# rhizosphere
 # #combine two data frames and adding 'Type'
 #df.xy.rich.bulk <- as.data.frame(xy.rich.bulk)
 #df.xy.rich.rh <- as.data.frame(xy.rich.rh)
@@ -428,8 +437,8 @@ aoa.rich.pwc.plot
 #df.xy.rich.all$Type <-  c(rep("Bulk Soil", 30), rep("Rhizosphere", 18)) #adding 'Type'
 # plotting the pairwise comparisons among treatments (emmeans results)
 #aob.rich.pwc.plot2 <- aob.rich.pwc.plot + 
- # stat_pvalue_manual(df.xy.rich.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
- # scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
+# stat_pvalue_manual(df.xy.rich.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
+# scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
 #aob.rich.pwc.plot2
 
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
@@ -1828,4 +1837,3 @@ ggsave("AOB_meanRA_unrare_barplot.tiff",
        aob.sp.unrare.plot, device = "tiff",
        width = 15, height =6, 
        units= "in", dpi = 600)
-
