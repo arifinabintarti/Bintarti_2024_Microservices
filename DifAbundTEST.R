@@ -195,7 +195,7 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
   
   tryCatch({
     ### model
-    glmT3s <- glmer(y ~ 0 + a + (1 | z), family='poisson',offset = o)
+    glmT3s <- glmer(y ~ a + (1 | z), family='poisson',offset = o)
     glmT3s.sum = summary(glmT3s)$coefficients
     #glmT3s.sum = summary(glmT3s)$coefficients$cond
     glmT3s.sum = tibble("OTU"= OTU,
@@ -1596,15 +1596,110 @@ results_K04 <- aldex(reads=K04_table, conditions = cond.aldx_K, mc.samples = 128
                      include.sample.summary = FALSE, verbose=T, denom="all")
 results_K04
 
+clr <- aldex.clr(M04_table,cond.aldx, mc.samples = 128, verbose = F)
+aldex.glm(clr,cond.aldx, useMC=FALSE)
+
+
+covariates <- data.frame("A" = sample(0:1, 14, replace = TRUE),
+                         "B" = c(rep(0, 7), rep(1, 7)))
+
+covariates
 
 
 
 
-#cond.aldx <- 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+BiocManager::install("ANCOMBC")
+BiocManager::install("microbiome")
+library(microbiome)
+library(ANCOMBC)
+library(tidyverse)
+library(DT)
+options(DT.options = list(
+  initComplete = JS("function(settings, json) {",
+                    "$(this.api().table().header()).css({'background-color': 
+  '#000', 'color': '#fff'});","}")))
+data(atlas1006, package = "microbiome")
+tse = mia::makeTreeSummarizedExperimentFromPhyloseq(atlas1006)
+
+# subset to baseline
+tse = tse[, tse$time == 0]
+
+# Re-code the bmi group
+tse$bmi = recode(tse$bmi_group,
+                 obese = "obese",
+                 severeobese = "obese",
+                 morbidobese = "obese")
+# Subset to lean, overweight, and obese subjects
+tse = tse[, tse$bmi %in% c("lean", "overweight", "obese")]
+
+# Note that by default, levels of a categorical variable in R are sorted 
+# alphabetically. In this case, the reference level for `bmi` will be 
+# `lean`. To manually change the reference level, for instance, setting `obese`
+# as the reference level, use:
+tse$bmi = factor(tse$bmi, levels = c("obese", "overweight", "lean"))
+# You can verify the change by checking:
+# levels(sample_data(tse)$bmi)
+
+# Create the region variable
+tse$region = recode(as.character(tse$nationality),
+                    Scandinavia = "NE", UKIE = "NE", SouthEurope = "SE", 
+                    CentralEurope = "CE", EasternEurope = "EE",
+                    .missing = "unknown")
+
+# Discard "EE" as it contains only 1 subject
+# Discard subjects with missing values of region
+tse = tse[, ! tse$region %in% c("EE", "unknown")]
+
+print(tse)
+
+out = ancombc2(data = tse, assay_name = "counts", 
+              tax_level = "Family", 
+              fix_formula = "age + region + bmi", 
+              rand_formula = NULL,
+              p_adj_method = "holm", 
+              prv_cut = 0.10, 
+              lib_cut = 1000,
+              s0_perc = 0.05,
+              group = "bmi", 
+              struc_zero = TRUE,
+              neg_lb = TRUE, 
+              alpha = 0.05,
+              n_cl = 2,
+              global = TRUE,
+              pairwise = TRUE,
+              dunnet = TRUE,
+              trend = TRUE,
+              iter_control = list(tol = 1e-2, max_iter = 20),
+              em_control = list(tol = 1e-5, max_iter = 100),
+              lme_control = lme4::lmerControl(),
+              mdfdr_control = list(fwer_ctrl_method = "holm", B = 100),
+              trend_control = list(contrast = list(matrix(c(1, 0, -1, 1),
+                                                          nrow = 2, 
+                                                          byrow = TRUE),
+                                                   matrix(c(-1, 0, 1, -1),
+                                                          nrow = 2, 
+                                                          byrow = TRUE)),
+                                   node = list(2, 2),
+                                   solver = "ECOS",
+                                   B = 10))
+              
+         
 
 
 

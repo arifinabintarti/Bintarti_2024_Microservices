@@ -10,22 +10,22 @@ library(paletteer)
 
 # to create the upsetR plot
 # replace Genotype with your variable or variables and sets with the levels of your variable
-upsetda <- get_upset(physeq, factorNames="Genotype")
-upset(upsetda, sets=c("Nox1","Nia1Nia2","GSNOR1","Ahb1","Col0","No"), sets.bar.color = "#56B4E9",
+upsetda <- get_upset(aob.rare.1282.seq, factorNames="x")
+upset(upsetda, sets=c("cont.D","cont.K", "cont.M","rain.D","rain.K", "rain.M"), sets.bar.color = "#56B4E9",
       order.by = "freq", keep.order=T,empty.intersections = "on",nintersects = 21)
 
 
 # the code from here is to create the barplot with taxonomy
 
 # I have my data in a phyloseq object called physeq
-dataset<-phyloseq2meco(physeq)
+dataset<-phyloseq2meco(aob.rare.1282.seq)
 
 # I order the levels according to what I want
-dataset$sample_table$Genotype %<>% factor(., levels = c("No","Col0","Ahb1","GSNOR1","Nia1Nia2","Nox1"))
+#dataset$sample_table$x %<>% factor(., levels = c("No","Col0","Ahb1","GSNOR1","Nia1Nia2","Nox1"))
 
 
 # from here, it will do several things, creating a similar plot (that will not be used because I like more the other one)
-tmp <- dataset$merge_samples(use_group = "Genotype")
+tmp <- dataset$merge_samples(use_group = "x")
 
 t1 <- trans_venn$new(dataset = tmp)
 

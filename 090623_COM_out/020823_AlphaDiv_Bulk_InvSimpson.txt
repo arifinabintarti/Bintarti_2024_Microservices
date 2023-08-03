@@ -1,0 +1,9 @@
+Type II Analysis of Variance Table with Satterthwaite's method
+                           Sum Sq Mean Sq NumDF  DenDF F value    Pr(>F)    
+Irrigation                  3.202   3.202     1 18.038  0.7630   0.39387    
+Treatment                 155.771  77.885     2 18.035 18.5572 4.195e-05 ***
+Date                       34.619   8.655     4 70.085  2.0621   0.09503 .  
+Irrigation:Treatment        1.328   0.664     2 18.042  0.1582   0.85485    
+Irrigation:Date            27.533   6.883     4 70.094  1.6400   0.17388    
+Treatment:Date             32.172   4.021     8 70.092  0.9582   0.47557    
+Irrigation:Treatment:Date  25.132   3.142     8 70.099  0.7485   0.64864 

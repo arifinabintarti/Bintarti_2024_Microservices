@@ -1,0 +1,11 @@
+adonis2(formula = com.rh_dist_bc ~ Irrigation * Treatment * Date, data = com.meta.rh, permutations = 999, method = "bray", strata = NULL)
+                          Df SumOfSqs      R2       F Pr(>F)    
+Irrigation                 1   0.2311 0.01716  1.9892  0.124    
+Treatment                  2   6.5402 0.48567 28.1505  0.001 ***
+Date                       2   0.0809 0.00601  0.3482  0.966    
+Irrigation:Treatment       2   0.1301 0.00966  0.5599  0.778    
+Irrigation:Date            2   0.0441 0.00328  0.1900  1.000    
+Treatment:Date             4   0.1013 0.00753  0.2181  1.000    
+Irrigation:Treatment:Date  4   0.0656 0.00487  0.1412  1.000    
+Residual                  54   6.2729 0.46582                   
+Total                     71  13.4662 1.00000 

@@ -128,7 +128,7 @@ COM_rooted_tree <- ape::read.tree("tree.nwk")
 
 # make phyloseq object
 com.physeq <- merge_phyloseq(com.asv.physeq,com.tax.physeq,com.meta.physeq,COM_rooted_tree)
-com.physeq
+com.physeq # 653 taxa
 sample_data(com.physeq)$SampleID <- paste0("S", sample_data(com.physeq)$SampleID)
 sample_data(com.physeq)
 
@@ -176,11 +176,11 @@ ggsave("COM_rarecurve.tiff",
        units= "in", dpi = 600)
 
 # rarefy to minimum sequencing depth (minimum reads =  reads)
-set.seed(13)
+set.seed(333)
 com.rare.min.physeq <- rarefy_even_depth(com.physeq, sample.size = 5242,
-                                         rngseed = 13, replace = FALSE, trimOTUs = TRUE, verbose = TRUE)
-com.rare.min.physeq
-sort(sample_sums(com.rare.min.physeq), decreasing = F) # 23 OTUs were removed because they are no longer present in any sample after random subsampling
+                                         rngseed = 333, replace = FALSE, trimOTUs = TRUE, verbose = TRUE)
+com.rare.min.physeq #632 taxa
+sort(sample_sums(com.rare.min.physeq), decreasing = F) # 21 OTUs were removed because they are no longer present in any sample after random subsampling
 # 1 sample removed (S52)
 sort(rowSums(otu_table(com.rare.min.physeq), na.rm = FALSE, dims = 1), decreasing = F)
 
@@ -231,7 +231,7 @@ ggsave("COM_rarecurve_min.tiff",
 
 colSums(otu_table(com.rare.min.physeq))
 com.rare.asv.df <- as.data.frame(otu_table(com.rare.min.physeq))
-dim(com.rare.asv.df) # 630 ASVs, 190 samples
+dim(com.rare.asv.df) # 632 ASVs, 190 samples
 com.rare.asv.df_pa <- 1*(com.rare.asv.df>0)
 com.s <- specnumber(com.rare.asv.df, MARGIN = 2) # richness
 com.richness <- as.data.frame(com.s) 
@@ -244,8 +244,8 @@ com.inv.d <- diversity(t(com.rare.asv.df), index = 'invsimpson')
 # 1. Richness
 
 # Line plot of COM richness 
-meta_micro_sub <- meta_micro_sub %>% filter(SampleID != 52)
-com.meta.df <- data.frame(meta_micro_sub)
+meta_micro_sub2 <- meta_micro_sub %>% filter(SampleID != "52")
+com.meta.df <- data.frame(meta_micro_sub2)
 com.meta.df$Richness <- com.s
 com.meta.df$Shannon <- com.h
 com.meta.df$Simpson <- com.d
@@ -260,13 +260,13 @@ com.meta.df$SampleID<-as.factor(com.meta.df$SampleID)
 com.meta.df$PlotID<-as.factor(com.meta.df$PlotID)
 com.meta.df$Irrigation<-as.factor(com.meta.df$Irrigation)
 # tidy up the data frame
-aoa.meta.df.tidy <- aoa.meta.df %>%
+com.meta.df.tidy <- com.meta.df %>%
   group_by(Irrigation, Treatment, Date, Type, var2,var3) %>%
   summarize(Mean.Rich=mean(Richness),
             Mean.Sha=mean(Shannon),
             Mean.Simp=mean(Simpson),
             Mean.invsimp=mean(InvSimpson))
-str(aoa.meta.df.tidy)
+str(com.meta.df.tidy)
 
 # plotting line chart
 #remotes::install_github("Nowosad/rcartocolor")
@@ -280,13 +280,13 @@ color.trt <- c(D="#E58606", K="#5D69B1", M="#52BCA3")
 library(ggnewscale)
 #install.packages("viridis")
 library(viridis)
-aoa.meta.df.tidy$Date <- factor(aoa.meta.df.tidy$Date, levels = unique(aoa.meta.df.tidy$Date))
-aoa.rich.plot <- ggplot(aoa.meta.df.tidy, aes(x = Date, y = Mean.Rich, linetype=Irrigation))+
+com.meta.df.tidy$Date <- factor(com.meta.df.tidy$Date, levels = unique(com.meta.df.tidy$Date))
+com.rich.plot <- ggplot(com.meta.df.tidy, aes(x = Date, y = Mean.Rich, linetype=Irrigation))+
   geom_line(linewidth=1.15, aes(group = var2, col=Treatment))+
   facet_wrap(~ Type, strip.position="top", nrow = 1)+
   theme_bw() +
   scale_colour_viridis(discrete=T, labels = c("Biodynamic", "Conventional", "Mineral fertilized"))+
-  labs(x="Time Point", y="AOA Richness")+
+  labs(x="Time Point", y="Comammox Richness")+
   theme(legend.position = "bottom",
         strip.text = element_text(size=18),
         axis.text.y = element_text(size = 16),
@@ -300,29 +300,29 @@ aoa.rich.plot <- ggplot(aoa.meta.df.tidy, aes(x = Date, y = Mean.Rich, linetype=
         legend.text=element_text(size=14))+
   geom_point(alpha=0.5,aes(col=Treatment), size=4)+
   theme(legend.direction = "horizontal", legend.box = "vertical")
-aoa.rich.plot                            
+com.rich.plot                            
 
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_min_rich3.eps",
-       aoa.min.rich.plot, device = cairo_ps,
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("COM_min_rich3.eps",
+       com.min.rich.plot, device = cairo_ps,
        width = 9, height = 7.5, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("AOA_rich.tiff",
-       aoa.rich.plot, device = tiff,
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("COM_rich.tiff",
+       com.rich.plot, device = tiff,
        width = 9, height = 7.5, 
        units= "in", dpi = 600)
 
 # 2. Shannon
 
-#Line plot of AOA Shannon
+#Line plot of COM Shannon
 library(scales)
-aoa.sha.plot <- ggplot(aoa.meta.df.tidy, aes(x = Date, y = Mean.Sha, linetype=Irrigation))+
+com.sha.plot <- ggplot(com.meta.df.tidy, aes(x = Date, y = Mean.Sha, linetype=Irrigation))+
   geom_line(linewidth=1.15, aes(group = var2, col=Treatment))+
   facet_wrap(~ Type, strip.position="top", nrow = 1)+
   theme_bw() +
   scale_colour_viridis(discrete=T, labels = c("Biodynamic", "Conventional", "Mineral fertilized"))+
-  labs(x="Time Point", y="AOA Shannon")+
+  labs(x="Time Point", y="Comammox Shannon")+
   theme(legend.position = "bottom",
         strip.text = element_text(size=18),
         axis.text.y = element_text(size = 16),
@@ -336,29 +336,29 @@ aoa.sha.plot <- ggplot(aoa.meta.df.tidy, aes(x = Date, y = Mean.Sha, linetype=Ir
         legend.text=element_text(size=14))+
   geom_point(alpha=0.5,aes(col=Treatment), size=4)+
   theme(legend.direction = "horizontal", legend.box = "vertical")
-aoa.sha.plot  
+com.sha.plot  
 
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_min_sha2.eps",
-       aoa.min.sha.plot, device = cairo_ps,
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("COM_min_sha2.eps",
+       com.min.sha.plot, device = cairo_ps,
        width = 9, height = 7.5, 
        units= "in", dpi = 600)
 
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("AOA_sha.tiff",
-       aoa.sha.plot, device = tiff,
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("COM_sha.tiff",
+       com.sha.plot, device = tiff,
        width = 9, height = 7.5, 
        units= "in", dpi = 600)
 
 #. 3. Inverse Simpson
 
-#Line plot of AOA Inverse Simpson
-aoa.invsimp.plot <- ggplot(aoa.meta.df.tidy, aes(x = Date, y = Mean.invsimp, linetype=Irrigation))+
+#Line plot of COM Inverse Simpson
+com.invsimp.plot <- ggplot(com.meta.df.tidy, aes(x = Date, y = Mean.invsimp, linetype=Irrigation))+
   geom_line(linewidth=1.15, aes(group = var2, col=Treatment))+
   facet_wrap(~ Type, strip.position="top", nrow = 1)+
   theme_bw() +
   scale_colour_viridis(discrete=T, labels = c("Biodynamic", "Conventional", "Mineral fertilized"))+
-  labs(x="Time Point", y="AOA Inverse Simpson")+
+  labs(x="Time Point", y="Comammox Inverse Simpson")+
   theme(legend.position = "bottom",
         strip.text = element_text(size=18),
         axis.text.y = element_text(size = 16),
@@ -372,17 +372,17 @@ aoa.invsimp.plot <- ggplot(aoa.meta.df.tidy, aes(x = Date, y = Mean.invsimp, lin
         legend.text=element_text(size=14))+
   geom_point(alpha=0.5,aes(col=Treatment), size=4)+
   theme(legend.direction = "horizontal", legend.box = "vertical")
-aoa.invsimp.plot 
+com.invsimp.plot 
 
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_min_invsimp.eps",
-       aoa.min.invsimp.plot, device = cairo_ps,
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("COM_min_invsimp.eps",
+       com.min.invsimp.plot, device = cairo_ps,
        width = 9, height = 7.5, 
        units= "in", dpi = 600)
 
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("AOA_invsimp.tiff",
-       aoa.invsimp.plot, device = tiff,
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("COM_invsimp.tiff",
+       com.invsimp.plot, device = tiff,
        width = 9, height = 7.5, 
        units= "in", dpi = 600)
 
@@ -390,7 +390,7 @@ ggsave("AOA_invsimp.tiff",
 
 # 1. Richness
 
-# Box plot of AOB Richness
+# Box plot of COM Richness
 
 #install.packages('remotes')
 #remotes::install_github("coolbutuseless/ggpattern")
@@ -402,10 +402,10 @@ library(sf)
 library(ggpattern)
 
 # Richness: plotting the pairwise comparisons across treatment 
-aoa.rich.pwc.plot <- ggplot(aoa.meta.df, aes(x=Irrigation, y=Richness)) +
+com.rich.pwc.plot <- ggplot(com.meta.df, aes(x=Irrigation, y=Richness)) +
   geom_boxplot(aes(fill=Treatment))+
   theme_bw() +
-  labs(y="AOA Richness")+
+  labs(y="Comammox Richness")+
   expand_limits(y = 0)+
   labs(pattern="Irrigation")+
   scale_fill_viridis(discrete=T)+
@@ -419,39 +419,39 @@ aoa.rich.pwc.plot <- ggplot(aoa.meta.df, aes(x=Irrigation, y=Richness)) +
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
-aoa.rich.pwc.plot
+com.rich.pwc.plot
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
-#aoa.xy.rich.bulk <- emm.rich.bulk %>% 
-#add_xy_position(x = "Irrigation", dodge = 0.8) # bulk soil
-#xy.rich.rh <- emm.rich.rh %>% 
-#add_xy_position(x = "Irrigation", dodge = 0.8)# rhizosphere
-# #combine two data frames and adding 'Type'
-#df.xy.rich.bulk <- as.data.frame(xy.rich.bulk)
-#df.xy.rich.rh <- as.data.frame(xy.rich.rh)
-#df.xy.rich.all <- rbind(df.xy.rich.bulk, df.xy.rich.rh) 
-#df.xy.rich.all$Type <-  c(rep("Bulk Soil", 30), rep("Rhizosphere", 18)) #adding 'Type'
+com.xy.rich.bulk <- com.emm.rich.bulk %>% 
+add_xy_position(x = "Irrigation", dodge = 0.8) # bulk soil
+com.xy.rich.rh <- com.emm.rich.rh %>% 
+add_xy_position(x = "Irrigation", dodge = 0.8)# rhizosphere
+#combine two data frames and adding 'Type'
+com.df.xy.rich.bulk <- as.data.frame(com.xy.rich.bulk)
+com.df.xy.rich.rh <- as.data.frame(com.xy.rich.rh)
+com.df.xy.rich.all <- rbind(com.df.xy.rich.bulk, com.df.xy.rich.rh) 
+com.df.xy.rich.all$Type <-  c(rep("Bulk Soil", 30), rep("Rhizosphere", 18)) #adding 'Type'
 # plotting the pairwise comparisons among treatments (emmeans results)
-#aob.rich.pwc.plot2 <- aob.rich.pwc.plot + 
-# stat_pvalue_manual(df.xy.rich.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
-# scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
-#aob.rich.pwc.plot2
+com.rich.pwc.plot2 <- com.rich.pwc.plot + 
+stat_pvalue_manual(com.df.xy.rich.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
+scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
+com.rich.pwc.plot2
 
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_min_rich_mean_boxplot.eps",
-       aoa.min.rich.pwc.plot2, device = "eps",
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("COM_min_rich_mean_boxplot.eps",
+       com.min.rich.pwc.plot2, device = "eps",
        width = 14, height =5.8, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("AOA_rich_mean_boxplot.tiff",
-       aoa.rich.pwc.plot, device = "tiff",
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("COM_rich_mean_boxplot.tiff",
+       com.rich.pwc.plot2, device = "tiff",
        width = 14, height =5.8, 
        units= "in", dpi = 600)
 
 # richness between irrigations
-aoa.rich.pwc.irri.plot <- ggplot(aoa.meta.df, aes(x=Date, y=Richness)) +
+com.rich.pwc.irri.plot <- ggplot(com.meta.df, aes(x=Date, y=Richness)) +
   geom_boxplot(aes(group = var3, fill = Irrigation))+
   theme_bw() +
-  labs(y="AOA Richness")+
+  labs(y="Comammox Richness")+
   scale_fill_manual(values = c("#996035","#F2DACD"))+
   facet_grid(Type~ Treatment,scales="free_x")+
   theme(legend.title = element_text(size=15, face='bold'),
@@ -464,16 +464,16 @@ aoa.rich.pwc.irri.plot <- ggplot(aoa.meta.df, aes(x=Date, y=Richness)) +
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
-aoa.rich.pwc.irri.plot
+com.rich.pwc.irri.plot
 
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_rich_irri_boxplot.eps",
-       aoa.rich.pwc.irri.plot, device = "eps",
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("COM_rich_irri_boxplot.eps",
+       com.rich.pwc.irri.plot, device = "eps",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("AOA_rich_irri_boxplot.tiff",
-       aoa.rich.pwc.irri.plot, device = "tiff",
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("COM_rich_irri_boxplot.tiff",
+       com.rich.pwc.irri.plot, device = "tiff",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
 
@@ -481,10 +481,10 @@ ggsave("AOA_rich_irri_boxplot.tiff",
 
 # Shannon: plotting the significance across treatment
 
-aoa.sha.pwc.plot <- ggplot(aoa.meta.df, aes(x=Irrigation, y=Shannon)) +
+com.sha.pwc.plot <- ggplot(com.meta.df, aes(x=Irrigation, y=Shannon)) +
   geom_boxplot(aes(fill = Treatment))+
   theme_bw() +
-  labs(y="AOA Shannon")+
+  labs(y="Comammox Shannon")+
   labs(pattern="Irrigation")+
   scale_fill_viridis(discrete=T)+
   facet_grid(Type~ Date,scales="free_x")+
@@ -497,40 +497,40 @@ aoa.sha.pwc.plot <- ggplot(aoa.meta.df, aes(x=Irrigation, y=Shannon)) +
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
-aoa.sha.pwc.plot
+com.sha.pwc.plot
 
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
-aoa.xy.sha.bulk <- aoa.emm.sha.bulk %>% 
+com.xy.sha.bulk <- com.emm.sha.bulk %>% 
   add_xy_position(x = "Irrigation", dodge = 0.8) # bulk soil
-aoa.xy.sha.rh <- aoa.emm.sha.rh %>% 
+com.xy.sha.rh <- com.emm.sha.rh %>% 
   add_xy_position(x = "Irrigation", dodge = 0.8)# rhizosphere
-# #combine two data frames and adding 'Type'
-aoa.df.xy.sha.bulk <- as.data.frame(aoa.xy.sha.bulk)
-aoa.df.xy.sha.rh <- as.data.frame(aoa.xy.sha.rh)
-aoa.df.xy.sha.all <- rbind(aoa.df.xy.sha.bulk, aoa.df.xy.sha.rh) 
-aoa.df.xy.sha.all$Type <-  c(rep("Bulk Soil", 30), rep("Rhizosphere", 18)) #adding 'Type'
+# combine two data frames and adding 'Type'
+com.df.xy.sha.bulk <- as.data.frame(com.xy.sha.bulk)
+com.df.xy.sha.rh <- as.data.frame(com.xy.sha.rh)
+com.df.xy.sha.all <- rbind(com.df.xy.sha.bulk, com.df.xy.sha.rh) 
+com.df.xy.sha.all$Type <-  c(rep("Bulk Soil", 30), rep("Rhizosphere", 18)) #adding 'Type'
 # plotting the pairwise comparisons among treatments (emmeans results)
-aoa.sha.pwc.plot2 <- aoa.sha.pwc.plot + 
-  stat_pvalue_manual(aoa.df.xy.sha.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
+com.sha.pwc.plot2 <- com.sha.pwc.plot + 
+  stat_pvalue_manual(com.df.xy.sha.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
   scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
-aoa.sha.pwc.plot2
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_min_sha_boxplot.eps",
-       aoa.min.sha.pwc.plot2, device = "eps",
+com.sha.pwc.plot2
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("COM_min_sha_boxplot.eps",
+       com.min.sha.pwc.plot2, device = "eps",
        width = 14, height =5.8, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("AOA_sha_boxplot.tiff",
-       aoa.sha.pwc.plot2, device = "tiff",
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("COM_sha_boxplot.tiff",
+       com.sha.pwc.plot2, device = "tiff",
        width = 14, height =5.8, 
        units= "in", dpi = 600)
 
 # shannon between irrigations
 
-aoa.sha.pwc.irri.plot <- ggplot(aoa.meta.df, aes(x=Date, y=Shannon)) +
+com.sha.pwc.irri.plot <- ggplot(com.meta.df, aes(x=Date, y=Shannon)) +
   geom_boxplot(aes(group = var3, fill = Irrigation))+
   theme_bw() +
-  labs(y="AOA Shannon")+
+  labs(y="Comammox Shannon")+
   scale_fill_manual(values = c("#996035","#F2DACD"))+
   facet_grid(Type~ Treatment,scales="free_x")+
   theme(legend.title = element_text(size=15, face='bold'),
@@ -543,25 +543,25 @@ aoa.sha.pwc.irri.plot <- ggplot(aoa.meta.df, aes(x=Date, y=Shannon)) +
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
-aoa.sha.pwc.irri.plot
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_sha_irri_boxplot.eps",
-       aoa.sha.pwc.irri.plot, device = "eps",
+com.sha.pwc.irri.plot
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("COM_sha_irri_boxplot.eps",
+       com.sha.pwc.irri.plot, device = "eps",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("AOA_sha_irri_boxplot.tiff",
-       aoa.sha.pwc.irri.plot, device = "tiff",
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("COM_sha_irri_boxplot.tiff",
+       com.sha.pwc.irri.plot, device = "tiff",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
 
 # Inverse Simpson
 
 # Inverse Simpson: plotting the significance across treatment
-aoa.invsimp.pwc.plot <- ggplot(aoa.meta.df, aes(x=Irrigation, y=InvSimpson)) +
+com.invsimp.pwc.plot <- ggplot(com.meta.df, aes(x=Irrigation, y=InvSimpson)) +
   geom_boxplot(aes(fill = Treatment))+
   theme_bw() +
-  labs(y="AOA Inverse Simpson")+
+  labs(y="Comammox Inverse Simpson")+
   labs(pattern="Irrigation")+
   scale_fill_viridis(discrete=T)+
   facet_grid(Type~ Date,scales="free_x")+
@@ -574,38 +574,38 @@ aoa.invsimp.pwc.plot <- ggplot(aoa.meta.df, aes(x=Irrigation, y=InvSimpson)) +
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
-aoa.invsimp.pwc.plot
+com.invsimp.pwc.plot
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
-aoa.xy.invsimp.bulk <- aoa.emm.invsimp.bulk %>% 
+com.xy.invsimp.bulk <- com.emm.invsimp.bulk %>% 
   add_xy_position(x = "Irrigation", dodge = 0.8) # bulk soil
-aoa.xy.invsimp.rh <- aoa.emm.invsimp.rh %>% 
+com.xy.invsimp.rh <- com.emm.invsimp.rh %>% 
   add_xy_position(x = "Irrigation", dodge = 0.8)# rhizosphere
 # #combine two data frames and adding 'Type'
-aoa.df.xy.invsimp.bulk <- as.data.frame(aoa.xy.invsimp.bulk)
-aoa.df.xy.invsimp.rh <- as.data.frame(aoa.xy.invsimp.rh)
-aoa.df.xy.invsimp.all <- rbind(aoa.df.xy.invsimp.bulk, aoa.df.xy.invsimp.rh) 
-aoa.df.xy.invsimp.all$Type <-  c(rep("Bulk Soil", 30), rep("Rhizosphere", 18)) #adding 'Type'
+com.df.xy.invsimp.bulk <- as.data.frame(com.xy.invsimp.bulk)
+com.df.xy.invsimp.rh <- as.data.frame(com.xy.invsimp.rh)
+com.df.xy.invsimp.all <- rbind(com.df.xy.invsimp.bulk, com.df.xy.invsimp.rh) 
+com.df.xy.invsimp.all$Type <-  c(rep("Bulk Soil", 30), rep("Rhizosphere", 18)) #adding 'Type'
 # plotting the pairwise comparisons among treatments (emmeans results)
-aoa.invsimp.pwc.plot2 <- aoa.invsimp.pwc.plot + 
-  stat_pvalue_manual(aoa.df.xy.invsimp.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
+com.invsimp.pwc.plot2 <- com.invsimp.pwc.plot + 
+  stat_pvalue_manual(com.df.xy.invsimp.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
   scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
-aoa.invsimp.pwc.plot2
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_min_invsimp_all.eps",
-       aoa.min.invsimp.pwc.plot2, device = "eps",
+com.invsimp.pwc.plot2
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("COM_min_invsimp_all.eps",
+       com.min.invsimp.pwc.plot2, device = "eps",
        width = 14, height =5.8, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("AOA_invsimp_all.tiff",
-       aoa.invsimp.pwc.plot2, device = "tiff",
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("COM_invsimp_all.tiff",
+       com.invsimp.pwc.plot2, device = "tiff",
        width = 14, height =5.8, 
        units= "in", dpi = 600)
 
 # inverse simpson between irrigations
-aoa.invsimp.pwc.irri.plot <- ggplot(aoa.meta.df, aes(x=Date, y=InvSimpson)) +
+com.invsimp.pwc.irri.plot <- ggplot(com.meta.df, aes(x=Date, y=InvSimpson)) +
   geom_boxplot(aes(group = var3, fill = Irrigation))+
   theme_bw() +
-  labs(y="AOA Inverse Simpson")+
+  labs(y="Comammox Inverse Simpson")+
   scale_fill_manual(values = c("#996035","#F2DACD"))+
   facet_grid(Type~ Treatment,scales="free_x")+
   theme(legend.title = element_text(size=15, face='bold'),
@@ -618,36 +618,36 @@ aoa.invsimp.pwc.irri.plot <- ggplot(aoa.meta.df, aes(x=Date, y=InvSimpson)) +
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
-aoa.invsimp.pwc.irri.plot
+com.invsimp.pwc.irri.plot
 
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_invsimp_irri_boxplot.eps",
-       aoa.invsimp.pwc.irri.plot, device = "eps",
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("COM_invsimp_irri_boxplot.eps",
+       com.invsimp.pwc.irri.plot, device = "eps",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("AOA_invsimp_irri_boxplot.tiff",
-       aoa.invsimp.pwc.irri.plot, device = "tiff",
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("COM_invsimp_irri_boxplot.tiff",
+       com.invsimp.pwc.irri.plot, device = "tiff",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
 
 ###################################################################################
-# Beta Diversity Analyses on Rarefied Data: AOA
+# Beta Diversity Analyses on Rarefied Data: COMAMMOX
 ###################################################################################
 
 # FOR ALL SAMPLES
 # 1. Calculating dissimilarity indices for community ecologist to make a distance structure (Bray-Curtis distance between samples)
-aoa.asv.rare <- as.data.frame(otu_table(aoa.rare.min.physeq))
+com.asv.rare <- as.data.frame(otu_table(com.rare.min.physeq))
 # Bray-Curtis using rarefied data:
-aob_dist_bc <- vegdist(t(aob.asv.rare1k), method = "bray")
+com_dist_bc <- vegdist(t(com.asv.rare1k), method = "bray")
 # Jaccard using rarefied data:
-aob.dist_jac <- vegdist(t(aob.asv.rare1k), binary = TRUE, method = "jaccard")
+com.dist_jac <- vegdist(t(com.asv.rare1k), binary = TRUE, method = "jaccard")
 # Weighted UniFrac using rarefied data:
-aob.wUF_dist <- UniFrac(aob.rare.1282.seq, weighted=TRUE, normalized = TRUE)
-aob.wUF_dist
+com.wUF_dist <- UniFrac(com.rare.1282.seq, weighted=TRUE, normalized = TRUE)
+com.wUF_dist
 # Unweighted UniFrac using rarefied data:
-aob.uwUF_dist <- UniFrac(aob.rare.1282.seq, weighted=FALSE, normalized = TRUE)
-aob.uwUF_dist
+com.uwUF_dist <- UniFrac(com.rare.1282.seq, weighted=FALSE, normalized = TRUE)
+com.uwUF_dist
 
 # 2. CMD/classical multidimensional scaling (MDS) of a data matrix. Also known as principal coordinates analysis
 
@@ -814,152 +814,152 @@ ggsave("AOB_UnweightedUniFrac_rarefied.tiff",
 # 1. Calculating dissimilarity indices for community ecologist to make a distance structure (Bray-Curtis distance between samples)
 
 # Bray-Curtis - Bulk Soil :
-aoarare.asv.df
-aoa.asv.bulk <- aoarare.asv.df[,1:120]
-aoa.asv.bulk1 <- aoa.asv.bulk[rowSums(aoa.asv.bulk)>0,]
-sort(rowSums(aoa.asv.bulk1, na.rm = FALSE, dims = 1), decreasing = FALSE)
-aoa.bulk_dist_bc <- vegdist(t(aoa.asv.bulk1), method = "bray")
+com.rare.asv.df
+com.asv.bulk <- com.rare.asv.df[,1:118]
+com.asv.bulk1 <- com.asv.bulk[rowSums(com.asv.bulk)>0,]
+sort(rowSums(com.asv.bulk1, na.rm = FALSE, dims = 1), decreasing = FALSE)
+com.bulk_dist_bc <- vegdist(t(com.asv.bulk1), method = "bray")
 # jaccard - Bulk Soil :
-aoa.bulk_dist_jac <- vegdist(t(aoa.asv.bulk1), binary = TRUE, method = "jaccard")
+com.bulk_dist_jac <- vegdist(t(com.asv.bulk1), binary = TRUE, method = "jaccard")
 # Weighted UniFrac (rarefied) - Bulk Soil:
-aoa.physeq_bulk <- subset_samples(aoa.rare.min.physeq, Type=="BS")
-aoa.physeq_bulk1 <- prune_taxa(taxa_sums(aoa.physeq_bulk)>0, aoa.physeq_bulk)
-aoa.physeq_bulk1
-sort(taxa_sums(aoa.physeq_bulk1), decreasing =F) #checking
-aoa.bulk_dist_wUF <- UniFrac(aoa.physeq_bulk1, weighted=TRUE, normalized = TRUE)
-aoa.bulk_dist_wUF
+com.physeq_bulk <- subset_samples(com.rare.min.physeq, Type=="BS")
+com.physeq_bulk1 <- prune_taxa(taxa_sums(com.physeq_bulk)>0, com.physeq_bulk)
+com.physeq_bulk1
+sort(taxa_sums(com.physeq_bulk1), decreasing =F) #checking
+com.bulk_dist_wUF <- UniFrac(com.physeq_bulk1, weighted=TRUE, normalized = TRUE)
+com.bulk_dist_wUF
 # Unweighted UniFrac (rarefied) -  Bulk Soil:
-aoa.bulk_dist_uwUF <- UniFrac(aoa.physeq_bulk1, weighted=FALSE, normalized = TRUE)
-aoa.bulk_dist_uwUF
+com.bulk_dist_uwUF <- UniFrac(com.physeq_bulk1, weighted=FALSE, normalized = TRUE)
+com.bulk_dist_uwUF
 
 # 2. CMD/classical multidimensional scaling (MDS) of a data matrix. Also known as principal coordinates analysis
 
 # Bray-Curtis - Bulk Soil:
-aoa.bulk_pcoa_bc <- cmdscale(aoa.bulk_dist_bc, eig=T)
+com.bulk_pcoa_bc <- cmdscale(com.bulk_dist_bc, eig=T)
 # Jaccard - Bulk Soil:
-aoa.bulk_pcoa_jac <- cmdscale(aoa.bulk_dist_jac, eig=T)
+com.bulk_pcoa_jac <- cmdscale(com.bulk_dist_jac, eig=T)
 # Weighted UniFrac - Bulk Soil:
-aoa.bulk_pcoa_wUF <- cmdscale(aoa.bulk_dist_wUF, eig=T)
+com.bulk_pcoa_wUF <- cmdscale(com.bulk_dist_wUF, eig=T)
 # Unweighted UniFrac - Bulk Soil:
-aoa.bulk_pcoa.uwUF <- cmdscale(aoa.bulk_dist_uwUF, eig=T)
+com.bulk_pcoa.uwUF <- cmdscale(com.bulk_dist_uwUF, eig=T)
 
 # 3. scores of PC1 and PC2
 
 # Bray-Curtis - Bulk Soil:
-ax1.scores.bulk <- aoa.bulk_pcoa_bc$points[,1]
-ax2.scores.bulk <- aoa.bulk_pcoa_bc$points[,2] 
+ax1.scores.bulk <- com.bulk_pcoa_bc$points[,1]
+ax2.scores.bulk <- com.bulk_pcoa_bc$points[,2] 
 # Jaccard - Bulk Soil:
-ax1.scores.j.bulk <- aoa.bulk_pcoa_jac$points[,1]
-ax2.scores.j.bulk <- aoa.bulk_pcoa_jac$points[,2]
+ax1.scores.j.bulk <- com.bulk_pcoa_jac$points[,1]
+ax2.scores.j.bulk <- com.bulk_pcoa_jac$points[,2]
 # Weighted UniFrac - Bulk Soil:
-ax1.scores.wUF.bulk <- aoa.bulk_pcoa_wUF$points[,1]
-ax2.scores.wUF.bulk <- aoa.bulk_pcoa_wUF$points[,2]
+ax1.scores.wUF.bulk <- com.bulk_pcoa_wUF$points[,1]
+ax2.scores.wUF.bulk <- com.bulk_pcoa_wUF$points[,2]
 # Unweighted UniFrac - Bulk Soil:
-ax1.scores.uwUF.bulk <- aoa.bulk_pcoa.uwUF$points[,1]
-ax2.scores.uwUF.bulk <- aoa.bulk_pcoa.uwUF$points[,2]
+ax1.scores.uwUF.bulk <- com.bulk_pcoa.uwUF$points[,1]
+ax2.scores.uwUF.bulk <- com.bulk_pcoa.uwUF$points[,2]
 
 #env_fit <- envfit(otu_pcoa, env, na.rm=TRUE)
 
 # 4. calculate percent variance explained, then add to plot
-aoa.meta.bulk <- aoa.meta.df[1:120,]
+com.meta.bulk <- com.meta.df[1:118,]
 # Bray-curtis - Bulk Soil:
-ax1.bulk <- aoa.bulk_pcoa_bc$eig[1]/sum(aoa.bulk_pcoa_bc$eig)
-ax2.bulk <- aoa.bulk_pcoa_bc$eig[2]/sum(aoa.bulk_pcoa_bc$eig)
-aoa.map.pcoa.bulk <- cbind(aoa.meta.bulk,ax1.scores.bulk,ax2.scores.bulk)
+ax1.bulk <- com.bulk_pcoa_bc$eig[1]/sum(com.bulk_pcoa_bc$eig)
+ax2.bulk <- com.bulk_pcoa_bc$eig[2]/sum(com.bulk_pcoa_bc$eig)
+com.map.pcoa.bulk <- cbind(com.meta.bulk,ax1.scores.bulk,ax2.scores.bulk)
 # Jaccard - Bulk Soil:
-ax1.j.bulk <- aoa.bulk_pcoa_jac$eig[1]/sum(aoa.bulk_pcoa_jac$eig)
-ax2.j.bulk <- aoa.bulk_pcoa_jac$eig[2]/sum(aoa.bulk_pcoa_jac$eig)
-aoa.map.pcoa.j.bulk <- cbind(aoa.meta.bulk,ax1.scores.j.bulk,ax2.scores.j.bulk)
+ax1.j.bulk <- com.bulk_pcoa_jac$eig[1]/sum(com.bulk_pcoa_jac$eig)
+ax2.j.bulk <- com.bulk_pcoa_jac$eig[2]/sum(com.bulk_pcoa_jac$eig)
+com.map.pcoa.j.bulk <- cbind(com.meta.bulk,ax1.scores.j.bulk,ax2.scores.j.bulk)
 # Weighted UniFrac - Bulk Soil:
-ax1.wUF.bulk <- aoa.bulk_pcoa_wUF$eig[1]/sum(aoa.bulk_pcoa_wUF$eig)
-ax2.wUF.bulk <- aoa.bulk_pcoa_wUF$eig[2]/sum(aoa.bulk_pcoa_wUF$eig)
-aoa.map.pcoa.wUF.bulk <- cbind(aoa.meta.bulk,ax1.scores.wUF.bulk,ax2.scores.wUF.bulk)
+ax1.wUF.bulk <- com.bulk_pcoa_wUF$eig[1]/sum(com.bulk_pcoa_wUF$eig)
+ax2.wUF.bulk <- com.bulk_pcoa_wUF$eig[2]/sum(com.bulk_pcoa_wUF$eig)
+com.map.pcoa.wUF.bulk <- cbind(com.meta.bulk,ax1.scores.wUF.bulk,ax2.scores.wUF.bulk)
 # Unweighted UniFrac - Bulk Soil:
-ax1.uwUF.bulk <- aoa.bulk_pcoa.uwUF$eig[1]/sum(aoa.bulk_pcoa.uwUF$eig)
-ax2.uwUF.bulk <- aoa.bulk_pcoa.uwUF$eig[2]/sum(aoa.bulk_pcoa.uwUF$eig)
-aoa.map.pcoa.uwUF.bulk <- cbind(aoa.meta.bulk,ax1.scores.uwUF.bulk,ax2.scores.uwUF.bulk)
+ax1.uwUF.bulk <- com.bulk_pcoa.uwUF$eig[1]/sum(com.bulk_pcoa.uwUF$eig)
+ax2.uwUF.bulk <- com.bulk_pcoa.uwUF$eig[2]/sum(com.bulk_pcoa.uwUF$eig)
+com.map.pcoa.uwUF.bulk <- cbind(com.meta.bulk,ax1.scores.uwUF.bulk,ax2.scores.uwUF.bulk)
 
 #################################################################################################
 
 # RHIZOSPHERE
 
 # Bray-Curtis - Rhizosphere :
-aoa.asv.rh <- aoarare.asv.df[,121:192]
-aoa.asv.rh1 <- aoa.asv.rh[rowSums(aoa.asv.rh)>0,]
-sort(rowSums(aoa.asv.rh1, na.rm = FALSE, dims = 1), decreasing = FALSE)
-dim(aoa.asv.rh1) 
-aoa.rh_dist_bc <- vegdist(t(aoa.asv.rh1), method = "bray")
+com.asv.rh <- com.rare.asv.df[,119:190]
+com.asv.rh1 <- com.asv.rh[rowSums(com.asv.rh)>0,]
+sort(rowSums(com.asv.rh1, na.rm = FALSE, dims = 1), decreasing = FALSE)
+dim(com.asv.rh1) 
+com.rh_dist_bc <- vegdist(t(com.asv.rh1), method = "bray")
 # jaccard - Rhizosphere :
-aoa.rh_dist_jac <- vegdist(t(aoa.asv.rh1), binary = TRUE, method = "jaccard") 
+com.rh_dist_jac <- vegdist(t(com.asv.rh1), binary = TRUE, method = "jaccard") 
 # Weighted UniFrac (rarefied) - Rhizosphere :
-aoa.physeq_rh <- subset_samples(aoa.rare.min.physeq, Type=="RS")
-aoa.physeq_rh1 <- prune_taxa(taxa_sums(aoa.physeq_rh)>0, aoa.physeq_rh)
-aoa.physeq_rh1
-sort(taxa_sums(aoa.physeq_rh1), decreasing =F) #checking
-aoa.rh_dist_wUF <- UniFrac(aoa.physeq_rh1, weighted=TRUE, normalized = TRUE)
-aoa.rh_dist_wUF
+com.physeq_rh <- subset_samples(com.rare.min.physeq, Type=="RS")
+com.physeq_rh1 <- prune_taxa(taxa_sums(com.physeq_rh)>0, com.physeq_rh)
+com.physeq_rh1
+sort(taxa_sums(com.physeq_rh1), decreasing =F) #checking
+com.rh_dist_wUF <- UniFrac(com.physeq_rh1, weighted=TRUE, normalized = TRUE)
+com.rh_dist_wUF
 # Unweighted UniFrac (rarefied) -  Rhizosphere :
-aoa.rh_dist_uwUF <- UniFrac(aoa.physeq_rh1, weighted=FALSE, normalized = TRUE)
-aoa.rh_dist_uwUF
+com.rh_dist_uwUF <- UniFrac(com.physeq_rh1, weighted=FALSE, normalized = TRUE)
+com.rh_dist_uwUF
 
 # 2. CMD/classical multidimensional scaling (MDS) of a data matrix. Also known as principal coordinates analysis
 
 # Bray-Curtis - Rhizosphere :
-aoa.rh_pcoa_bc <- cmdscale(aoa.rh_dist_bc, eig=T)
+com.rh_pcoa_bc <- cmdscale(com.rh_dist_bc, eig=T)
 # Jaccard - Rhizosphere :
-aoa.rh_pcoa_jac <- cmdscale(aoa.rh_dist_jac, eig=T)
+com.rh_pcoa_jac <- cmdscale(com.rh_dist_jac, eig=T)
 # Weighted UniFrac - Rhizosphere :
-aoa.rh_pcoa_wUF <- cmdscale(aoa.rh_dist_wUF, eig=T)
+com.rh_pcoa_wUF <- cmdscale(com.rh_dist_wUF, eig=T)
 # Unweighted UniFrac - Rhizosphere :
-aoa.rh_pcoa.uwUF <- cmdscale(aoa.rh_dist_uwUF, eig=T)
+com.rh_pcoa.uwUF <- cmdscale(com.rh_dist_uwUF, eig=T)
 
 # 3. scores of PC1 and PC2
 
 # Bray-Curtis - Rhizosphere :
-ax1.scores.rh <- aoa.rh_pcoa_bc$points[,1]
-ax2.scores.rh <- aoa.rh_pcoa_bc$points[,2] 
+ax1.scores.rh <- com.rh_pcoa_bc$points[,1]
+ax2.scores.rh <- com.rh_pcoa_bc$points[,2] 
 # Jaccard - Rhizosphere :
-ax1.scores.j.rh <- aoa.rh_pcoa_jac$points[,1]
-ax2.scores.j.rh <- aoa.rh_pcoa_jac$points[,2]
+ax1.scores.j.rh <- com.rh_pcoa_jac$points[,1]
+ax2.scores.j.rh <- com.rh_pcoa_jac$points[,2]
 # Weighted UniFrac - Rhizosphere :
-ax1.scores.wUF.rh <- aoa.rh_pcoa_wUF$points[,1]
-ax2.scores.wUF.rh <- aoa.rh_pcoa_wUF$points[,2]
+ax1.scores.wUF.rh <- com.rh_pcoa_wUF$points[,1]
+ax2.scores.wUF.rh <- com.rh_pcoa_wUF$points[,2]
 # Unweighted UniFrac - Rhizosphere :
-ax1.scores.uwUF.rh <- aoa.rh_pcoa.uwUF$points[,1]
-ax2.scores.uwUF.rh <- aoa.rh_pcoa.uwUF$points[,2]
+ax1.scores.uwUF.rh <- com.rh_pcoa.uwUF$points[,1]
+ax2.scores.uwUF.rh <- com.rh_pcoa.uwUF$points[,2]
 
 #env_fit <- envfit(otu_pcoa, env, na.rm=TRUE)
 
 # 4. calculate percent variance explained, then add to plot
-aoa.meta.rh <- aoa.meta.df[121:192,]
+com.meta.rh <- com.meta.df[121:192,]
 # Bray-curtis - Rhizosphere :
-ax1.rh <- aoa.rh_pcoa_bc$eig[1]/sum(aoa.rh_pcoa_bc$eig)
-ax2.rh <- aoa.rh_pcoa_bc$eig[2]/sum(aoa.rh_pcoa_bc$eig)
-aoa.map.pcoa.rh <- cbind(aoa.meta.rh,ax1.scores.rh,ax2.scores.rh)
+ax1.rh <- com.rh_pcoa_bc$eig[1]/sum(com.rh_pcoa_bc$eig)
+ax2.rh <- com.rh_pcoa_bc$eig[2]/sum(com.rh_pcoa_bc$eig)
+com.map.pcoa.rh <- cbind(com.meta.rh,ax1.scores.rh,ax2.scores.rh)
 # Jaccard - Rhizosphere :
-ax1.j.rh <- aoa.rh_pcoa_jac$eig[1]/sum(aoa.rh_pcoa_jac$eig)
-ax2.j.rh <- aoa.rh_pcoa_jac$eig[2]/sum(aoa.rh_pcoa_jac$eig)
-aoa.map.pcoa.j.rh <- cbind(aoa.meta.rh,ax1.scores.j.rh,ax2.scores.j.rh)
+ax1.j.rh <- com.rh_pcoa_jac$eig[1]/sum(com.rh_pcoa_jac$eig)
+ax2.j.rh <- com.rh_pcoa_jac$eig[2]/sum(com.rh_pcoa_jac$eig)
+com.map.pcoa.j.rh <- cbind(com.meta.rh,ax1.scores.j.rh,ax2.scores.j.rh)
 # Weighted UniFrac - Rhizosphere :
-ax1.wUF.rh <- aoa.rh_pcoa_wUF$eig[1]/sum(aoa.rh_pcoa_wUF$eig)
-ax2.wUF.rh <- aoa.rh_pcoa_wUF$eig[2]/sum(aoa.rh_pcoa_wUF$eig)
-aoa.map.pcoa.wUF.rh <- cbind(aoa.meta.rh,ax1.scores.wUF.rh,ax2.scores.wUF.rh)
+ax1.wUF.rh <- com.rh_pcoa_wUF$eig[1]/sum(com.rh_pcoa_wUF$eig)
+ax2.wUF.rh <- com.rh_pcoa_wUF$eig[2]/sum(com.rh_pcoa_wUF$eig)
+com.map.pcoa.wUF.rh <- cbind(com.meta.rh,ax1.scores.wUF.rh,ax2.scores.wUF.rh)
 # Unweighted UniFrac - Rhizosphere :
-ax1.uwUF.rh <- aoa.rh_pcoa.uwUF$eig[1]/sum(aoa.rh_pcoa.uwUF$eig)
-ax2.uwUF.rh <- aoa.rh_pcoa.uwUF$eig[2]/sum(aoa.rh_pcoa.uwUF$eig)
-aoa.map.pcoa.uwUF.rh <- cbind(aoa.meta.rh,ax1.scores.uwUF.rh,ax2.scores.uwUF.rh)
+ax1.uwUF.rh <- com.rh_pcoa.uwUF$eig[1]/sum(com.rh_pcoa.uwUF$eig)
+ax2.uwUF.rh <- com.rh_pcoa.uwUF$eig[2]/sum(com.rh_pcoa.uwUF$eig)
+com.map.pcoa.uwUF.rh <- cbind(com.meta.rh,ax1.scores.uwUF.rh,ax2.scores.uwUF.rh)
 
 # 5. PCoA Plot 
 
 #require("ggrepel")
 library(ggrepel)
-install.packages("viridis")
+#install.packages("viridis")
 library(viridis)
 
 # A. Bray-Curtis - Bulk Soil :
-aoa.pcoa_bulk.plot <- ggplot(data = aoa.map.pcoa.bulk, aes(x=ax1.scores.bulk, y=ax2.scores.bulk, colour=Treatment))+
+com.pcoa_bulk.plot <- ggplot(data = com.map.pcoa.bulk, aes(x=ax1.scores.bulk, y=ax2.scores.bulk, colour=Treatment))+
   theme_bw()+
-  geom_point(data = aoa.map.pcoa.bulk, aes(x = ax1.scores.bulk, y = ax2.scores.bulk, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = com.map.pcoa.bulk, aes(x = ax1.scores.bulk, y = ax2.scores.bulk, shape=Irrigation),size=5, alpha= 0.8)+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.bulk,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.bulk,3)*100,"% var. explained", sep=""))+
@@ -975,12 +975,12 @@ aoa.pcoa_bulk.plot <- ggplot(data = aoa.map.pcoa.bulk, aes(x=ax1.scores.bulk, y=
         legend.text=element_text(size=15),
         legend.spacing.x = unit(0.05, 'cm'))+
   stat_ellipse()
-aoa.pcoa_bulk.plot
+com.pcoa_bulk.plot
 
 # B. Bray-Curtis - Rhizosphere :
-aoa.pcoa_rh.plot <- ggplot(data = aoa.map.pcoa.rh, aes(x=ax1.scores.rh, y=ax2.scores.rh, colour=Treatment))+
+com.pcoa_rh.plot <- ggplot(data = com.map.pcoa.rh, aes(x=ax1.scores.rh, y=ax2.scores.rh, colour=Treatment))+
   theme_bw()+
-  geom_point(data = aoa.map.pcoa.rh, aes(x = ax1.scores.rh, y = ax2.scores.rh, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = com.map.pcoa.rh, aes(x = ax1.scores.rh, y = ax2.scores.rh, shape=Irrigation),size=5, alpha= 0.8)+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.rh,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.rh,3)*100,"% var. explained", sep=""))+
@@ -996,29 +996,29 @@ aoa.pcoa_rh.plot <- ggplot(data = aoa.map.pcoa.rh, aes(x=ax1.scores.rh, y=ax2.sc
         legend.text=element_text(size=15),
         legend.spacing.x = unit(0.05, 'cm'))+
   stat_ellipse()
-aoa.pcoa_rh.plot
+com.pcoa_rh.plot
 
 #install.packages("patchwork")
 library(patchwork)
 
-aoa.bray.plot <- aoa.pcoa_bulk.plot |  aoa.pcoa_rh.plot
-aoa.bray.plot
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("aoa.bray.tiff",
-       aoa.bray.plot, device = "tiff",
+com.bray.plot <- com.pcoa_bulk.plot |  com.pcoa_rh.plot
+com.bray.plot
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("com.bray.tiff",
+       com.bray.plot, device = "tiff",
        width = 12, height = 5, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("aoa.bray.tiff",
-       aoa.bray.plot, device = "tiff",
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("com.bray.tiff",
+       com.bray.plot, device = "tiff",
        width = 12, height = 5, 
        units= "in", dpi = 600)
 
 
 # A. Jaccard - Bulk Soil :
-aoa.pcoa_bulk.jac <- ggplot(data = aoa.map.pcoa.j.bulk, aes(x=ax1.scores.j.bulk, y=ax2.scores.j.bulk, colour=Treatment))+
+com.pcoa_bulk.jac <- ggplot(data = com.map.pcoa.j.bulk, aes(x=ax1.scores.j.bulk, y=ax2.scores.j.bulk, colour=Treatment))+
   theme_bw()+
-  geom_point(data = aoa.map.pcoa.j.bulk, aes(x = ax1.scores.j.bulk, y = ax2.scores.j.bulk, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = com.map.pcoa.j.bulk, aes(x = ax1.scores.j.bulk, y = ax2.scores.j.bulk, shape=Irrigation),size=5, alpha= 0.8)+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.j.bulk,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.j.bulk,3)*100,"% var. explained", sep=""))+
@@ -1034,12 +1034,12 @@ aoa.pcoa_bulk.jac <- ggplot(data = aoa.map.pcoa.j.bulk, aes(x=ax1.scores.j.bulk,
         legend.text=element_text(size=15),
         legend.spacing.x = unit(0.05, 'cm'))+
   stat_ellipse()
-aoa.pcoa_bulk.jac
+com.pcoa_bulk.jac
 
 # B. Jaccard - Rhizosphere :
-aoa.pcoa_rh.jac <- ggplot(data = aoa.map.pcoa.j.rh, aes(x=ax1.scores.j.rh, y=ax2.scores.j.rh, colour=Treatment))+
+com.pcoa_rh.jac <- ggplot(data = com.map.pcoa.j.rh, aes(x=ax1.scores.j.rh, y=ax2.scores.j.rh, colour=Treatment))+
   theme_bw()+
-  geom_point(data = aoa.map.pcoa.j.rh, aes(x = ax1.scores.j.rh, y = ax2.scores.j.rh, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = com.map.pcoa.j.rh, aes(x = ax1.scores.j.rh, y = ax2.scores.j.rh, shape=Irrigation),size=5, alpha= 0.8)+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.j.rh,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.j.rh,3)*100,"% var. explained", sep=""))+
@@ -1055,25 +1055,25 @@ aoa.pcoa_rh.jac <- ggplot(data = aoa.map.pcoa.j.rh, aes(x=ax1.scores.j.rh, y=ax2
         legend.text=element_text(size=15),
         legend.spacing.x = unit(0.05, 'cm'))+
   stat_ellipse()
-aoa.pcoa_rh.jac
+com.pcoa_rh.jac
 
-aoa.jac.plot <- aoa.pcoa_bulk.jac |  aoa.pcoa_rh.jac
-aoa.jac.plot
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("aoa.jac.tiff",
-       aoa.jac.plot, device = "tiff",
+com.jac.plot <- com.pcoa_bulk.jac |  com.pcoa_rh.jac
+com.jac.plot
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("com.jac.tiff",
+       com.jac.plot, device = "tiff",
        width = 12, height = 5, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("aoa.jac.tiff",
-       aoa.jac.plot, device = "tiff",
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("com.jac.tiff",
+       com.jac.plot, device = "tiff",
        width = 12, height = 5, 
        units= "in", dpi = 600)
 
 # A. Weighted UniFrac - Bulk Soil :
-aoa.pcoa_bulk.wUF <- ggplot(data = aoa.map.pcoa.wUF.bulk, aes(x=ax1.scores.wUF.bulk, y=ax2.scores.wUF.bulk, colour=Treatment))+
+com.pcoa_bulk.wUF <- ggplot(data = com.map.pcoa.wUF.bulk, aes(x=ax1.scores.wUF.bulk, y=ax2.scores.wUF.bulk, colour=Treatment))+
   theme_bw()+
-  geom_point(data = aoa.map.pcoa.wUF.bulk, aes(x = ax1.scores.wUF.bulk, y = ax2.scores.wUF.bulk, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = com.map.pcoa.wUF.bulk, aes(x = ax1.scores.wUF.bulk, y = ax2.scores.wUF.bulk, shape=Irrigation),size=5, alpha= 0.8)+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.wUF.bulk,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.wUF.bulk,3)*100,"% var. explained", sep=""))+
@@ -1089,12 +1089,12 @@ aoa.pcoa_bulk.wUF <- ggplot(data = aoa.map.pcoa.wUF.bulk, aes(x=ax1.scores.wUF.b
         legend.text=element_text(size=15),
         legend.spacing.x = unit(0.05, 'cm'))+
   stat_ellipse()
-aoa.pcoa_bulk.wUF
+com.pcoa_bulk.wUF
 
 # B. Weighted UniFrac - Rhizosphere :
-aoa.pcoa_rh.wUF <- ggplot(data = aoa.map.pcoa.wUF.rh, aes(x=ax1.scores.wUF.rh, y=ax2.scores.wUF.rh, colour=Treatment))+
+com.pcoa_rh.wUF <- ggplot(data = com.map.pcoa.wUF.rh, aes(x=ax1.scores.wUF.rh, y=ax2.scores.wUF.rh, colour=Treatment))+
   theme_bw()+
-  geom_point(data = aoa.map.pcoa.wUF.rh, aes(x = ax1.scores.wUF.rh, y = ax2.scores.wUF.rh, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = com.map.pcoa.wUF.rh, aes(x = ax1.scores.wUF.rh, y = ax2.scores.wUF.rh, shape=Irrigation),size=5, alpha= 0.8)+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.wUF.rh,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.wUF.rh,3)*100,"% var. explained", sep=""))+
@@ -1110,25 +1110,25 @@ aoa.pcoa_rh.wUF <- ggplot(data = aoa.map.pcoa.wUF.rh, aes(x=ax1.scores.wUF.rh, y
         legend.text=element_text(size=15),
         legend.spacing.x = unit(0.05, 'cm'))+
   stat_ellipse()
-aoa.pcoa_rh.wUF
+com.pcoa_rh.wUF
 
-aoa.wUF.plot <- aoa.pcoa_bulk.wUF |  aoa.pcoa_rh.wUF
-aoa.wUF.plot
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("aoa.wUF.tiff",
-       aoa.wUF.plot, device = "tiff",
+com.wUF.plot <- com.pcoa_bulk.wUF |  com.pcoa_rh.wUF
+com.wUF.plot
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("com.wUF.tiff",
+       com.wUF.plot, device = "tiff",
        width = 12, height = 5, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("aoa.wUF.tiff",
-       aoa.wUF.plot, device = "tiff",
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("com.wUF.tiff",
+       com.wUF.plot, device = "tiff",
        width = 12, height = 5, 
        units= "in", dpi = 600)
 
 # A. Unweighted UniFrac - Bulk Soil :
-aoa.pcoa_bulk.uwUF <- ggplot(data = aoa.map.pcoa.uwUF.bulk, aes(x=ax1.scores.uwUF.bulk, y=ax2.scores.uwUF.bulk, colour=Treatment))+
+com.pcoa_bulk.uwUF <- ggplot(data = com.map.pcoa.uwUF.bulk, aes(x=ax1.scores.uwUF.bulk, y=ax2.scores.uwUF.bulk, colour=Treatment))+
   theme_bw()+
-  geom_point(data = aoa.map.pcoa.uwUF.bulk, aes(x = ax1.scores.uwUF.bulk, y = ax2.scores.uwUF.bulk, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = com.map.pcoa.uwUF.bulk, aes(x = ax1.scores.uwUF.bulk, y = ax2.scores.uwUF.bulk, shape=Irrigation),size=5, alpha= 0.8)+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.uwUF.bulk,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.uwUF.bulk,3)*100,"% var. explained", sep=""))+
@@ -1144,19 +1144,19 @@ aoa.pcoa_bulk.uwUF <- ggplot(data = aoa.map.pcoa.uwUF.bulk, aes(x=ax1.scores.uwU
         legend.text=element_text(size=15),
         legend.spacing.x = unit(0.05, 'cm'))+
   stat_ellipse()
-aoa.pcoa_bulk.uwUF
-#aob.pcoa_bulk.uwUF.id <- aob.pcoa_bulk.uwUF+geom_text_repel(aes(label = SampleID),size = 3, max.overlaps = Inf)
-#aob.pcoa_bulk.uwUF.id
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_UnweightedUniFrac_bulk_id.tiff",
-       aoa.pcoa_bulk.uwUF.id, device = "tiff",
+com.pcoa_bulk.uwUF
+#com.pcoa_bulk.uwUF.id <- com.pcoa_bulk.uwUF+geom_text_repel(aes(label = SampleID),size = 3, max.overlaps = Inf)
+#com.pcoa_bulk.uwUF.id
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("COM_UnweightedUniFrac_bulk_id.tiff",
+       com.pcoa_bulk.uwUF.id, device = "tiff",
        width = 8, height =6, 
        units= "in", dpi = 600)
 
 # B. Unweighted UniFrac - Rhizosphere :
-aoa.pcoa_rh.uwUF <- ggplot(data = aoa.map.pcoa.uwUF.rh, aes(x=ax1.scores.uwUF.rh, y=ax2.scores.uwUF.rh, colour=Treatment))+
+com.pcoa_rh.uwUF <- ggplot(data = com.map.pcoa.uwUF.rh, aes(x=ax1.scores.uwUF.rh, y=ax2.scores.uwUF.rh, colour=Treatment))+
   theme_bw()+
-  geom_point(data = aoa.map.pcoa.uwUF.rh, aes(x = ax1.scores.uwUF.rh, y = ax2.scores.uwUF.rh, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = com.map.pcoa.uwUF.rh, aes(x = ax1.scores.uwUF.rh, y = ax2.scores.uwUF.rh, shape=Irrigation),size=5, alpha= 0.8)+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.uwUF.rh,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.uwUF.rh,3)*100,"% var. explained", sep=""))+
@@ -1172,18 +1172,18 @@ aoa.pcoa_rh.uwUF <- ggplot(data = aoa.map.pcoa.uwUF.rh, aes(x=ax1.scores.uwUF.rh
         legend.text=element_text(size=15),
         legend.spacing.x = unit(0.05, 'cm'))+
   stat_ellipse()
-aoa.pcoa_rh.uwUF
+com.pcoa_rh.uwUF
 
-aoa.uwUF.plot <- aoa.pcoa_bulk.uwUF |  aoa.pcoa_rh.uwUF
-aoa.uwUF.plot
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("aoa.uwUF.tiff",
-       aoa.uwUF.plot, device = "tiff",
+com.uwUF.plot <- com.pcoa_bulk.uwUF |  com.pcoa_rh.uwUF
+com.uwUF.plot
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("com.uwUF.tiff",
+       com.uwUF.plot, device = "tiff",
        width = 12, height = 5, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("aoa.uwUF.tiff",
-       aoa.uwUF.plot, device = "tiff",
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("com.uwUF.tiff",
+       com.uwUF.plot, device = "tiff",
        width = 12, height = 5, 
        units= "in", dpi = 600)
 
@@ -1193,120 +1193,110 @@ ggsave("aoa.uwUF.tiff",
 
 # A. Bray-Curtis - Bulk Soil : 
 set.seed(13)
-aoa.adonis.bulk <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment*Date, data=aoa.meta.bulk, 
+com.adonis.bulk <- adonis2(com.bulk_dist_bc ~ Irrigation*Treatment*Date, data=com.meta.bulk, 
                            permutation=999,
                            method="bray", 
                            strata = NULL) # only treatment is significant
-aoa.adonis.bulk
+com.adonis.bulk
 
 set.seed(13)
-aoa.adonis.bulk.irri <- adonis2(aoa.bulk_dist_bc ~ Irrigation, data=aoa.meta.bulk, 
+com.adonis.bulk.irri <- adonis2(com.bulk_dist_bc ~ Irrigation, data=com.meta.bulk, 
                                 permutation=999,
                                 method="bray", 
                                 strata = NULL) # not significant
-aoa.adonis.bulk.irri
-
-#set.seed(13)
-#aoa.adonis.bulk.irri2 <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment*Date, data=aoa.meta.bulk, 
-#permutation=perm,
-#method="bray") # not significant
-#aoa.adonis.bulk.irri2
-#perm = how(nperm = 999,
-#within = Within(type="free"), 
-#plots = with(aoa.meta.bulk, Plots(strata=Treatment, type="free")),
-#blocks = aoa.meta.bulk$Date)
+com.adonis.bulk.irri
 
 set.seed(13)
-aoa.adonis.bulk.trt <- adonis2(aoa.bulk_dist_bc ~ Treatment, data=aoa.meta.bulk, 
+com.adonis.bulk.trt <- adonis2(com.bulk_dist_bc ~ Treatment, data=com.meta.bulk, 
                                permutation=999,
                                method="bray", 
                                strata = NULL) # significant (p val = 0.001***)
-aoa.adonis.bulk.trt
+com.adonis.bulk.trt
 
 set.seed(13)
-aoa.adonis.bulk.date <- adonis2(aoa.bulk_dist_bc ~ Date, data=aoa.meta.bulk, 
+com.adonis.bulk.date <- adonis2(com.bulk_dist_bc ~ Date, data=com.meta.bulk, 
                                 permutation=999,
                                 method="bray", 
                                 strata = NULL) # not significant
-aoa.adonis.bulk.date
+com.adonis.bulk.date
 
 # B. Bray-Curtis - Rhizosphere : 
 set.seed(13)
-aoa.adonis.rh <- adonis2(aoa.rh_dist_bc ~ Irrigation*Treatment*Date, data=aoa.meta.rh, 
+com.adonis.rh <- adonis2(com.rh_dist_bc ~ Irrigation*Treatment*Date, data=com.meta.rh, 
                          permutation=999,
                          method="bray", 
                          strata = NULL) # only treatment is significant
-aoa.adonis.rh
+com.adonis.rh
 
 set.seed(13)
-aoa.adonis.rh.irri <- adonis2(aoa.rh_dist_bc ~ Irrigation, data=aoa.meta.rh, 
+com.adonis.rh.irri <- adonis2(com.rh_dist_bc ~ Irrigation, data=com.meta.rh, 
                               permutation=999,
                               method="bray", 
                               strata = NULL) # not significant
-aoa.adonis.rh.irri
+com.adonis.rh.irri
 
 set.seed(13)
-aoa.adonis.rh.irri2 <- adonis2(aoa.rh_dist_bc ~ Irrigation, data=aoa.meta.rh, 
+com.adonis.rh.irri2 <- adonis2(com.rh_dist_bc ~ Irrigation, data=com.meta.rh, 
                                permutation=999,
                                method="bray", 
-                               strata = aoa.meta.rh$Treatment) # not significant
-aoa.adonis.rh.irri2
+                               strata = com.meta.rh$Treatment) # not significant
+com.adonis.rh.irri2
 
 set.seed(13)
-aoa.adonis.rh.trt <- adonis2(aoa.rh_dist_bc ~ Treatment, data=aoa.meta.rh, 
+com.adonis.rh.trt <- adonis2(com.rh_dist_bc ~ Treatment, data=com.meta.rh, 
                              permutation=999,
                              method="bray", 
                              strata = NULL) # treatment is significant ( p val = 0.001***)
-aoa.adonis.rh.trt
+com.adonis.rh.trt
 
 set.seed(13)
-aoa.adonis.rh.date <- adonis2(aoa.rh_dist_bc ~ Date, data=aoa.meta.rh, 
+com.adonis.rh.date <- adonis2(com.rh_dist_bc ~ Date, data=com.meta.rh, 
                               permutation=999,
                               method="bray", 
                               strata = NULL) # not significant
-aoa.adonis.rh.date
+com.adonis.rh.date
 
 # A. Jaccard - Bulk Soil : 
 set.seed(13)
-aoa.adonis.jac.bulk <- adonis2(aoa.bulk_dist_jac ~ Irrigation*Treatment*Date, data=aoa.meta.bulk, 
+com.adonis.jac.bulk <- adonis2(com.bulk_dist_jac ~ Irrigation*Treatment*Date, data=com.meta.bulk, 
                                permutation=999,
                                method="jaccard", 
                                strata = NULL)
-aoa.adonis.jac.bulk
+com.adonis.jac.bulk
 # B. Jaccard - Rhizosphere : 
 set.seed(13)
-aoa.adonis.jac.rh <- adonis2(aoa.rh_dist_jac ~ Irrigation*Treatment*Date, data=aoa.meta.rh, 
+com.adonis.jac.rh <- adonis2(com.rh_dist_jac ~ Irrigation*Treatment*Date, data=com.meta.rh, 
                              permutation=999,
                              method="jaccard", 
                              strata = NULL)
-aoa.adonis.jac.rh
+com.adonis.jac.rh
 
 # A. Weighted UniFrac - Bulk Soil : 
 set.seed(13)
-aoa.adonis.wuF.bulk <- adonis2(aoa.bulk_dist_wUF ~ Irrigation*Treatment*Date, data=aoa.meta.bulk, 
+com.adonis.wuF.bulk <- adonis2(com.bulk_dist_wUF ~ Irrigation*Treatment*Date, data=com.meta.bulk, 
                                permutation=999, 
                                strata = NULL)
-aoa.adonis.wuF.bulk
+com.adonis.wuF.bulk
 
 # B. Weighted UniFrac - Rhizosphere : 
 set.seed(13)
-aoa.adonis.wuF.rh <- adonis2(aoa.rh_dist_wUF ~ Irrigation*Treatment*Date, data=aoa.meta.rh, 
+com.adonis.wuF.rh <- adonis2(com.rh_dist_wUF ~ Irrigation*Treatment*Date, data=com.meta.rh, 
                              permutation=999, 
                              strata = NULL)
-aoa.adonis.wuF.rh
+com.adonis.wuF.rh
 
 # A. Unweighted UniFrac - Bulk Soil : 
 set.seed(13)
-aoa.adonis.uwuF.bulk <- adonis2(aoa.bulk_dist_uwUF ~ Irrigation*Treatment*Date, data=aoa.meta.bulk, 
+com.adonis.uwuF.bulk <- adonis2(com.bulk_dist_uwUF ~ Irrigation*Treatment*Date, data=com.meta.bulk, 
                                 permutation=999, 
                                 strata = NULL)
-aoa.adonis.uwuF.bulk
+com.adonis.uwuF.bulk
 # B. Unweighted UniFrac - Rhizosphere : 
 set.seed(13)
-aoa.adonis.uwuF.rh <- adonis2(aoa.rh_dist_uwUF ~ Irrigation*Treatment*Date, data=aoa.meta.rh, 
+com.adonis.uwuF.rh <- adonis2(com.rh_dist_uwUF ~ Irrigation*Treatment*Date, data=com.meta.rh, 
                               permutation=999, 
                               strata = NULL)
-aoa.adonis.uwuF.rh
+com.adonis.uwuF.rh
 
 ########################################################################################
 # Pairwise comparison analyses across treatments and between irrigation within date
@@ -1656,23 +1646,23 @@ d09dist_bc <- vegdist(t(d09.asv1), method = "bray")
 k09dist_bc <- vegdist(t(k09.asv1), method = "bray")
 
 #########################################################################################
-# AOA Community Composition
+# COMAMMOX Community Composition
 ########################################################################################
 # Phyloseq object of rarefied data and unrarefied data:
 # 1. rarefied data
-aoa.rare.min.physeq
-tax_table(aoa.rare.min.physeq)
+com.rare.min.physeq
+tax_table(com.rare.min.physeq)
 # merge taxa by species
-aoa.sp <- tax_glom(aoa.rare.min.physeq, taxrank = "Sub_Clade", NArm = F)
-aoa.sp.ra <- transform_sample_counts(aoa.sp, function(x) x/sum(x))
-sample_data(aoa.sp.ra)
-
-aoa.sp.df <- psmelt(aoa.sp.ra) %>%
-  group_by(var2, Type, Date, Treatment, Irrigation, Sub_Clade) %>%
+com.sp <- tax_glom(com.rare.min.physeq, taxrank = "Species", NArm = F)
+com.sp.ra <- transform_sample_counts(com.sp, function(x) x/sum(x))
+sample_data(com.sp.ra)
+#detach(package:plyr)
+com.sp.df <- psmelt(com.sp.ra) %>%
+  group_by(var2, Type, Date, Treatment, Irrigation, Clade, Species) %>%
   summarize(Mean = mean(Abundance)) %>%
   arrange(-Mean)
 
-colours <- ColourPalleteMulti(aoa.sp.df, "Genus", "Species")
+colours <- ColourPalleteMulti(com.sp.df, "Species")
 colours
 #install.packages("Polychrome")
 library(Polychrome)
@@ -1697,22 +1687,22 @@ color <- c("#260F99","#422CB2", "#6551CC", "#8F7EE5", "#BFB2FF",
 library(colorBlindness)
 displayAvailablePalette(color="white")
 SteppedSequential5Steps
-str(aoa.sp.df)
+str(com.sp.df)
 #install.packages("ggh4x")
 library(ggh4x)
 
-aoa.sp.df$Type <- factor(aoa.sp.df$Type, levels = c("BS", "RS"),
+com.sp.df$Type <- factor(com.sp.df$Type, levels = c("BS", "RS"),
                          labels = c("Bulk Soil", "Rhizosphere"))
-aoa.sp.df$Treatment <- factor(aoa.sp.df$Treatment, levels = c("D", "K", "M"),
+com.sp.df$Treatment <- factor(com.sp.df$Treatment, levels = c("D", "K", "M"),
                               labels = c("Biodynamic", "Conventional", "Mineral"))
-aoa.sp.df$Sub_Clade[aoa.sp.df$Mean<0.001] <- "Other (less than 0.1%)"
-aoa.sp.df$Sub_Clade[is.na(aoa.sp.df$Sub_Clade)] <- "Other (less than 0.1%)"
+#com.sp.df$Sub_Clade[com.sp.df$Mean<0.001] <- "Other (less than 0.1%)"
+#com.sp.df$Sub_Clade[is.na(com.sp.df$Sub_Clade)] <- "Other (less than 0.1%)"
 
-legend <- "AOA Taxa"
+legend <- "Comammox Taxa"
 library(scales)
 #x_cols <- rep(hue_pal()(length(unique(interaction(aob.sp.df$Date, aob.sp.df$Irrigation)))))
 #aob.sp.df$Date <- factor(aob.sp.df$Date, levels = unique(aob.sp.df$Date))
-aoa.sp.plot <- ggplot(aoa.sp.df, aes(x=interaction(Date, Irrigation), y=Mean, fill=Sub_Clade)) + 
+com.sp.plot <- ggplot(com.sp.df, aes(x=interaction(Date, Irrigation), y=Mean, fill=Species)) + 
   geom_bar(aes(), stat="identity", position="fill") + 
   scale_fill_manual(legend, values=SteppedSequential5Steps)+
   facet_nested(~Type+Treatment, nest_line = element_line(linetype = 1), scales="free")+
@@ -1736,64 +1726,39 @@ aoa.sp.plot <- ggplot(aoa.sp.df, aes(x=interaction(Date, Irrigation), y=Mean, fi
         strip.text.x = element_text(size = 14, face = "bold"),
         panel.border = element_rect(colour = "black", fill = NA,linewidth= 0.2))+
   scale_y_continuous(expand = c(0,0))+ guides(x="axis_nested")
-aoa.sp.plot
+com.sp.plot
 
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_meanRA_barplot2.eps",
-       aoa.sp.plot, device = "eps",
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("COM_meanRA_barplot2.eps",
+       com.sp.plot, device = "eps",
        width = 15, height =6, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("AOA_meanRA_barplot.tiff",
-       aoa.sp.plot, device = "tiff",
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("COM_meanRA_barplot.tiff",
+       com.sp.plot, device = "tiff",
        width = 15, height =6, 
        units= "in", dpi = 600)
 
 # 2. unrarefied data
-head(aob.tax)
-aob.tax.physeq = tax_table(as.matrix(aob.tax)) # taxonomy table
-
-# phyloseq object of the metadata
-str(meta_micro)
-aob.meta.physeq <- sample_data(meta_micro)# meta data
-sample_names(aob.meta.physeq)
-
-# read the rooted tree
-AOB_rooted_tree <- ape::read.tree("tree.nwk")
-
-# make phyloseq object
-aob.physeq.unrare <- merge_phyloseq(aob.asv.physeq,aob.tax.physeq,aob.meta.physeq,AOB_rooted_tree)
-aob.physeq.unrare
-sample_data(aob.physeq.unrare)$SampleID <- paste0("S", sample_data(aob.physeq.unrare)$SampleID)
-sample_data(aob.physeq.unrare)
+head(com.physeq)
+tax_table(com.physeq) # taxonomy table
 # merge taxa by species
-aob.sp.unrare <- tax_glom(aob.physeq.unrare, taxrank = "Species", NArm = F)
-aob.sp.unrare.ra <- transform_sample_counts(aob.sp.unrare, function(x) x/sum(x))
-aob.sp.unrare.ra
+com.sp.unr <- tax_glom(com.physeq, taxrank = "Species", NArm = F)
+com.sp.ra.unr <- transform_sample_counts(com.sp.unr, function(x) x/sum(x))
+sample_data(com.sp.ra.unr)
 
-aob.sp.unrare.df <- psmelt(aob.sp.unrare.ra) %>%
-  group_by(var2, Type, Date, Treatment, Irrigation, Genus, Species) %>%
+com.sp.df.unr <- psmelt(com.sp.ra.unr) %>%
+  group_by(var2, Type, Date, Treatment, Irrigation, Species) %>%
   summarize(Mean = mean(Abundance)) %>%
   arrange(-Mean)
 
-str(aob.sp.unrare.df)
-sp_col_x=c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", 
-           "#117777", "#44AAAA", "#77CCCC", "#737373", "#117744", "#88CCAA",
-           "#777711", "#fc8d59", "#fed976", 
-           "#771122", "#AA4455", "#DD7788","#774411", "#AA7744", "#DDAA77","black")
-install.packages("ggh4x")
-library(ggh4x)
-
-#aob.sp.unrare.df$Date <- as.Date(aob.sp.unrare.df$Date , "%m/%d/%Y")
-aob.sp.unrare.df$Type <- factor(aob.sp.unrare.df$Type, levels = c("BS", "RS"),
-                                labels = c("Bulk Soil", "Rhizosphere")
-)
-aob.sp.unrare.df$Treatment <- factor(aob.sp.unrare.df$Treatment, levels = c("D", "K", "M"),
+com.sp.df.unr$Type <- factor(com.sp.df.unr$Type, levels = c("BS", "RS"),
+                                labels = c("Bulk Soil", "Rhizosphere"))
+com.sp.df.unr$Treatment <- factor(com.sp.df.unr$Treatment, levels = c("D", "K", "M"),
                                      labels = c("Biodynamic", "Conventional", "Mineral"))
-legend <- "AOB Taxa"
-library(scales)
-#x_cols <- rep(hue_pal()(length(unique(interaction(aob.sp.df$Date, aob.sp.df$Irrigation)))))
-aob.sp.unrare.plot <- ggplot(aob.sp.unrare.df, aes(x=interaction(Date, Irrigation), y=Mean, fill=Species)) + 
+legend <- "Comammox Taxa"
+
+com.sp.unrare.plot <- ggplot(com.sp.df.unr, aes(x=interaction(Date, Irrigation), y=Mean, fill=Species)) + 
   geom_bar(aes(), stat="identity", position="fill") + 
   scale_fill_manual(legend, values=SteppedSequential5Steps)+
   facet_nested(~Type+Treatment, nest_line = element_line(linetype = 1), scales="free")+
@@ -1816,19 +1781,39 @@ aob.sp.unrare.plot <- ggplot(aob.sp.unrare.df, aes(x=interaction(Date, Irrigatio
         strip.background = element_blank(),
         strip.text.x = element_text(size = 14, face = "bold"),
         panel.border = element_rect(colour = "black", fill = NA,linewidth= 0.2))+
-  #facet_grid(~plant, switch = "x", scales = "free_x")+
-  #guides(fill=guide_legend(nrow=2,byrow=TRUE))
   scale_y_continuous(expand = c(0,0))+
   guides(x="axis_nested")
 
-aob.sp.unrare.plot
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
-ggsave("AOB_meanRA_unrare_barplot.eps",
-       aob.sp.unrare.plot, device = "eps",
+com.sp.unrare.plot
+setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
+ggsave("COM_meanRA_unrare_barplot.eps",
+       com.sp.unrare.plot, device = "eps",
        width = 15, height =6, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
-ggsave("AOB_meanRA_unrare_barplot.tiff",
-       aob.sp.unrare.plot, device = "tiff",
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("COM_meanRA_unrare_barplot.tiff",
+       com.sp.unrare.plot, device = "tiff",
        width = 15, height =6, 
        units= "in", dpi = 600)
+
+
+clade <- c('Clade A','Clade B')
+
+library(forcats)
+library(dplyr)
+
+  
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
