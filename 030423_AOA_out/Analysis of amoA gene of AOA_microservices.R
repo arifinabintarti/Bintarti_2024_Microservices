@@ -1659,36 +1659,18 @@ k09dist_bc <- vegdist(t(k09.asv1), method = "bray")
 aoa.rare.min.physeq
 tax_table(aoa.rare.min.physeq)
 # merge taxa by species
-aoa.sp <- tax_glom(aoa.rare.min.physeq, taxrank = "Sub_Clade", NArm = F)
+aoa.sp <- tax_glom(aoa.rare.min.physeq, taxrank = "Sub_Clade2", NArm = F)
 aoa.sp.ra <- transform_sample_counts(aoa.sp, function(x) x/sum(x))
 sample_data(aoa.sp.ra)
 
 aoa.sp.df <- psmelt(aoa.sp.ra) %>%
-  group_by(var2, Type, Date, Treatment, Irrigation, Sub_Clade) %>%
+  group_by(var2, Type, Date, Treatment, Irrigation, Order, Clade, Sub_Clade2) %>%
   summarize(Mean = mean(Abundance)) %>%
   arrange(-Mean)
 
-colours <- ColourPalleteMulti(aoa.sp.df, "Genus", "Species")
-colours
 #install.packages("Polychrome")
 library(Polychrome)
 # build-in color palette
-mycol = glasbey.colors(21)
-mycol=c("#FE8F42","#FFFFFF","#0000FF","#FF0000","#009FFF","#00FF00","#000033",
-        
-        "#FF00B6","#005300","#9A4D42","#00FFBE","#783FC1","#F1085C","#DD00FF",
-        
-        "#201A01","#1F9698","#FFD300","#FFACFD","#B1CC71", "#720055", "#766C95")
-
-sp_col=c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", 
-         "#117777", "#44AAAA", "#77CCCC", "#737373", "#117744", "#88CCAA",
-         "#777711", "#fc8d59", "#fed976", 
-         "#771122", "#AA4455", "#DD7788","#774411", "#AA7744", "#DDAA77")
-color <- c("#260F99","#422CB2", "#6551CC", "#8F7EE5", "#BFB2FF",
-           "#0F6B99", "#2C85B2", "#51A3CC", "#7EC3E5", "#B2E5FF",
-           "#6B990F", "#85B22C", "#A3CC51", "#C3E57E", "#E5FFB2",
-           "#990F0F", "#B22C2C", "#CC5151", "#E57E7E", "#FFB2B2","#99540F", "#B26F2C")
-
 #install.packages("colorBlindness")
 library(colorBlindness)
 displayAvailablePalette(color="white")
@@ -1696,21 +1678,38 @@ SteppedSequential5Steps
 str(aoa.sp.df)
 #install.packages("ggh4x")
 library(ggh4x)
+library(microshades)
+microshades_palettes
+microshades_cvd_palettes
+
+grad.col.aoa <- c("#990F0F", "#B22C2C", "#CC5151", "#E57E7E", "#FFB2B2",
+                  "#99540F", "#B26F2C", "#CC8E51", "#E5B17E", "#FFD8B2",
+                  "#6B990F", "#85B22C", "#A3CC51", "#C3E57E", "#E5FFB2",
+                  "#0F6B99", "#2C85B2", "#51A3CC", "#7EC3E5", "#B2E5FF",
+                  "#260F99", "#422CB2", "#6551CC", "#8F7EE5", "#BFB2FF",
+                  "#148F77", "#009E73", "#43BA8F", "#48C9B0", "#A3E4D7",
+                  "#7D3560", "#A1527F", "#CC79A7", "#E794C1", "#EFB6D6")
+                  
 
 aoa.sp.df$Type <- factor(aoa.sp.df$Type, levels = c("BS", "RS"),
                          labels = c("Bulk Soil", "Rhizosphere"))
 aoa.sp.df$Treatment <- factor(aoa.sp.df$Treatment, levels = c("D", "K", "M"),
                               labels = c("Biodynamic", "Conventional", "Mineral"))
-aoa.sp.df$Sub_Clade[aoa.sp.df$Mean<0.001] <- "Other (less than 0.1%)"
-aoa.sp.df$Sub_Clade[is.na(aoa.sp.df$Sub_Clade)] <- "Other (less than 0.1%)"
+aoa.sp.df$Sub_Clade2[aoa.sp.df$Mean<0.001] <- "Other (less than 0.1%)"
+aoa.sp.df$Sub_Clade2[is.na(aoa.sp.df$Sub_Clade2)] <- "Other (less than 0.1%)"
+
 
 legend <- "AOA Taxa"
 library(scales)
-#x_cols <- rep(hue_pal()(length(unique(interaction(aob.sp.df$Date, aob.sp.df$Irrigation)))))
-#aob.sp.df$Date <- factor(aob.sp.df$Date, levels = unique(aob.sp.df$Date))
-aoa.sp.plot <- ggplot(aoa.sp.df, aes(x=interaction(Date, Irrigation), y=Mean, fill=Sub_Clade)) + 
+library(scales)
+library(forcats)
+library(dplyr)
+aoa.df <- aoa.sp.df
+aoa.df$Sub_Clade <- paste(aoa.df$Order,aoa.df$Sub_Clade, sep = "-")
+
+aoa.sp.plot <- ggplot(aoa.sp.df, aes(x=interaction(Date, Irrigation), y=Mean, fill=Sub_Clade2)) + 
   geom_bar(aes(), stat="identity", position="fill") + 
-  scale_fill_manual(legend, values=SteppedSequential5Steps)+
+  scale_fill_manual(legend, values=grad.col.aoa)+
   facet_nested(~Type+Treatment, nest_line = element_line(linetype = 1), scales="free")+
   theme(legend.direction = "vertical",legend.position="right") + 
   guides(fill=guide_legend(ncol=1))+
@@ -1745,87 +1744,5 @@ ggsave("AOA_meanRA_barplot.tiff",
        width = 15, height =6, 
        units= "in", dpi = 600)
 
-# 2. unrarefied data
-head(aob.tax)
-aob.tax.physeq = tax_table(as.matrix(aob.tax)) # taxonomy table
 
-# phyloseq object of the metadata
-str(meta_micro)
-aob.meta.physeq <- sample_data(meta_micro)# meta data
-sample_names(aob.meta.physeq)
-
-# read the rooted tree
-AOB_rooted_tree <- ape::read.tree("tree.nwk")
-
-# make phyloseq object
-aob.physeq.unrare <- merge_phyloseq(aob.asv.physeq,aob.tax.physeq,aob.meta.physeq,AOB_rooted_tree)
-aob.physeq.unrare
-sample_data(aob.physeq.unrare)$SampleID <- paste0("S", sample_data(aob.physeq.unrare)$SampleID)
-sample_data(aob.physeq.unrare)
-# merge taxa by species
-aob.sp.unrare <- tax_glom(aob.physeq.unrare, taxrank = "Species", NArm = F)
-aob.sp.unrare.ra <- transform_sample_counts(aob.sp.unrare, function(x) x/sum(x))
-aob.sp.unrare.ra
-
-aob.sp.unrare.df <- psmelt(aob.sp.unrare.ra) %>%
-  group_by(var2, Type, Date, Treatment, Irrigation, Genus, Species) %>%
-  summarize(Mean = mean(Abundance)) %>%
-  arrange(-Mean)
-
-str(aob.sp.unrare.df)
-sp_col_x=c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", 
-           "#117777", "#44AAAA", "#77CCCC", "#737373", "#117744", "#88CCAA",
-           "#777711", "#fc8d59", "#fed976", 
-           "#771122", "#AA4455", "#DD7788","#774411", "#AA7744", "#DDAA77","black")
-install.packages("ggh4x")
-library(ggh4x)
-
-#aob.sp.unrare.df$Date <- as.Date(aob.sp.unrare.df$Date , "%m/%d/%Y")
-aob.sp.unrare.df$Type <- factor(aob.sp.unrare.df$Type, levels = c("BS", "RS"),
-                                labels = c("Bulk Soil", "Rhizosphere")
-)
-aob.sp.unrare.df$Treatment <- factor(aob.sp.unrare.df$Treatment, levels = c("D", "K", "M"),
-                                     labels = c("Biodynamic", "Conventional", "Mineral"))
-legend <- "AOB Taxa"
-library(scales)
-#x_cols <- rep(hue_pal()(length(unique(interaction(aob.sp.df$Date, aob.sp.df$Irrigation)))))
-aob.sp.unrare.plot <- ggplot(aob.sp.unrare.df, aes(x=interaction(Date, Irrigation), y=Mean, fill=Species)) + 
-  geom_bar(aes(), stat="identity", position="fill") + 
-  scale_fill_manual(legend, values=SteppedSequential5Steps)+
-  facet_nested(~Type+Treatment, nest_line = element_line(linetype = 1), scales="free")+
-  theme(legend.direction = "vertical",legend.position="right") + 
-  guides(fill=guide_legend(ncol=1))+
-  labs(y= "Mean Relative Abundance")+
-  theme(plot.title = element_text(size = rel(1.5), face="bold"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.text=element_text(size=13, face = "bold"),
-        axis.line.x = element_blank(),
-        axis.text.x = element_text(angle = 90, hjust = 0.5, vjust=0.5),
-        #axis.ticks.x = element_blank(),
-        axis.title.x = element_blank(),
-        axis.title =element_text(size=15,face="bold"),
-        legend.text=element_text(size = 12),
-        legend.title = element_text(size=13, face = "bold"),
-        panel.grid = element_blank(), 
-        panel.background = element_blank(),
-        strip.background = element_blank(),
-        strip.text.x = element_text(size = 14, face = "bold"),
-        panel.border = element_rect(colour = "black", fill = NA,linewidth= 0.2))+
-  #facet_grid(~plant, switch = "x", scales = "free_x")+
-  #guides(fill=guide_legend(nrow=2,byrow=TRUE))
-  scale_y_continuous(expand = c(0,0))+
-  guides(x="axis_nested")
-
-aob.sp.unrare.plot
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
-ggsave("AOB_meanRA_unrare_barplot.eps",
-       aob.sp.unrare.plot, device = "eps",
-       width = 15, height =6, 
-       units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
-ggsave("AOB_meanRA_unrare_barplot.tiff",
-       aob.sp.unrare.plot, device = "tiff",
-       width = 15, height =6, 
-       units= "in", dpi = 600)
 

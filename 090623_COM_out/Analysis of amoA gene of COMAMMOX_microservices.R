@@ -1667,26 +1667,19 @@ colours
 #install.packages("Polychrome")
 library(Polychrome)
 # build-in color palette
-mycol = glasbey.colors(21)
-mycol=c("#FE8F42","#FFFFFF","#0000FF","#FF0000","#009FFF","#00FF00","#000033",
-        
-        "#FF00B6","#005300","#9A4D42","#00FFBE","#783FC1","#F1085C","#DD00FF",
-        
-        "#201A01","#1F9698","#FFD300","#FFACFD","#B1CC71", "#720055", "#766C95")
+grad.col2 <- c("#990F0F", "#CC5151", "#E57E7E", "#FFB2B2",
+               "#99540F", "#B26F2C", "#CC8E51", "#E5B17E", "#FFD8B2",
+              "#6B990F", "#85B22C", "#A3CC51",
+              "#C3E57E")    
 
-sp_col=c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", 
-         "#117777", "#44AAAA", "#77CCCC", "#737373", "#117744", "#88CCAA",
-         "#777711", "#fc8d59", "#fed976", 
-         "#771122", "#AA4455", "#DD7788","#774411", "#AA7744", "#DDAA77")
-color <- c("#260F99","#422CB2", "#6551CC", "#8F7EE5", "#BFB2FF",
-           "#0F6B99", "#2C85B2", "#51A3CC", "#7EC3E5", "#B2E5FF",
-           "#6B990F", "#85B22C", "#A3CC51", "#C3E57E", "#E5FFB2",
-           "#990F0F", "#B22C2C", "#CC5151", "#E57E7E", "#FFB2B2","#99540F", "#B26F2C")
 
+           
 #install.packages("colorBlindness")
 library(colorBlindness)
 displayAvailablePalette(color="white")
 SteppedSequential5Steps
+Brown2Blue12Steps
+Blue2DarkOrange18Steps
 str(com.sp.df)
 #install.packages("ggh4x")
 library(ggh4x)
@@ -1700,11 +1693,19 @@ com.sp.df$Treatment <- factor(com.sp.df$Treatment, levels = c("D", "K", "M"),
 
 legend <- "Comammox Taxa"
 library(scales)
-#x_cols <- rep(hue_pal()(length(unique(interaction(aob.sp.df$Date, aob.sp.df$Irrigation)))))
-#aob.sp.df$Date <- factor(aob.sp.df$Date, levels = unique(aob.sp.df$Date))
-com.sp.plot <- ggplot(com.sp.df, aes(x=interaction(Date, Irrigation), y=Mean, fill=Species)) + 
+library(forcats)
+library(dplyr)
+df <- com.sp.df
+df2 <- select(df, Clade, Species, Mean) %>%
+  mutate(Clade=factor(Clade, levels=c("Clade A", "Clade B")),
+         Species=fct_reorder(Species, 10*as.integer(Clade)))
+df2$Species <- paste(df2$Clade,df2$Species, sep = "-")
+
+
+# plotting
+com.sp.plot <- ggplot(df2, aes(x=interaction(Date, Irrigation), y=Mean, fill=Species)) + 
   geom_bar(aes(), stat="identity", position="fill") + 
-  scale_fill_manual(legend, values=SteppedSequential5Steps)+
+  scale_fill_manual(legend, values=grad.col2)+
   facet_nested(~Type+Treatment, nest_line = element_line(linetype = 1), scales="free")+
   theme(legend.direction = "vertical",legend.position="right") + 
   guides(fill=guide_legend(ncol=1))+
@@ -1715,7 +1716,6 @@ com.sp.plot <- ggplot(com.sp.df, aes(x=interaction(Date, Irrigation), y=Mean, fi
         axis.text=element_text(size=13, face = "bold"),
         axis.line.x = element_blank(),
         axis.text.x = element_text(angle = 90, hjust = 0.5, vjust=0.5),
-        #axis.ticks.x = element_blank(),
         axis.title.x = element_blank(),
         axis.title =element_text(size=15,face="bold"),
         legend.text=element_text(size = 12),
@@ -1739,71 +1739,18 @@ ggsave("COM_meanRA_barplot.tiff",
        width = 15, height =6, 
        units= "in", dpi = 600)
 
-# 2. unrarefied data
-head(com.physeq)
-tax_table(com.physeq) # taxonomy table
-# merge taxa by species
-com.sp.unr <- tax_glom(com.physeq, taxrank = "Species", NArm = F)
-com.sp.ra.unr <- transform_sample_counts(com.sp.unr, function(x) x/sum(x))
-sample_data(com.sp.ra.unr)
-
-com.sp.df.unr <- psmelt(com.sp.ra.unr) %>%
-  group_by(var2, Type, Date, Treatment, Irrigation, Species) %>%
-  summarize(Mean = mean(Abundance)) %>%
-  arrange(-Mean)
-
-com.sp.df.unr$Type <- factor(com.sp.df.unr$Type, levels = c("BS", "RS"),
-                                labels = c("Bulk Soil", "Rhizosphere"))
-com.sp.df.unr$Treatment <- factor(com.sp.df.unr$Treatment, levels = c("D", "K", "M"),
-                                     labels = c("Biodynamic", "Conventional", "Mineral"))
-legend <- "Comammox Taxa"
-
-com.sp.unrare.plot <- ggplot(com.sp.df.unr, aes(x=interaction(Date, Irrigation), y=Mean, fill=Species)) + 
-  geom_bar(aes(), stat="identity", position="fill") + 
-  scale_fill_manual(legend, values=SteppedSequential5Steps)+
-  facet_nested(~Type+Treatment, nest_line = element_line(linetype = 1), scales="free")+
-  theme(legend.direction = "vertical",legend.position="right") + 
-  guides(fill=guide_legend(ncol=1))+
-  labs(y= "Mean Relative Abundance")+
-  theme(plot.title = element_text(size = rel(1.5), face="bold"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.text=element_text(size=13, face = "bold"),
-        axis.line.x = element_blank(),
-        axis.text.x = element_text(angle = 90, hjust = 0.5, vjust=0.5),
-        #axis.ticks.x = element_blank(),
-        axis.title.x = element_blank(),
-        axis.title =element_text(size=15,face="bold"),
-        legend.text=element_text(size = 12),
-        legend.title = element_text(size=13, face = "bold"),
-        panel.grid = element_blank(), 
-        panel.background = element_blank(),
-        strip.background = element_blank(),
-        strip.text.x = element_text(size = 14, face = "bold"),
-        panel.border = element_rect(colour = "black", fill = NA,linewidth= 0.2))+
-  scale_y_continuous(expand = c(0,0))+
-  guides(x="axis_nested")
-
-com.sp.unrare.plot
-setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
-ggsave("COM_meanRA_unrare_barplot.eps",
-       com.sp.unrare.plot, device = "eps",
-       width = 15, height =6, 
-       units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
-ggsave("COM_meanRA_unrare_barplot.tiff",
-       com.sp.unrare.plot, device = "tiff",
-       width = 15, height =6, 
-       units= "in", dpi = 600)
 
 
-clade <- c('Clade A','Clade B')
 
-library(forcats)
-library(dplyr)
 
-  
- 
+
+
+
+
+
+
+
+
 
 
 
