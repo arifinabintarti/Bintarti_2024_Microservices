@@ -4,7 +4,8 @@
 
 # GROUP & SEPARATE PHYLOSEQ OBJECT BY TYPE, DATE AND TREATMENT:
 
-# 1. BULK SOIL
+##### 1. BULK SOIL - RAREFIED #####
+
 aob.physeq_bulk <- subset_samples(aob.rare.1282.seq, Type=="BS")
 aob.physeq_bulk
 aob.physeq_bulk1 <- prune_taxa(taxa_sums(aob.physeq_bulk)>0, aob.physeq_bulk)
@@ -70,6 +71,250 @@ D09seq1 <- prune_taxa(taxa_sums(D09seq)>0, D09seq)
 # 3. CONVENTIONAL
 K09seq<- subset_samples(aob.physeq_bulk1, Date=="09-13-22" & Treatment=="K")
 K09seq1 <- prune_taxa(taxa_sums(K09seq)>0, K09seq)
+
+
+##### 2. RHIZOSPHERE - RAREFIED #####
+
+aob.physeq_rh <- subset_samples(aob.rare.1282.seq, Type=="RS")
+aob.physeq_rh # 1222 taxa 72 samples
+aob.physeq_rh1 <- prune_taxa(taxa_sums(aob.physeq_rh)>0, aob.physeq_rh)
+aob.physeq_rh1 # 831 taxa
+
+# Date: 04-28-2022
+
+# 1. MINERAL
+M04.rh.seq<- subset_samples(aob.physeq_rh1, Date=="04-28-22" & Treatment=="M")
+M04.rh.seq1 <- prune_taxa(taxa_sums(M04.rh.seq)>0, M04.rh.seq)
+sort(rowSums(otu_table(M04.rh.seq1), na.rm = FALSE, dims = 1), decreasing = F)
+# 2. BIODYNAMIC
+D04.rh.seq<- subset_samples(aob.physeq_rh1, Date=="04-28-22" & Treatment=="D")
+D04.rh.seq1 <- prune_taxa(taxa_sums(D04.rh.seq)>0, D04.rh.seq)
+# 3. CONVENTIONAL
+K04.rh.seq<- subset_samples(aob.physeq_rh1, Date=="04-28-22" & Treatment=="K")
+K04.rh.seq1 <- prune_taxa(taxa_sums(K04.rh.seq)>0, K04.rh.seq)
+
+# Date: 06-01-2022
+
+# 1. MINERAL
+M06.rh.seq<- subset_samples(aob.physeq_rh1, Date=="06-01-22" & Treatment=="M")
+M06.rh.seq1 <- prune_taxa(taxa_sums(M06.rh.seq)>0, M06.rh.seq)
+# 2. BIODYNAMIC
+D06.rh.seq<- subset_samples(aob.physeq_rh1, Date=="06-01-22" & Treatment=="D")
+D06.rh.seq1 <- prune_taxa(taxa_sums(D06.rh.seq)>0, D06.rh.seq)
+# 3. CONVENTIONAL
+K06.rh.seq<- subset_samples(aob.physeq_rh1, Date=="06-01-22" & Treatment=="K")
+K06.rh.seq1 <- prune_taxa(taxa_sums(K06.rh.seq)>0, K06.rh.seq)
+
+# Date: 07-05-2022
+
+# 1. MINERAL
+M0705.rh.seq<- subset_samples(aob.physeq_rh1, Date=="07-05-22" & Treatment=="M")
+M0705.rh.seq1 <- prune_taxa(taxa_sums(M0705.rh.seq)>0, M0705.rh.seq)
+# 2. BIODYNAMIC
+D0705.rh.seq<- subset_samples(aob.physeq_rh1, Date=="07-05-22" & Treatment=="D")
+D0705.rh.seq1 <- prune_taxa(taxa_sums(D0705.rh.seq)>0, D0705.rh.seq)
+# 3. CONVENTIONAL
+K0705.rh.seq<- subset_samples(aob.physeq_rh1, Date=="07-05-22" & Treatment=="K")
+K0705.rh.seq1 <- prune_taxa(taxa_sums(K0705.rh.seq)>0, K0705.rh.seq)
+
+####################################################################################################################################
+
+##### 1. BULK SOIL - NOT RAREFIED #####
+
+aob.physeq # still contain rhizosphere!, 1338 taxa 192 samples
+sort(rowSums(otu_table(aob.physeq), na.rm = FALSE, dims = 1), decreasing = FALSE) # nothing is zero
+aob.bulk.rawseq <- subset_samples(aob.physeq, Type=="BS")
+aob.bulk.rawseq1 <- prune_taxa(taxa_sums(aob.bulk.rawseq)>0,aob.bulk.rawseq)
+aob.bulk.rawseq1 # 1008 taxa
+
+# Date: 04-28-2022
+
+# 1. MINERAL
+M04rawseq<- subset_samples(aob.bulk.rawseq1, Date=="04-28-22" & Treatment=="M")
+M04rawseq1 <- prune_taxa(taxa_sums(M04rawseq)>0, M04rawseq)
+M04_table <- as.data.frame(otu_table(M04rawseq1))
+M04_table
+cond.aldx <- sample_data(M04rawseq1)$Irrigation
+# 2. BIODYNAMIC
+D04rawseq<- subset_samples(aob.bulk.rawseq1, Date=="04-28-22" & Treatment=="D")
+D04rawseq1 <- prune_taxa(taxa_sums(D04rawseq)>0, D04rawseq)
+D04_table <- as.data.frame(otu_table(D04rawseq1))
+D04_table
+cond.aldx.D <- sample_data(D04rawseq1)$Irrigation
+# 3. CONVENTIONAL
+K04rawseq<- subset_samples(aob.bulk.rawseq1, Date=="04-28-22" & Treatment=="K")
+K04rawseq1 <- prune_taxa(taxa_sums(K04rawseq)>0, K04rawseq)
+K04_table <- as.data.frame(otu_table(K04rawseq1))
+K04_table
+cond.aldx.K <- sample_data(K04rawseq1)$Irrigation
+
+# Date: 06-01-2022
+
+# 1. MINERAL
+M06rawseq<- subset_samples(aob.bulk.rawseq1, Date=="06-01-22" & Treatment=="M")
+M06rawseq1 <- prune_taxa(taxa_sums(M06rawseq)>0, M06rawseq)
+M06_table <- as.data.frame(otu_table(M06rawseq1))
+M06_table
+cond.aldx.M06 <- sample_data(M06rawseq1)$Irrigation
+# 2. BIODYNAMIC
+D06rawseq<- subset_samples(aob.bulk.rawseq1, Date=="06-01-22" & Treatment=="D")
+D06rawseq1 <- prune_taxa(taxa_sums(D06rawseq)>0, D06rawseq)
+D06_table <- as.data.frame(otu_table(D06rawseq1))
+D06_table
+# 3. CONVENTIONAL
+K06rawseq<- subset_samples(aob.bulk.rawseq1, Date=="06-01-22" & Treatment=="K")
+K06rawseq1 <- prune_taxa(taxa_sums(K06rawseq)>0, K06rawseq)
+K06_table <- as.data.frame(otu_table(K06rawseq1))
+K06_table
+sample_data(K06rawseq1)$Irrigation
+
+# Date: 07-05-2022
+
+# 1. MINERAL
+M0705rawseq<- subset_samples(aob.bulk.rawseq1, Date=="07-05-22" & Treatment=="M")
+M0705rawseq1 <- prune_taxa(taxa_sums(M0705rawseq)>0, M0705rawseq)
+M0705_table <- as.data.frame(otu_table(M0705rawseq1))
+M0705_table
+cond.aldx.M0705 <- sample_data(M0705rawseq1)$Irrigation
+# 2. BIODYNAMIC
+D0705rawseq<- subset_samples(aob.bulk.rawseq1, Date=="07-05-22" & Treatment=="D")
+D0705rawseq1 <- prune_taxa(taxa_sums(D0705rawseq)>0, D0705rawseq)
+D0705_table <- as.data.frame(otu_table(D0705rawseq1))
+D0705_table
+# 3. CONVENTIONAL
+K0705rawseq<- subset_samples(aob.bulk.rawseq1, Date=="07-05-22" & Treatment=="K")
+K0705rawseq1 <- prune_taxa(taxa_sums(K0705rawseq)>0, K0705rawseq)
+K0705_table <- as.data.frame(otu_table(K0705rawseq1))
+K0705_table
+sample_data(K0705rawseq1)$Irrigation
+
+# Date: 07-20-2022
+
+# 1. MINERAL
+M0720rawseq<- subset_samples(aob.bulk.rawseq1, Date=="07-20-22" & Treatment=="M")
+M0720rawseq1 <- prune_taxa(taxa_sums(M0720rawseq)>0, M0720rawseq)
+M0720_table <- as.data.frame(otu_table(M0720rawseq1))
+M0720_table
+cond.aldx.M0720 <- sample_data(M0720rawseq1)$Irrigation
+# 2. BIODYNAMIC
+D0720rawseq<- subset_samples(aob.bulk.rawseq1, Date=="07-20-22" & Treatment=="D")
+D0720rawseq1 <- prune_taxa(taxa_sums(D0720rawseq)>0, D0720rawseq)
+D0720_table <- as.data.frame(otu_table(D0720rawseq1))
+D0720_table
+# 3. CONVENTIONAL
+K0720rawseq<- subset_samples(aob.bulk.rawseq1, Date=="07-20-22" & Treatment=="K")
+K0720rawseq1 <- prune_taxa(taxa_sums(K0720rawseq)>0, K0720rawseq)
+K0720_table <- as.data.frame(otu_table(K0720rawseq1))
+K0720_table
+sample_data(K0720rawseq1)$Irrigation
+
+# Date: 09-13-2022
+
+# 1. MINERAL
+M09rawseq<- subset_samples(aob.bulk.rawseq1, Date=="09-13-22" & Treatment=="M")
+M09rawseq1 <- prune_taxa(taxa_sums(M09rawseq)>0, M09rawseq)
+M09_table <- as.data.frame(otu_table(M09rawseq1))
+M09_table
+cond.aldx.M09 <- sample_data(M09rawseq1)$Irrigation
+# 2. BIODYNAMIC
+D09rawseq<- subset_samples(aob.bulk.rawseq1, Date=="09-13-22" & Treatment=="D")
+D09rawseq1 <- prune_taxa(taxa_sums(D09rawseq)>0, D09rawseq)
+D09_table <- as.data.frame(otu_table(D09rawseq1))
+D09_table
+# 3. CONVENTIONAL
+K09rawseq<- subset_samples(aob.bulk.rawseq1, Date=="09-13-22" & Treatment=="K")
+K09rawseq1 <- prune_taxa(taxa_sums(K09rawseq)>0, K09rawseq)
+K09_table <- as.data.frame(otu_table(K09rawseq1))
+K09_table
+sample_data(K09rawseq1)$Irrigation
+
+##### 2. RHIZOSPHERE - NOT RAREFIED #####
+
+aob.rh.rawseq <- subset_samples(aob.physeq, Type=="RS")
+aob.rh.rawseq1 <- prune_taxa(taxa_sums(aob.rh.rawseq)>0,aob.rh.rawseq)
+aob.rh.rawseq1 # 940 taxa 72 samples
+
+# Date: 04-28-2022
+
+# 1. MINERAL
+M04.rh.rawseq<- subset_samples(aob.rh.rawseq1, Date=="04-28-22" & Treatment=="M")
+M04.rh.rawseq1 <- prune_taxa(taxa_sums(M04.rh.rawseq)>0, M04.rh.rawseq)
+M04.rh_table <- as.data.frame(otu_table(M04.rh.rawseq1))
+M04.rh_table
+# 2. BIODYNAMIC
+D04.rh.rawseq<- subset_samples(aob.rh.rawseq1, Date=="04-28-22" & Treatment=="D")
+D04.rh.rawseq1 <- prune_taxa(taxa_sums(D04.rh.rawseq)>0, D04.rh.rawseq)
+D04.rh_table <- as.data.frame(otu_table(D04.rh.rawseq1))
+D04.rh_table
+# 3. CONVENTIONAL
+K04.rh.rawseq<- subset_samples(aob.rh.rawseq1, Date=="04-28-22" & Treatment=="K")
+K04.rh.rawseq1 <- prune_taxa(taxa_sums(K04.rh.rawseq)>0, K04.rh.rawseq)
+K04.rh_table <- as.data.frame(otu_table(K04.rh.rawseq1))
+K04.rh_table
+
+# Date: 06-01-2022
+
+# 1. MINERAL
+M06.rh.rawseq<- subset_samples(aob.rh.rawseq1, Date=="06-01-22" & Treatment=="M")
+M06.rh.rawseq1 <- prune_taxa(taxa_sums(M06.rh.rawseq)>0, M06.rh.rawseq)
+M06.rh_table <- as.data.frame(otu_table(M06.rh.rawseq1))
+M06.rh_table
+# 2. BIODYNAMIC
+D06.rh.rawseq<- subset_samples(aob.rh.rawseq1, Date=="06-01-22" & Treatment=="D")
+D06.rh.rawseq1 <- prune_taxa(taxa_sums(D06.rh.rawseq)>0, D06.rh.rawseq)
+D06.rh_table <- as.data.frame(otu_table(D06.rh.rawseq1))
+D06.rh_table
+# 3. CONVENTIONAL
+K06.rh.rawseq<- subset_samples(aob.rh.rawseq1, Date=="06-01-22" & Treatment=="K")
+K06.rh.rawseq1 <- prune_taxa(taxa_sums(K06.rh.rawseq)>0, K06.rh.rawseq)
+K06.rh_table <- as.data.frame(otu_table(K06.rh.rawseq1))
+K06.rh_table
+
+# Date: 07-05-2022
+
+# 1. MINERAL
+M0705.rh.rawseq<- subset_samples(aob.rh.rawseq1, Date=="07-05-22" & Treatment=="M")
+M0705.rh.rawseq1 <- prune_taxa(taxa_sums(M0705.rh.rawseq)>0, M0705.rh.rawseq)
+M0705.rh_table <- as.data.frame(otu_table(M0705.rh.rawseq1))
+M0705.rh_table
+# 2. BIODYNAMIC
+D0705.rh.rawseq<- subset_samples(aob.rh.rawseq1, Date=="07-05-22" & Treatment=="D")
+D0705.rh.rawseq1 <- prune_taxa(taxa_sums(D0705.rh.rawseq)>0, D0705.rh.rawseq)
+D0705.rh_table <- as.data.frame(otu_table(D0705.rh.rawseq1))
+D0705.rh_table
+# 3. CONVENTIONAL
+K0705.rh.rawseq<- subset_samples(aob.rh.rawseq1, Date=="07-05-22" & Treatment=="K")
+K0705.rh.rawseq1 <- prune_taxa(taxa_sums(K0705.rh.rawseq)>0, K0705.rh.rawseq)
+K0705.rh_table <- as.data.frame(otu_table(K0705.rh.rawseq1))
+K0705.rh_table
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ################################################################################
 # Filter low-abundant taxa
@@ -1535,92 +1780,118 @@ PposRRT3s_mesh.melt <- RRT3s_mesh.melt[RRT3s_mesh.melt$group == "Fauna"&RRT3s_me
 ad.test((PposRRT3s_mesh.melt$value))
 dunn_test(value ~ sign_RR, data=PposRRT3s_mesh.melt)
 
-library(DESeq2)
-bulkT1.seq <- subset_samples(aob.physeq_bulk1, Date=="04-28-22")
-bulkT1.seq1 <- prune_taxa(taxa_sums(bulkT1.seq)>0, bulkT1.seq)
- 
-d <- M04seq1  # Phyloseq data
-ds2 <- phyloseq_to_deseq2(d, ~ Irrigation)
 
-# Run DESeq2 analysis (all taxa at once!)
-dds <- DESeq(ds2)
 
-# Investigate results
-deseq.results <- as.data.frame(results(dds))
-deseq.results$taxon <- rownames(results(dds))
+####################################################################################################################################
+# ALDEx2
+####################################################################################################################################
 
-# Sort (arrange) by pvalue and effect size
-library(knitr)
-deseq.results <- deseq.results %>%
-  arrange(pvalue, log2FoldChange)
+# Preparing data sets grouped by treatment and date 
 
-# Print the result table
-# Let us only show significant hits
-knitr::kable(deseq.results %>%
-               filter(pvalue < 0.05 & log2FoldChange > 1.5),
-             digits = 5)
 
-#########################################################################################################################
-BiocManager::install("ALDEx2")
+
+#BiocManager::install("ALDEx2")
 library(ALDEx2)
-# non-rarefied ASV table BULK SOIL
-aob.bulk.unrare <- subset_samples(aob.physeq, Type=="BS")
-aob.bulk.unrare
-aob.bulk.unrare1 <- prune_taxa(taxa_sums(aob.bulk.unrare)>0, aob.bulk.unrare)
-aob.bulk.unrare1 #1008 taxa, 120 samples
-aob.bulk.unrare.df <- as.data.frame(otu_table(aob.bulk.unrare1))
-head(aob.bulk.unrare.df)
 
-# ASV table (phyloseq object)
-M04seq1
-M04_table <- as.data.frame(otu_table(M04seq1))
-cond.aldx <- sample_data(M04seq1)$Irrigation
 
-results <- aldex(reads=M04_table, conditions = cond.aldx, mc.samples = 128, test="t", effect=TRUE,
-                 include.sample.summary = FALSE, verbose=T, denom="all")
+
+
+
+# Filtering
+prevalencedf = apply(X = otu_table(M04rawseq1),
+                     MARGIN = 1,
+                     FUN = function(x){sum(x > 0)})
+
+# Add taxonomy and total read counts to this data.frame
+prevalencedf = data.frame(Prevalence = prevalencedf,
+                          TotalAbundance = taxa_sums(M04rawseq1))
+prevalencedf[1:10,]
+#write.table(x=prevelancedf, file="Filtered_OTUtable-prevalence.csv")
+dim(prevalencedf)
+
+
+### calculate prevalence /!\ takes from 30min to 3h /!\
+
+ps = M04rawseq1
+
+df_tmp <- psmelt(ps)
+df_tmp$sample <- 0
+df_tmp$sample[df_tmp$Abundance > 0] <- 1 #E: DON'T UNDERSTAND WHY THIS IS DONE
+
+df_otu_prev_ttt <- data.frame(matrix(ncol=nlevels(as.factor(df_tmp$Irrigation)),
+                                     nrow=nlevels(as.factor(df_tmp$OTU)), 
+                                     dimnames=list(levels(as.factor(df_tmp$OTU)),
+                                                   levels(as.factor(df_tmp$Irrigation)))))
+#attention il ya Sample et sample
+
+for (i in unique(df_tmp$OTU)) {
+  for (j in unique(df_tmp$Irrigation)) {
+    df_otu_prev_ttt[i,j] <- sum(df_tmp$sample[df_tmp$OTU == i & df_tmp$Irrigation == j],na.rm = T) / nrow(df_tmp[df_tmp$OTU == i & df_tmp$Irrigation == j,]) *100
+    print(paste(i,j,df_otu_prev_ttt[i,j]),sep="\t")
+    #print(df_otu_prev_ttt[i,j])
+  }
+  
+}
+
+df_otu_prev_ttt$max_prev <- apply(df_otu_prev_ttt,MARGIN=1, FUN=max)
+
+
+# write.csv(df_otu_prev_ttt, file = "df_otu_prev_ttt.csv")
+
+
+#____________________________
+### filtre otu par prevalence
+
+ps =  M04rawseq1
+df_prev = df_otu_prev_ttt
+df_prev 
+tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 75,])
+
+physeq.subset <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
+
+# physeqT1F.Bacteria <- physeq.subset #416 #72 samples
+#write.csv(as.data.frame(otu_table(physeqT1F)), file = "otu_table_filteredT1.csv")
+
+rm(ps,df_prev,tmp_otu_F)
+
+
+physeq.subset #36 taxa, 8 samples
+
+
+psubset.tab <- as.data.frame(otu_table(physeq.subset))
+psubset.tab
+
+
+
+
+# ALDEx
+results <- aldex(reads=K06_table, cond.aldx, mc.samples =128, verbose = T, denom="all", test="t", effect=TRUE, paired.test=TRUE)
 results
+results.clr <- aldex.clr(reads=K06_table, cond.aldx, mc.samples =16, verbose = T, denom="iqlr")
+results.clr
+results.tt <- aldex.ttest(results.clr, paired.test=TRUE, verbose=FALSE)
+results.tt #nothing is significant
+#it is likely that you simply don’t have any differential abundant taxa. 
+# You may be under-powered to detect a small effect size as well.
 
-D04seq1
-D04_table <- as.data.frame(otu_table(D04seq1))
-cond.aldx_D <- sample_data(D04seq1)$Irrigation
+################################################################################
+library(nlme)
+library(tidyverse)
+library(compositions)
+# Step 1: Data preprocessing
 
-results_D04 <- aldex(reads=D04_table, conditions = cond.aldx_D, mc.samples = 128, test="t", effect=TRUE,
-                 include.sample.summary = FALSE, verbose=T, denom="all")
-results_D04
-
-K04seq1
-K04_table <- as.data.frame(otu_table(K04seq1))
-cond.aldx_K <- sample_data(K04seq1)$Irrigation
-
-results_K04 <- aldex(reads=K04_table, conditions = cond.aldx_K, mc.samples = 128, test="t", effect=TRUE,
-                     include.sample.summary = FALSE, verbose=T, denom="all")
-results_K04
-
-clr <- aldex.clr(M04_table,cond.aldx, mc.samples = 128, verbose = F)
-aldex.glm(clr,cond.aldx, useMC=FALSE)
-
-
-covariates <- data.frame("A" = sample(0:1, 14, replace = TRUE),
-                         "B" = c(rep(0, 7), rep(1, 7)))
-
-covariates
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+feature_table = M04_table
+sample_var = "SampleID"
+group_var = NULL
+out_cut = 0.05
+zero_cut = 0.90
+lib_cut = 1000
+neg_lb = FALSE
+prepro = feature_table_pre_process(feature_table, meta_data, sample_var, group_var, 
+                                   out_cut, zero_cut, lib_cut, neg_lb)
+feature_table = prepro$feature_table # Preprocessed feature table
+meta_data = prepro$meta_data # Preprocessed metadata
+struc_zero = prepro$structure_zeros # Structural zero info
 
 
 
@@ -1630,122 +1901,56 @@ library(microbiome)
 library(ANCOMBC)
 library(tidyverse)
 library(DT)
-options(DT.options = list(
-  initComplete = JS("function(settings, json) {",
-                    "$(this.api().table().header()).css({'background-color': 
-  '#000', 'color': '#fff'});","}")))
-data(atlas1006, package = "microbiome")
-tse = mia::makeTreeSummarizedExperimentFromPhyloseq(atlas1006)
 
-# subset to baseline
-tse = tse[, tse$time == 0]
+out = ancom(data = NULL,
+            assay_name = NULL,
+            tax_level = NULL,
+            phyloseq = physeq.subset,
+            p_adj_method = "BH",
+            prv_cut = 0,
+            lib_cut = 0,
+            main_var='Irrigation',
+            adj_formula = NULL,
+            rand_formula = NULL,
+            lme_control = lme4::lmerControl(),
+            struc_zero = TRUE,
+            neg_lb = FALSE,
+            alpha = 0.05,
+            n_cl = 1)
 
-# Re-code the bmi group
-tse$bmi = recode(tse$bmi_group,
-                 obese = "obese",
-                 severeobese = "obese",
-                 morbidobese = "obese")
-# Subset to lean, overweight, and obese subjects
-tse = tse[, tse$bmi %in% c("lean", "overweight", "obese")]
-
-# Note that by default, levels of a categorical variable in R are sorted 
-# alphabetically. In this case, the reference level for `bmi` will be 
-# `lean`. To manually change the reference level, for instance, setting `obese`
-# as the reference level, use:
-tse$bmi = factor(tse$bmi, levels = c("obese", "overweight", "lean"))
-# You can verify the change by checking:
-# levels(sample_data(tse)$bmi)
-
-# Create the region variable
-tse$region = recode(as.character(tse$nationality),
-                    Scandinavia = "NE", UKIE = "NE", SouthEurope = "SE", 
-                    CentralEurope = "CE", EasternEurope = "EE",
-                    .missing = "unknown")
-
-# Discard "EE" as it contains only 1 subject
-# Discard subjects with missing values of region
-tse = tse[, ! tse$region %in% c("EE", "unknown")]
-
-print(tse)
-
-out = ancombc2(data = tse, assay_name = "counts", 
-              tax_level = "Family", 
-              fix_formula = "age + region + bmi", 
-              rand_formula = NULL,
-              p_adj_method = "holm", 
-              prv_cut = 0.10, 
-              lib_cut = 1000,
-              s0_perc = 0.05,
-              group = "bmi", 
-              struc_zero = TRUE,
-              neg_lb = TRUE, 
-              alpha = 0.05,
-              n_cl = 2,
-              global = TRUE,
-              pairwise = TRUE,
-              dunnet = TRUE,
-              trend = TRUE,
-              iter_control = list(tol = 1e-2, max_iter = 20),
-              em_control = list(tol = 1e-5, max_iter = 100),
-              lme_control = lme4::lmerControl(),
-              mdfdr_control = list(fwer_ctrl_method = "holm", B = 100),
-              trend_control = list(contrast = list(matrix(c(1, 0, -1, 1),
-                                                          nrow = 2, 
-                                                          byrow = TRUE),
-                                                   matrix(c(-1, 0, 1, -1),
-                                                          nrow = 2, 
-                                                          byrow = TRUE)),
-                                   node = list(2, 2),
-                                   solver = "ECOS",
-                                   B = 10))
-              
-         
+res=out$res
+out$q_data
 
 
+install.packages("MicrobiomeStat")
+library(MicrobiomeStat)
 
+# 1. Rarefied unfiltered OTU table
+M04seq1
+m04raretab <- as.data.frame(otu_table(M04seq1))
+m04raremeta <- sample_data(M04seq1)
+psubsetemeta <- sample_data(physeq.subset)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+psubsetlind <- linda(psubset.tab,
+                 psubsetemeta,
+  phyloseq.obj = physeq.subset,
+  formula = "~Irrigation",
+  feature.dat.type = "count",
+  prev.filter = 0,
+  mean.abund.filter = 0,
+  max.abund.filter = 0,
+  is.winsor = TRUE,
+  outlier.pct = 0.03,
+  adaptive = TRUE,
+  zero.handling = "pseudo-count",
+  pseudo.cnt = 0.5,
+  corr.cut = 0.1,
+  p.adj.method = "BH",
+  alpha = 0.05,
+  n.cores = 1,
+  verbose = TRUE
+)
+psubsetlind
 
 
 

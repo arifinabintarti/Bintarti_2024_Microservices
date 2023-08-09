@@ -1,0 +1,322 @@
+---
+title: "Analyse_Diff"
+author: "Marine P"
+date: "2023-08-02"
+output: pdf_document
+---
+
+### Setup
+
+```{r setup}
+library(phyloseq)    #Objets phyloseq
+library(readr)       #Import dataframes
+library(dplyr)       #Manipulation de tableaux
+library(phytools)
+library(biomformat)
+library(lme4)
+library(emmeans)
+library(export)
+library(ggplot2)
+library(esquisse)
+library(tidyr)
+library(UpSetR)
+library(microbiome)
+library(devtools)
+library(VennDiagram)
+library(ggvenn)
+library(tidyverse)
+library(gridExtra)
+library(ape)
+library(plyr)
+
+#You probably don't need all of theses
+```
+
+## Subset Data
+
+```{r subset}
+
+# select which data you want to test
+tmp_select = "RhizoSoil3"
+tmp_ps = ps_most_abund
+
+tmp_ps = subset_samples(ps_most_abund, ps_most_abund@sam_data$Time != "J-30" & ps_most_abund@sam_data$Soil == "3"& ps_most_abund@sam_data$SampleType == "Rhizo")
+
+```
+
+# Model
+
+To estimate the effect of each treatment on each OTU abundance, we developed a generalized linear mixed model for each experiment steps. Considering that an OTU abundance Y, in any k replicates of any i first step treatment or ij second step treatment, follow a Poisson law of parameter $\Lambda$ as $Y\sim\mathcal{P}\left(\mathrm{\Lambda}\right)$, we used the following models for the first and second step respectively: $$\log{\left(\Lambda_{ik}\right)}=o_{ik}+\mu+\alpha_i+Z_{ik},\ \ {Z_{ik}}_{1\le j\le10}\mathrm{\ iid}\sim\mathcal{N}\left(0,\sigma^2\right)\ (1)$$ $$\log{\left(\Lambda_{ijk}\right)}=o_{ijk}+\mu+C_{ij}+Z_{ijk},\ \ {Z_{ijk}}_{1\le j\le10}\mathrm{\   iid}\sim\mathcal{N}\left(0,\sigma^2\right)\ (2)$$ where:
+
+$i=\left\{1,\ldots,19\right\}$ represents the first step treatments
+
+$j=\left\{1,2\right\}$ represents the second step self-mixed or coalescence treatment respectively
+
+$k={1,\ldots,10}$ represents the replicates
+
+$o$ is the offset for each sample calculated as the log of the sample read sum
+
+$\alpha$ is the effect of the treatments
+
+$Z$ is the random sampling effect modeling the data overdispersion
+
+$C$ is the mixed effect modeling the degree of kinship between the second step samples
+
+The analysis was performed using the glmer function of the lme4 package (version 1.1-27). Subsequently, we performed a post-hoc Tukey test with the emmeans function of the emmeans package (version 1.6.1) implementing multiple comparisons.
+
+## GLM Model + multiple comparisons
+
+```{r loop with model}
+# Model parameters
+
+# treatments
+a = tibble("sample"= tmp_ps@sam_data$SampleID,
+           "treatment"= as.character(tmp_ps@sam_data$ScenarioByTime))
+a = as.matrix(a$treatment)
+# offset
+o = log(sample_sums(tmp_ps))
+# random effect
+z <- as.matrix(tmp_ps@sam_data$SampleID)
+
+glmPLN.sum.global = data.frame()
+glmPLN.pairwise.global = data.frame()
+
+ntaxa(tmp_ps)   #978 OTU à l'entrée du modèle
+
+for (i in 1:ntaxa(tmp_ps)) {
+    # select one OTU
+    OTU = taxa_names(tmp_ps)[i]
+    # response variable
+    y = as.vector(tmp_ps@otu_table[OTU,]@.Data)
+    
+    tryCatch({
+      ### model
+      glmPLN <- glmer(y ~ -1 + a + (1 | z), family='poisson', offset = o)
+      
+      glmPLN.sum = summary(glmPLN)$coefficients
+      glmPLN.sum = tibble("OTU"= OTU,
+                          "treatment"=rownames(glmPLN.sum),
+                          as_tibble(glmPLN.sum))
+      glmPLN.sum
+      glmPLN.sum.global = rbind(glmPLN.sum.global,glmPLN.sum)
+      ### multiple comparaison
+         glmPLN.pairwise = emmeans(glmPLN,pairwise~a,adjust="tukey")
+      # select p value
+         glmPLN.pairwise.sum = summary(glmPLN.pairwise)
+         glmPLN.pairwise.sum = glmPLN.pairwise.sum[["contrasts"]]
+      # extract summary
+         tmp_df = glmPLN.pairwise.sum
+      # keep only comparisons of interest
+           tmp = unlist(strsplit(as.character(tmp_df$contrast)," - "))
+           tmp_df[,"a"] <- tmp[seq(1,length(tmp),by=2)]
+           tmp_df[,"b"] <- tmp[seq(2,length(tmp),by=2)]
+           tmp_df = tmp_df[grep("Ni",tmp_df$b), ]        
+           tmp_df = cbind("OTU"=OTU,tmp_df)
+      
+      # extract results in data frame
+         glmPLN.pairwise.global = rbind(glmPLN.pairwise.global,tmp_df)
+      },
+      error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+    rm(OTU,y,glmPLN,glmPLN.sum)
+}
+
+ glmPLN.pairwise.global[,"p.adjust"] <- p.adjust(glmPLN.pairwise.global[,7], method = "fdr")
+ 
+ tmp_select
+  # nb of pval <= 0.05 with p.adjust : Bulk1 (2,01%), Rhizo1 (2,3%), Bulk2 (1,35%), Rhizo2 (2,1%), Bulk3 (1,58%), Rhizo3 (1,4%)
+  n = nrow(glmPLN.pairwise.global)
+  n1 = table(glmPLN.pairwise.global$p.adjust <= 0.05)
+  n1["TRUE"]/n*100
+  
+  # nb of pval >= 0.05 without p.adjust : Bulk1 (3,49%), rhizo1 (4,6%), Bulk2 (2,24%), Rhizo2 (3,2%), Bulk3 (2,57), Rhizo3 (2,1%)
+  n2 = table(glmPLN.pairwise.global$p.value <= 0.05)
+  n2["TRUE"]/n*100
+  
+  # nb of OTU with a pval <= 0.05
+  tmp_otu = length(unique(glmPLN.pairwise.global$OTU))
+  tmp_otu1 = length(unique(glmPLN.pairwise.global$OTU[glmPLN.pairwise.global$p.adjust <= 0.05]))
+  tmp_otu2 = length(unique(glmPLN.pairwise.global$OTU[glmPLN.pairwise.global$p.value <= 0.05]))
+  tmp_otu1/tmp_otu*100  #p.adjust : Bulk2 (3,3% OTUs), Rhizo2 (2,5%), Bulk3 (3,4%), Rhizo3 (1,6%)
+  tmp_otu2/tmp_otu*100  #p.val : Bulk2 (10,6%), Rhizo2 (6%), Bulk3 (12,3%), Rhizo3 (4%)
+  
+  #Keep treatment with pvalue <= 0.05
+tmp_df.signif = glmPLN.pairwise.global[glmPLN.pairwise.global$p.adjust <= 0.05,]
+
+ # Store
+BulkSoil1.signif = tmp_df.signif
+RhizoSoil1.signif = tmp_df.signif
+BulkSoil2.signif = tmp_df.signif
+RhizoSoil2.signif = tmp_df.signif
+BulkSoil3.signif = tmp_df.signif
+RhizoSoil3.signif = tmp_df.signif
+
+BulkSoil1.signif$Soil = "1"
+BulkSoil1.signif$Habitat = "Bulk"
+RhizoSoil1.signif$Soil = "1"
+RhizoSoil1.signif$Habitat = "Rhizo"
+BulkSoil2.signif$Soil = "2"
+BulkSoil2.signif$Habitat = "Bulk"
+RhizoSoil2.signif$Soil = "2"
+RhizoSoil2.signif$Habitat = "Rhizo"
+BulkSoil3.signif$Soil = "3"
+BulkSoil3.signif$Habitat = "Bulk"
+RhizoSoil3.signif$Soil = "3"
+RhizoSoil3.signif$Habitat = "Rhizo"
+
+#Aggregate all tables
+otu.signif = rbind(BulkSoil1.signif,BulkSoil2.signif,BulkSoil3.signif,RhizoSoil1.signif,RhizoSoil2.signif,RhizoSoil3.signif)
+
+#Only keep comparisons within the same time
+tmp = unlist(strsplit(as.character(otu.signif$a),"J"))
+          otu.signif[,"Time"] <- tmp[seq(2,length(tmp),by=2)]
+tmp = unlist(strsplit(as.character(otu.signif$b),"J"))
+          otu.signif[,"t2"] <- tmp[seq(2,length(tmp),by=2)]
+
+for (i in 1:nrow(otu.signif)){
+  if (otu.signif[i,13] != otu.signif[i,14]){
+    otu.signif[i,15] <- FALSE
+  }else{otu.signif[i,15] <- TRUE }
+  }
+otu.signif = filter(otu.signif,V15 == TRUE)
+otu.signif = otu.signif[,1:13]
+
+# Add a column for scenario
+tmp = unlist(strsplit(as.character(otu.signif$a),"_"))
+          otu.signif[,"Scenario"] <- tmp[seq(1,length(tmp),by=2)]
+          
+#Add a column for inocDens
+for (i in 1:nrow(otu.signif)) {
+  if (otu.signif[i,14] == "D" || otu.signif[i,14] == "E") 
+  {otu.signif[i,15] <- "L"}
+  else {otu.signif[i,15] <- "H"}
+}
+colnames(otu.signif)[15] <- "InocDens"
+
+rm(list = names(.GlobalEnv)[grep("tmp",names(.GlobalEnv))])
+```
+
+## Export
+
+```{r Export}
+table2excel(otu.signif,file="OTUs significatives")
+```
+
+# Analyze and plot
+
+## OTU up and down / contrast
+
+```{r incr.decr per treatmt}
+#Count occurences of estimate > 0 by groups
+count = count(otu.signif, estimate > 0,contrast, Soil, Habitat)
+
+# Change signe when estimate is negative
+for (i in 1:nrow(count)){
+  if (count[i,1] == FALSE){
+    count[i,5] <- count[i,5]*(-1.0)
+  }else{ }
+  }
+
+# Merge a new variable HabitatBySoil
+count$HabitatBySoil = paste(count$Habitat,count$Soil)
+
+for (i in 1:nrow(count)){
+  if (count[i,9] != count[i,10]){
+    count[i,11] <- FALSE
+  }else{count[i,11] <- TRUE }
+  }
+count = filter(count,V11 == TRUE)
+           
+table2excel(count,file="count otu up down")
+
+# New color list without Ni
+Colors_Scenario1 = Colors_Scenario [2:6]
+
+# Barplot  : Nb OTU up/down per treatment    
+#Bulk J45    
+plot1 = count %>%
+ filter(Habitat == "Bulk") %>%
+ filter(t1 %in% "45") %>%
+ ggplot() +
+  aes(x = a, y = n, fill = a) +
+  geom_col() +
+  geom_hline (yintercept=0, linetype="dashed", color = "white") +
+  scale_x_discrete (labels = c("A", "B", "C", "D", "E")) +
+  scale_fill_manual(values = Colors_Scenario1) +
+  labs(
+    y = "number of significant OTU change",
+    x="Scenario",
+    title = "OTU up and down",
+    subtitle = "Bulk soil J45",
+    fill = "Scenario" ) +
+  theme_light() +
+  facet_wrap(vars(Soil))
+plot1
+
+#Bulk J90
+plot2 = count %>%
+ filter(Habitat == "Bulk") %>%
+ filter(t1 %in% "90") %>%
+ ggplot() +
+  aes(x = a, y = n, fill = a) +
+  geom_col() +
+  geom_hline (yintercept=0, linetype="dashed", color = "white") +
+  scale_x_discrete (labels = c("A", "B", "C", "D", "E")) +
+  scale_fill_manual(values = Colors_Scenario1) +
+  labs(
+    y = "number of significant OTU change",
+    x="Scenario",
+    title = "OTU up and down",
+    subtitle = "Bulk soil J90",
+    fill = "Scenario" ) +
+  theme_light() +
+  facet_wrap(vars(Soil))
+
+grid.arrange (plot1,plot2, nrow = 2)
+graph2ppt(file="Nb OTU up&down, Bulk")
+
+plot3 = count %>%
+ filter(Habitat == "Rhizo") %>%
+ ggplot() +
+  aes(x = a, y = n, fill = a) +
+  geom_col() +
+  geom_hline (yintercept=0, linetype="dashed", color = "white") +
+  scale_x_discrete (labels = c("A", "B", "C", "D", "E")) +
+  scale_fill_manual(values = Colors_Scenario1) +
+  labs(
+    y = "number of significant OTU change",
+    x="Scenario",
+    title = "OTU up and down",
+    subtitle = "Rhizosphere (J90)",
+    fill = "Scenario" ) +
+  theme_light() +
+  facet_wrap(vars(Soil))
+
+graph2ppt(file="Nb OTU up&down, Rhizo")
+
+
+#For Laurent
+count1 = count(otu.signif, estimate < 0, Soil, Habitat)
+# Change sign when estimate is negative
+for (i in 1:nrow(count1)){
+  if (count1[i,1] == FALSE){
+    count1[i,4] <- count1[i,4]*(-1.0)
+  }else{ }
+}
+count1 = count1[,2:4]
+colnames(count1)[3] <- "NbOTU"
+table2excel(count1,file="Nb OTUs up&down par sol et habitat")
+
+count2 <- otu.signif %>% 
+  group_by(estimate > 0,Soil,Habitat) %>%
+  summarise(count = n_distinct(OTU))
+
+for (i in 1:nrow(count2)){
+  if (count2[i,1] == FALSE){
+    count2[i,4] <- count2[i,4]*(-1.0)
+  }else{ }
+}
+count2 = count2[,2:4]
+table2excel(count2,file="Nb OTUs uniques up&down par sol et habitat")
+```
+
+## 
