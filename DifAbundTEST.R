@@ -117,6 +117,18 @@ D0705.rh.seq1 <- prune_taxa(taxa_sums(D0705.rh.seq)>0, D0705.rh.seq)
 K0705.rh.seq<- subset_samples(aob.physeq_rh1, Date=="07-05-22" & Treatment=="K")
 K0705.rh.seq1 <- prune_taxa(taxa_sums(K0705.rh.seq)>0, K0705.rh.seq)
 
+
+aob.meta.bulk <- aob.meta.df.sub[1:119,]
+aob.meta.bulk
+
+
+
+
+
+
+
+
+
 ####################################################################################################################################
 
 ##### 1. BULK SOIL - NOT RAREFIED #####
@@ -288,9 +300,9 @@ K0705.rh.rawseq1 <- prune_taxa(taxa_sums(K0705.rh.rawseq)>0, K0705.rh.rawseq)
 K0705.rh_table <- as.data.frame(otu_table(K0705.rh.rawseq1))
 K0705.rh_table
 
+###################################################################################################################################
 
-
-
+### Group data by date
 
 
 
