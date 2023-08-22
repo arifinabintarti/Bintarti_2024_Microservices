@@ -109,7 +109,7 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
   
   tryCatch({
     ### model
-    glmT3s <- glmer(y ~ a + (1 | z), family='poisson',offset = o)
+    glmT3s <- glmer(y ~ -1 + a + (1 | z), family='poisson',offset = o)
     glmT3s.sum = summary(glmT3s)$coefficients
     glmT3s.sum = tibble("OTU"= OTU,
                         "treatment"=rownames(glmT3s.sum),
@@ -139,9 +139,14 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
 glmT3s.model.global.rare = glmT3s.sum.global
 glmT3s.pairwise.global.rare = glmT3s.pairwise.global
 glmT3s.pairwise.global.rare$p.adjust <- p.adjust(glmT3s.pairwise.global.rare$p.value, method = "fdr")
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/')
+#write.csv(glmT3s.pairwise.global.rare, file = "glmT3s.pairwise.global_dat04_rare_nointer_220823.csv")
 
 glmT3s.pairwise.global.rare.ed <- subset(glmT3s.pairwise.global.rare,glmT3s.pairwise.global.rare$contrast=="cont.D - rain.D" | glmT3s.pairwise.global.rare$contrast=="cont.M - rain.M" | glmT3s.pairwise.global.rare$contrast=="cont.K - rain.K")
 glmT3s.pairwise.global.rare.ed$p.adjust <- p.adjust(glmT3s.pairwise.global.rare.ed$p.value, method = "fdr")
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/')
+#write.csv(glmT3s.pairwise.global.rare.ed, file = "glmT3s.pairwise.global_dat04_rare_nointer_subset_220823.csv")
+
 
 #nrow(glmT3s.pairwise.global[glmT3s.pairwise.global$p.value < glmT3s.pairwise.global$p.adjust,])
 #nrow(glmT3s.pairwise.global[glmT3s.pairwise.global$p.value > glmT3s.pairwise.global$p.adjust,])
@@ -149,14 +154,14 @@ glmT3s.pairwise.global.rare.ed$p.adjust <- p.adjust(glmT3s.pairwise.global.rare.
 
 
 ## nb of pval <= 0.05 before and after filter
-table(glmT3s.pairwise.global.rare.ed$p.value <= 0.05)
-table(glmT3s.pairwise.global.rare.ed$p.adjust <= 0.05)
+table(glmT3s.pairwise.global.rare$p.value <= 0.05)
+table(glmT3s.pairwise.global.rare$p.adjust <= 0.05)
 
 ## nb of OTU with a pval <= 0.05 before and after filter
-tmp_otu3s.rare.ed = unique(glmT3s.pairwise.global.rare.ed$OTU[glmT3s.pairwise.global.rare.ed$p.adjust <= 0.05])
-glmT3s.pairwise.global.signif.rare.ed = glmT3s.pairwise.global.rare.ed[glmT3s.pairwise.global.rare.ed$p.adjust <=0.05,]
-
-length(tmp_otu3s) 
+tmp_otu3s.rare = unique(glmT3s.pairwise.global.rare$OTU[glmT3s.pairwise.global.rare$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif.rare = glmT3s.pairwise.global.rare[glmT3s.pairwise.global.rare$p.adjust <=0.05,]
+#write.csv(glmT3s.pairwise.global.signif.rare, file = "glmT3s.pairwise.global.signif.rare_dat04_nointer_220823.csv")
+length(tmp_otu3s.rare) 
 
 ######### OJO
 # save(glmT3s.pairwise.global, glmT3s.model.global, file = "glm-T3s.RData")
@@ -265,7 +270,7 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
   
   tryCatch({
     ### model
-    glmT3s <- glmer(y ~ a + (1 | z), family='poisson',offset = o)
+    glmT3s <- glmer(y ~ -1 + a + (1 | z), family='poisson',offset = o)
     glmT3s.sum = summary(glmT3s)$coefficients
     glmT3s.sum = tibble("OTU"= OTU,
                         "treatment"=rownames(glmT3s.sum),
@@ -292,10 +297,10 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
   rm(OTU,y,glmT3s,glmT3s.sum)
 }
 
-glmT3s.model.global = glmT3s.sum.global
-glmT3s.pairwise.global = glmT3s.pairwise.global
-glmT3s.pairwise.global$p.adjust <- p.adjust(glmT3s.pairwise.global$p.value, method = "fdr")
-
+glmT3s.model.global.raw = glmT3s.sum.global
+glmT3s.pairwise.global.raw = glmT3s.pairwise.global
+glmT3s.pairwise.global.raw$p.adjust <- p.adjust(glmT3s.pairwise.global.raw$p.value, method = "fdr")
+#write.csv(glmT3s.pairwise.global.raw, file = "glmT3s.pairwise.global_dat04_raw_nointer_220823.csv")
 
 
 
