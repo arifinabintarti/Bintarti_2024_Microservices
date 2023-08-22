@@ -9,7 +9,10 @@
 aob.physeq_bulk <- subset_samples(aob.rare.1282.seq, Type=="BS")
 aob.physeq_bulk
 aob.physeq_bulk1 <- prune_taxa(taxa_sums(aob.physeq_bulk)>0, aob.physeq_bulk)
-aob.physeq_bulk1
+aob.physeq_bulk1 # 937 taxa, 119 samples
+
+################################################################################
+### Subset the data set per irrigation-treatment-date
 
 # Date: 04-28-2022
 
@@ -116,17 +119,7 @@ D0705.rh.seq1 <- prune_taxa(taxa_sums(D0705.rh.seq)>0, D0705.rh.seq)
 # 3. CONVENTIONAL
 K0705.rh.seq<- subset_samples(aob.physeq_rh1, Date=="07-05-22" & Treatment=="K")
 K0705.rh.seq1 <- prune_taxa(taxa_sums(K0705.rh.seq)>0, K0705.rh.seq)
-
-
-aob.meta.bulk <- aob.meta.df.sub[1:119,]
-aob.meta.bulk
-
-
-
-
-
-
-
+################################################################################
 
 
 ####################################################################################################################################
@@ -302,59 +295,35 @@ K0705.rh_table
 
 ###################################################################################################################################
 
-### Group data by date
+### Group data by type
+### I will try to subset just by the sample type (I will have everything and let the script do all the comparisons possible for me)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# phyloseq object of bulk soil
+aob.physeq_bulk1 # 937 taxa, 119 samples
+# metadata 
+aob.meta.bulk <- aob.meta.df.sub[1:119,]
+aob.meta.bulk
+# basic stats
+sum(otu_table(aob.physeq_bulk1)) # 152558
+mean(colSums(otu_table(aob.physeq_bulk1))) # 1282
+str(otu_table(aob.physeq_bulk1)) # 119 samples
+mean(colSums(otu_table(aob.physeq_bulk1)))/sqrt(119) # 117.5207
 
 ################################################################################
 # Filter low-abundant taxa
-################################################################################
-### keeping OTUs with at least 0.01 % relative abundance across all samples
-bulkT1.seq <- subset_samples(aob.physeq_bulk1, Date=="04-28-22")
-bulkT1.seq1 <- prune_taxa(taxa_sums(bulkT1.seq)>0, bulkT1.seq)
-
-
-physeq.subset <- M04seq1
-physeq.subset #219 Taxa, 8 Samples
+# keeping OTUs with at least 0.01 % relative abundance across all samples
+physeq.subset <- aob.physeq_bulk1
+physeq.subset #937 Taxa, 119 Samples
 data.obs <- as.data.frame(otu_table(physeq.subset))
-
 keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
 data.F=data.obs[keep.taxa.id,,drop=FALSE]
-
 new.otu <- as.matrix(data.F) # convert it into a matrix.
 new.otu <- otu_table(data.F, taxa_are_rows = TRUE) # convert into phyloseq compatible file.
 otu_table(physeq.subset) <- new.otu # incorporate into phyloseq Object
+physeq.subset # 428 taxa, 119 samples remain in the data set after filtering
 
-
-physeq.subset # 197 taxa, 8 samples remain in the data set after filtering
-
-
-########################################################################################
+################################################################################
 #Lets generate a prevalence table (number of samples each taxa occurs in) for each taxa.
-########################################################################################
-
 prevalencedf = apply(X = otu_table(physeq.subset),
                      MARGIN = 1,
                      FUN = function(x){sum(x > 0)})
@@ -363,27 +332,20 @@ prevalencedf = apply(X = otu_table(physeq.subset),
 prevalencedf = data.frame(Prevalence = prevalencedf,
                           TotalAbundance = taxa_sums(physeq.subset))
 prevalencedf[1:10,]
-#write.table(x=prevelancedf, file="Filtered_OTUtable-prevalence.csv")
 dim(prevalencedf)
-
-
-### calculate prevalence /!\ takes from 30min to 3h /!\
-
+# calculate prevalence
 ps = physeq.subset
-
 df_tmp <- psmelt(ps)
 df_tmp$sample <- 0
 df_tmp$sample[df_tmp$Abundance > 0] <- 1 #E: DON'T UNDERSTAND WHY THIS IS DONE
-
-df_otu_prev_ttt <- data.frame(matrix(ncol=nlevels(as.factor(df_tmp$Irrigation)),
+df_otu_prev_ttt <- data.frame(matrix(ncol=nlevels(as.factor(df_tmp$var3)),
                                      nrow=nlevels(as.factor(df_tmp$OTU)), 
                                      dimnames=list(levels(as.factor(df_tmp$OTU)),
-                                                   levels(as.factor(df_tmp$Irrigation)))))
+                                                   levels(as.factor(df_tmp$var3)))))
 #attention il ya Sample et sample
-
 for (i in unique(df_tmp$OTU)) {
-  for (j in unique(df_tmp$Irrigation)) {
-    df_otu_prev_ttt[i,j] <- sum(df_tmp$sample[df_tmp$OTU == i & df_tmp$Irrigation == j],na.rm = T) / nrow(df_tmp[df_tmp$OTU == i & df_tmp$Irrigation == j,]) *100
+  for (j in unique(df_tmp$var3)) {
+    df_otu_prev_ttt[i,j] <- sum(df_tmp$sample[df_tmp$OTU == i & df_tmp$var3 == j],na.rm = T) / nrow(df_tmp[df_tmp$OTU == i & df_tmp$var3 == j,]) *100
     print(paste(i,j,df_otu_prev_ttt[i,j]),sep="\t")
     #print(df_otu_prev_ttt[i,j])
   }
@@ -392,27 +354,29 @@ for (i in unique(df_tmp$OTU)) {
 
 df_otu_prev_ttt$max_prev <- apply(df_otu_prev_ttt,MARGIN=1, FUN=max)
 
+#setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out')
+#write.csv(df_otu_prev_ttt, file = "df_otu_prev_ttt_bulk.csv")
 
-# write.csv(df_otu_prev_ttt, file = "df_otu_prev_ttt.csv")
-
-
-#____________________________
-### filtre otu par prevalence
-
+# filter otu par prevalence
+physeq.subset 
 ps =  physeq.subset 
 df_prev = df_otu_prev_ttt
-
 tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 50,])
+physeq.subset.50 <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
 
-physeq.subset <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
-
-# physeqT1F.Bacteria <- physeq.subset #416 #72 samples
-#write.csv(as.data.frame(otu_table(physeqT1F)), file = "otu_table_filteredT1.csv")
-
+tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 60,])
+physeq.subset.60 <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
 rm(ps,df_prev,tmp_otu_F)
+physeq.subset.60 # 137 taxa
+
+tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 75,])
+physeq.subset.75 <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
+rm(ps,df_prev,tmp_otu_F)
+physeq.subset.75 # 135 taxa
 
 
-physeq.subset # 68 taxa, 8 samples
+
+physeq.subset.50 # 226 taxa, 119 samples
 
 
 ####################################################
@@ -422,20 +386,20 @@ install.packages("glmmTMB")
 library(glmmTMB)
 library(emmeans)
 
-tmp_T3s <- M04seq1
+tmp_T3s <- physeq.subset.75
 
 str(tmp_T3s)
 
 #  treatment
 a = tibble("sample"= as.factor(tmp_T3s@sam_data$SampleID),
-           "treatment"= as.character(tmp_T3s@sam_data$Irrigation))
+           "treatment"= as.character(tmp_T3s@sam_data$var3))
 # force control as intercept
-a[a == "Control"] <- "1a"
-a = as.factor(a$treatment)
+#a[a == "Control"] <- "1a"
+a = as.matrix(a$treatment)
 # offset
 o = log(sample_sums(tmp_T3s))
 # random effect
-z <- as.factor(tmp_T3s@sam_data$SampleID)
+z <- as.matrix(tmp_T3s@sam_data$SampleID)
 #tmp_T3s@sam_data$block <- paste(c("b"),tmp_T3s@sam_data$block, sep="")
 # x <- as.factor(tmp_T3s@sam_data$block)
 
@@ -447,51 +411,37 @@ glmT3s.pairwise.global = data.frame()
 for (i in 1:length(taxa_names(tmp_T3s))) {
   
   OTU = taxa_names(tmp_T3s)[i] 
+  
   # response variable
   y = as.vector(tmp_T3s@otu_table[OTU,]@.Data)
   
   tryCatch({
     ### model
-    glmT3s <- glmer(y ~ a + (1 | z), family='poisson',offset = o)
+    glmT3s <- glmer(y ~ -1 + a + (1 | z), family='poisson',offset = o)
     glmT3s.sum = summary(glmT3s)$coefficients
-    #glmT3s.sum = summary(glmT3s)$coefficients$cond
     glmT3s.sum = tibble("OTU"= OTU,
                         "treatment"=rownames(glmT3s.sum),
                         as_tibble(glmT3s.sum))
     glmT3s.sum
-    
     glmT3s.sum.global = rbind(glmT3s.sum.global,glmT3s.sum)
-    
     ### multiple comparison
-    
-    glmT3s.pairwise = emmeans(glmT3s,pairwise~a)
-    
+        glmT3s.pairwise = emmeans(glmT3s,pairwise~a)
     # select p value
-    glmT3s.pairwise.sum = summary(glmT3s.pairwise)
-    glmT3s.pairwise.sum = glmT3s.pairwise.sum[["contrasts"]]
-    
+        glmT3s.pairwise.sum = summary(glmT3s.pairwise)
+        glmT3s.pairwise.sum = glmT3s.pairwise.sum[["contrasts"]]
     # extract summary
-    tmp_df = glmT3s.pairwise.sum
-    
+        tmp_df = glmT3s.pairwise.sum
     # keep only comparisons of interest
-    tmp = unlist(strsplit(as.character(tmp_df$contrast)," - "))
-    tmp_df[,"a"] <- tmp[seq(1,length(tmp),by=2)]
-    tmp_df[,"b"] <- tmp[seq(2,length(tmp),by=2)]
-    tmp_df = tmp_df[tmp_df$a == "1a" | tmp_df$b == "1a" ,]
-    
-    # adjust pval n=nb of contrasts
-    #tmp_df[,"p.adjust"] <- p.adjust(tmp_df$p.value,"fdr",n=21)
-    #tmp_df[,"p.adjust"] <- p.adjust(tmp_df$p.value,"bonferroni",n=21)
-    
-    tmp_df = cbind("OTU"=OTU,tmp_df)
-    
+           tmp = unlist(strsplit(as.character(tmp_df$contrast)," - "))
+           tmp_df[,"a"] <- tmp[seq(1,length(tmp),by=2)]
+           tmp_df[,"b"] <- tmp[seq(2,length(tmp),by=2)]
+           #tmp_df = tmp_df[grep("Ni",tmp_df$b), ]
+           tmp_df = cbind("OTU"=OTU,tmp_df)
+    # extract results in data frame
     glmT3s.pairwise.global = rbind(glmT3s.pairwise.global,tmp_df)
-    
   },
   error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
-  
   rm(OTU,y,glmT3s,glmT3s.sum)
-  
 }
 
 glmT3s.model.global = glmT3s.sum.global

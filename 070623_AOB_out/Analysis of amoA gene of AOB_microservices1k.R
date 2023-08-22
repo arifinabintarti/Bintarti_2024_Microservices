@@ -74,7 +74,7 @@ setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB.ASV-analysis')
 wd <- print(getwd())
 # load the asv table
 aob.asv <- read.table('annotated.AOB.ASVs.counts.tsv', sep='\t', header=T, row.names = 1, check.names = FALSE)
-dim(aob.asv) # 1338  192
+dim(aob.asv)# 1338  192
 sort(colSums(aob.asv, na.rm = FALSE, dims = 1), decreasing = F) # there are no asv that does not exist in at least one sample.
 # load the taxonomy table
 setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/')
