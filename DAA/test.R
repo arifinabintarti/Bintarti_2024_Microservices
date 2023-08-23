@@ -12,7 +12,7 @@
 dat04seq <- subset_samples(aob.physeq_bulk1, Date=="04-28-22")
 dat04seq1 <- prune_taxa(taxa_sums(dat04seq)>0, dat04seq)
 sort(rowSums(otu_table(dat04seq1), na.rm = FALSE, dims = 1), decreasing = F)
-dat04seq1 #393 taxa, 23 samples
+otu_table(dat04seq1)#393 taxa, 23 samples
 
 ################################################################################
 # Filter low-abundant taxa
@@ -314,8 +314,8 @@ nrow(glmT3s.pairwise.global[glmT3s.pairwise.global$p.value == glmT3s.pairwise.gl
 
 
 ## nb of pval <= 0.05 before and after filter
-table(glmT3s.pairwise.global$p.value <= 0.05)
-table(glmT3s.pairwise.global$p.adjust <= 0.05)
+table(glmT3s.pairwise.global.raw$p.value <= 0.05)
+table(glmT3s.pairwise.global.raw$p.adjust <= 0.05)
 
 ## nb of OTU with a pval <= 0.05 before and after filter
 tmp_otu3s = unique(glmT3s.pairwise.global$OTU[glmT3s.pairwise.global$p.adjust <= 0.05])

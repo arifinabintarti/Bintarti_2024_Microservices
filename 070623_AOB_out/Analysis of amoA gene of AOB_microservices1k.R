@@ -74,6 +74,10 @@ setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB.ASV-analysis')
 wd <- print(getwd())
 # load the asv table
 aob.asv <- read.table('annotated.AOB.ASVs.counts.tsv', sep='\t', header=T, row.names = 1, check.names = FALSE)
+setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out')
+write.csv(aob.asv, file = "aob.asv.csv")
+
+aob.asv
 dim(aob.asv)# 1338  192
 sort(colSums(aob.asv, na.rm = FALSE, dims = 1), decreasing = F) # there are no asv that does not exist in at least one sample.
 # load the taxonomy table
@@ -113,7 +117,8 @@ aob.tax <- column_to_rownames(aob.tax, var = "ASVid")
 aob.tax.physeq = tax_table(as.matrix(aob.tax)) # taxonomy table
 
 # phyloseq object of the metadata
-meta_micro$Date <- factor(meta_micro$Date, levels = c("4/28/22", "6/1/22", "7/5/22", "7/20/22", "9/13/22"),
+str(meta_micro)
+meta_micro$Date <- factor(meta_micro$Date, levels = c("4/28/22", "06/01/2022", "07/05/2022", "7/20/22", "9/13/22"),
                           labels = c("04-28-22", "06-01-22", "07-05-22", "07-20-22", "09-13-22"))
 rownames(meta_micro) <- sample_names(aob.asv.physeq)
 aob.meta.physeq <- sample_data(meta_micro)# meta data
@@ -127,6 +132,9 @@ AOB_rooted_tree <- ape::read.tree("tree.nwk")
 # make phyloseq object
 aob.physeq <- merge_phyloseq(aob.asv.physeq,aob.tax.physeq,aob.meta.physeq,AOB_rooted_tree)
 aob.physeq
+aob.asv.ord <- as.data.frame(otu_table(aob.physeq))
+aob.asv.ord
+write.csv(aob.asv.ord, file = "aob.asv.ord.csv")
 sample_data(aob.physeq)$SampleID <- paste0("S", sample_data(aob.physeq)$SampleID)
 sample_data(aob.physeq)
 
@@ -659,8 +667,6 @@ ax2.scores.wUF <- aob_pcoa.wUF$points[,2]
 ax1.scores.uwUF <- aob_pcoa.uwUF$points[,1]
 ax2.scores.uwUF <- aob_pcoa.uwUF$points[,2]
 
-#env_fit <- envfit(otu_pcoa, env, na.rm=TRUE)
-
 # 4. calculate percent variance explained, then add to plot
 
 #Bray-curtis:
@@ -685,8 +691,6 @@ aob.map.pcoa.uwUF <- cbind(aob.meta.df.sub,ax1.scores.uwUF,ax2.scores.uwUF)
 #require("ggrepel")
 library(ggrepel)
 library(viridis)
-
-# a. Bray-Curtis:
 
 set.seed(13)
 aob.pcoa_plot <- ggplot(data = aob.map.pcoa, aes(x=ax1.scores, y=ax2.scores))+
@@ -842,9 +846,15 @@ ax2.scores.wUF.bulk <- aob.bulk_pcoa_wUF$points[,2]
 ax1.scores.uwUF.bulk <- aob.bulk_pcoa.uwUF$points[,1]
 ax2.scores.uwUF.bulk <- aob.bulk_pcoa.uwUF$points[,2]
 
-#env_fit <- envfit(otu_pcoa, env, na.rm=TRUE)
+# 4. Envfit
+env.aob.bulk <- aob.meta.df.sub[1:119,13:28]
+str(env.aob.bulk)
+env.aob.bulk <- env.aob.bulk %>% mutate_at(c('GWC_g_g', 'TS', 'NH4', 'NO3', 'Nmin_tot', 'C_tot', 'N_tot', 'C_gkg', 'N_gkg', 'pH', 'K_test','Mg_test', 'P_test', 'K_mgkg', 'Mg_mgkg', 'P_mgkg'), as.numeric)
+# bray-curtis
+env_fit.aob.bc.bulk <- envfit(aob.bulk_pcoa_bc, env.aob.bulk, na.rm=TRUE)
+env_fit.aob.bc.bulk
 
-# 4. calculate percent variance explained, then add to plot
+# 5. calculate percent variance explained, then add to plot
 aob.meta.bulk <- aob.meta.df.sub[1:119,]
 # Bray-curtis - Bulk Soil:
 ax1.bulk <- aob.bulk_pcoa_bc$eig[1]/sum(aob.bulk_pcoa_bc$eig)
@@ -933,6 +943,7 @@ ax1.uwUF.rh <- aob.rh_pcoa.uwUF$eig[1]/sum(aob.rh_pcoa.uwUF$eig)
 ax2.uwUF.rh <- aob.rh_pcoa.uwUF$eig[2]/sum(aob.rh_pcoa.uwUF$eig)
 aob.map.pcoa.uwUF.rh <- cbind(aob.meta.rh,ax1.scores.uwUF.rh,ax2.scores.uwUF.rh)
 
+###############################################################################
 # 5. PCoA Plot 
 
 #require("ggrepel")
@@ -941,12 +952,31 @@ install.packages("viridis")
 library(viridis)
 
 # A. Bray-Curtis - Bulk Soil :
+# a. Bray-Curtis:
+A <- as.list(env_fit.aob.bc.bulk$vectors) #shortcutting ef$vectors
+pvals<-as.data.frame(A$pvals) #creating the dataframe
+#environment scores (vectors scaled by R2 values)
+env.scores1 <- as.data.frame(scores(env_fit.aob.bc.bulk, display="vectors"))
+env.scores2 <- cbind(env.scores1, pvals)
+env.scores3 <- cbind(env.scores2,Variable=rownames(env.scores2))
+env.scores4 <- subset(env.scores3,pvals<0.05)
+mult <-.65
+
 aob.pcoa_bulk.plot <- ggplot(data = aob.map.pcoa.bulk, aes(x=ax1.scores.bulk, y=ax2.scores.bulk, colour=Treatment))+
   theme_bw()+
   geom_point(data = aob.map.pcoa.bulk, aes(x = ax1.scores.bulk, y = ax2.scores.bulk, shape=Irrigation),size=5, alpha= 0.8)+
-  scale_color_viridis(discrete = T) +
+             scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.bulk,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.bulk,3)*100,"% var. explained", sep=""))+
+  geom_segment(data=env.scores4,
+               aes(x=0, xend=mult*Dim1, y=0, yend=mult*Dim2), 
+               arrow = arrow(length = unit(0.3, "cm")),
+               colour = "grey")+
+  geom_text_repel(data = env.scores4,
+                  aes(x = mult*Dim1, y = mult*Dim2, label = Variable),
+                  size = 3,fontface="bold",
+                  position=position_jitter(width=0.03,height=0.001))+
+  coord_fixed() +
   labs(colour = "Treatment",  title = "A. Bulk Soil")+
   theme(legend.position="none",
         legend.title = element_text(size=15, face='bold'),
