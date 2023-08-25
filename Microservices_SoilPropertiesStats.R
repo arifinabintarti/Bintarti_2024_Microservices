@@ -17,6 +17,7 @@ soilprop$Date <- factor(soilprop$Date, levels = c("28/04/2022", "01/06/2022", "0
 soilprop$Treatment <- factor(soilprop$Treatment, levels = c("D", "K", "M"),
                                     labels = c("Biodynamic (D)", "Conventional (K)", "Mineral fertilized (M)"))
 ###########################################################################
+
 # 1. Response variable: GWC (Gravimetric water content in water content (g) / dry soil (g))
 str(soilprop)
 gwc.sum <- soilprop %>%
@@ -48,31 +49,80 @@ gwc.3aov <- anova_test(
   data = soilprop, type=3, dv = GWC, wid = PlotID,
   within = Date, between = c(Type, Treatment))
 get_anova_table(gwc.3aov)
-# Test Method 3 
+# Other models 
 gwc.lme <- lme(GWC ~ Type*Treatment*Date, random=~1 | PlotID, method="ML", data=soilprop)
-anova(gwc.lme, type = "III") # similar results as the three way mixed ANOVA above!!!
-gwc.aov <- aov(soilprop$GWC ~ Type*Treatment*Date + Error(PlotID/Irrigation*Treatment) , data=aob.meta.bulk)
-#summary(model1)
+anova(gwc.lme, type = "sequential") # similar results as the three way mixed ANOVA above!!!
+gwc.aov <- aov(soilprop$GWC ~ Type*Treatment*Date + Error(PlotID/Type*Treatment) , data=soilprop)
+summary(gwc.aov) # # similar results as the three way mixed ANOVA above!!!
 
-############################################################################################################
 # Model Fit
 set.seed(13)
-rich.bulk.mod <- lmerTest::lmer(aob.meta.bulk$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.bulk)
-anova(rich.bulk.mod, type = 2)
+gwc.lmer <- lmerTest::lmer(soilprop$GWC ~ Type*Treatment*Date +(1|PlotID), data=soilprop)
+anova(gwc.lmer, type = 3)
+
 # Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
 # 1. between fertilization treatment:
-emm.rich.bulk <- aob.meta.bulk %>%
-  group_by(Date, Irrigation) %>%
-  emmeans_test(Richness ~ Treatment, 
+gwc.pwc.trt <- soilprop %>%
+  group_by(Date, Type) %>%
+  emmeans_test(GWC ~ Treatment, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = rich.bulk.mod)
+               conf.level = 0.95, model = gwc.lmer)
 # 2. between irrigation:
-emm.rich.irri.bulk <- aob.meta.bulk %>%
+gwc.pwc.irr <- soilprop %>%
   group_by(Date, Treatment) %>%
-  emmeans_test(Richness ~ Irrigation, 
+  emmeans_test(GWC ~ Type, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = rich.bulk.mod)
+               conf.level = 0.95, model = gwc.lmer)
+
+# GWC: plotting the significance between irrigation within treatment and date
+
+aob.sha.pwc.plot <- ggplot(aob.meta.df.sub, aes(x=Irrigation, y=Shannon)) +
+  geom_boxplot(aes(fill = Treatment))+
+  theme_bw() +
+  labs(y="AOB Shannon")+
+  labs(pattern="Irrigation")+
+  scale_fill_viridis(discrete=T)+
+  facet_grid(Type~ Date,scales="free_x")+
+  theme(legend.title = element_text(size=15, face='bold'),
+        legend.text = element_text(size=15),
+        strip.text = element_text(size=18),
+        axis.text = element_text(size = 18),
+        axis.title.y = element_text(size=18,face="bold"),
+        axis.title.x =element_blank(),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+aob.sha.pwc.plot
+
+# adding xy position for the pairwise comparisons among treatments (emmeans results)
+xy.sha.bulk <- emm.sha.bulk %>% 
+  add_xy_position(x = "Irrigation", dodge = 0.8) # bulk soil
+xy.sha.rh <- emm.sha.rh %>% 
+  add_xy_position(x = "Irrigation", dodge = 0.8)# rhizosphere
+# #combine two data frames and adding 'Type'
+df.xy.sha.bulk <- as.data.frame(xy.sha.bulk)
+df.xy.sha.rh <- as.data.frame(xy.sha.rh)
+df.xy.sha.all <- rbind(df.xy.sha.bulk, df.xy.sha.rh) 
+df.xy.sha.all$Type <-  c(rep("Bulk Soil", 30), rep("Rhizosphere", 18)) #adding 'Type'
+# plotting the pairwise comparisons among treatments (emmeans results)
+aob.sha.pwc.plot2 <- aob.sha.pwc.plot + 
+  stat_pvalue_manual(df.xy.sha.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
+  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
+aob.sha.pwc.plot2
+# save figure
+setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
+ggsave("AOB_sha_boxplot.tiff",
+       aob.sha.pwc.plot2, device = "tiff",
+       width = 14, height =5.8, 
+       units= "in", dpi = 600)
+
+
+
+
+
+
+
 #############################################################################################################
 
 

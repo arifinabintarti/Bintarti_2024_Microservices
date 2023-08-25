@@ -134,7 +134,7 @@ aob.physeq <- merge_phyloseq(aob.asv.physeq,aob.tax.physeq,aob.meta.physeq,AOB_r
 aob.physeq
 aob.asv.ord <- as.data.frame(otu_table(aob.physeq))
 aob.asv.ord
-write.csv(aob.asv.ord, file = "aob.asv.ord.csv")
+#write.csv(aob.asv.ord, file = "aob.asv.ord.csv")
 sample_data(aob.physeq)$SampleID <- paste0("S", sample_data(aob.physeq)$SampleID)
 sample_data(aob.physeq)
 
