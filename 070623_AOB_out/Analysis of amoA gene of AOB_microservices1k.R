@@ -847,12 +847,19 @@ ax1.scores.uwUF.bulk <- aob.bulk_pcoa.uwUF$points[,1]
 ax2.scores.uwUF.bulk <- aob.bulk_pcoa.uwUF$points[,2]
 
 # 4. Envfit
-env.aob.bulk <- aob.meta.df.sub[1:119,13:28]
+env.aob.bulk <- aob.meta.df.sub[1:119,c(13:19, 22,26:28)]
 str(env.aob.bulk)
-env.aob.bulk <- env.aob.bulk %>% mutate_at(c('GWC_g_g', 'TS', 'NH4', 'NO3', 'Nmin_tot', 'C_tot', 'N_tot', 'C_gkg', 'N_gkg', 'pH', 'K_test','Mg_test', 'P_test', 'K_mgkg', 'Mg_mgkg', 'P_mgkg'), as.numeric)
+env.aob.bulk <- env.aob.bulk %>% mutate_at(c('GWC_g_g', 'TS', 'NH4', 'NO3', 'Nmin_tot', 'C_tot', 'N_tot', 'pH', 'K_mgkg', 'Mg_mgkg', 'P_mgkg'), as.numeric)
 # bray-curtis
 env_fit.aob.bc.bulk <- envfit(aob.bulk_pcoa_bc, env.aob.bulk, na.rm=TRUE)
 env_fit.aob.bc.bulk
+# Jaccard 
+env_fit.aob.jac <- envfit(aob.bulk_pcoa_jac, env.aob.bulk, na.rm=TRUE)
+# Weighted UniFrac
+env_fit.aob.wuF <- envfit(aob.bulk_pcoa_wUF, env.aob.bulk, na.rm=TRUE)
+# UnWeighted UniFrac
+env_fit.aob.uwuF <- envfit(aob.bulk_pcoa.uwUF, env.aob.bulk, na.rm=TRUE)
+
 
 # 5. calculate percent variance explained, then add to plot
 aob.meta.bulk <- aob.meta.df.sub[1:119,]
@@ -922,9 +929,21 @@ ax2.scores.wUF.rh <- aob.rh_pcoa_wUF$points[,2]
 ax1.scores.uwUF.rh <- aob.rh_pcoa.uwUF$points[,1]
 ax2.scores.uwUF.rh <- aob.rh_pcoa.uwUF$points[,2]
 
-#env_fit <- envfit(otu_pcoa, env, na.rm=TRUE)
+## 4. Envfit
+env.aob.rh <- aob.meta.df.sub[120:191,c(31:40)]
+str(env.aob.rh)
+env.aob.rh <- env.aob.rh %>% mutate_at(colnames(env.aob.rh), as.numeric)
+# bray-curtis
+env_fit.aob.bc.rh <- envfit(aob.rh_pcoa_bc, env.aob.rh, na.rm=TRUE)
+env_fit.aob.bc.rh
+# Jaccard 
+env_fit.aob.jac.rh <- envfit(aob.rh_pcoa_jac, env.aob.rh, na.rm=TRUE)
+# Weighted UniFrac
+env_fit.aob.wuF.rh <- envfit(aob.rh_pcoa_wUF, env.aob.rh, na.rm=TRUE)
+# UnWeighted UniFrac
+env_fit.aob.uwuF.rh <- envfit(aob.rh_pcoa.uwUF, env.aob.rh, na.rm=TRUE)
 
-# 4. calculate percent variance explained, then add to plot
+# 5. calculate percent variance explained, then add to plot
 aob.meta.rh <- aob.meta.df.sub[120:191,]
 # Bray-curtis - Rhizosphere :
 ax1.rh <- aob.rh_pcoa_bc$eig[1]/sum(aob.rh_pcoa_bc$eig)
@@ -944,40 +963,42 @@ ax2.uwUF.rh <- aob.rh_pcoa.uwUF$eig[2]/sum(aob.rh_pcoa.uwUF$eig)
 aob.map.pcoa.uwUF.rh <- cbind(aob.meta.rh,ax1.scores.uwUF.rh,ax2.scores.uwUF.rh)
 
 ###############################################################################
-# 5. PCoA Plot 
+# 6. PCoA Plot 
 
 #require("ggrepel")
 library(ggrepel)
-install.packages("viridis")
+#install.packages("viridis")
 library(viridis)
 
 # A. Bray-Curtis - Bulk Soil :
 # a. Bray-Curtis:
-A <- as.list(env_fit.aob.bc.bulk$vectors) #shortcutting ef$vectors
-pvals<-as.data.frame(A$pvals) #creating the dataframe
+set.seed(33)
+A.bc <- as.list(env_fit.aob.bc.bulk$vectors) #shortcutting ef$vectors
+pvals.bc<-as.data.frame(A.bc$pvals) #creating the dataframe
 #environment scores (vectors scaled by R2 values)
-env.scores1 <- as.data.frame(scores(env_fit.aob.bc.bulk, display="vectors"))
-env.scores2 <- cbind(env.scores1, pvals)
-env.scores3 <- cbind(env.scores2,Variable=rownames(env.scores2))
-env.scores4 <- subset(env.scores3,pvals<0.05)
-mult <-.65
+env.scores1.bc <- as.data.frame(scores(env_fit.aob.bc.bulk, display="vectors"))
+env.scores2.bc <- cbind(env.scores1.bc, pvals)
+env.scores3.bc <- cbind(env.scores2.bc,Variable=rownames(env.scores2.bc))
+env.scores4.bc <- subset(env.scores3.bc,pvals<0.05)
+set.seed(33)
+mult <-.53
 
 aob.pcoa_bulk.plot <- ggplot(data = aob.map.pcoa.bulk, aes(x=ax1.scores.bulk, y=ax2.scores.bulk, colour=Treatment))+
   theme_bw()+
-  geom_point(data = aob.map.pcoa.bulk, aes(x = ax1.scores.bulk, y = ax2.scores.bulk, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = aob.map.pcoa.bulk, aes(x = ax1.scores.bulk, y = ax2.scores.bulk, shape=Irrigation),size=5, alpha= 0.6)+
              scale_color_viridis(discrete = T) +
+  labs(colour = "Treatment",  title = "A. Bulk Soil")+
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.bulk,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.bulk,3)*100,"% var. explained", sep=""))+
-  geom_segment(data=env.scores4,
+  geom_segment(data=env.scores4.bc,
                aes(x=0, xend=mult*Dim1, y=0, yend=mult*Dim2), 
                arrow = arrow(length = unit(0.3, "cm")),
-               colour = "grey")+
-  geom_text_repel(data = env.scores4,
+               colour = "grey",inherit.aes = FALSE)+
+  geom_text_repel(data = env.scores4.bc,
                   aes(x = mult*Dim1, y = mult*Dim2, label = Variable),
-                  size = 3,fontface="bold",
-                  position=position_jitter(width=0.03,height=0.001))+
-  coord_fixed() +
-  labs(colour = "Treatment",  title = "A. Bulk Soil")+
+                  size = 5,fontface="bold",
+                  position=position_jitter(width=0.03,height=0.001), inherit.aes = FALSE)+
+  #coord_fixed() +
   theme(legend.position="none",
         legend.title = element_text(size=15, face='bold'),
         plot.background = element_blank(),
@@ -994,7 +1015,7 @@ aob.pcoa_bulk.plot
 # B. Bray-Curtis - Rhizosphere :
 aob.pcoa_rh.plot <- ggplot(data = aob.map.pcoa.rh, aes(x=ax1.scores.rh, y=ax2.scores.rh, colour=Treatment))+
   theme_bw()+
-  geom_point(data = aob.map.pcoa.rh, aes(x = ax1.scores.rh, y = ax2.scores.rh, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = aob.map.pcoa.rh, aes(x = ax1.scores.rh, y = ax2.scores.rh, shape=Irrigation),size=5, alpha= 0.6)+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.rh,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.rh,3)*100,"% var. explained", sep=""))+
@@ -1015,8 +1036,9 @@ aob.pcoa_rh.plot
 install.packages("patchwork")
 library(patchwork)
 
-aob.bray.plot <- aob.pcoa_bulk.plot |  aob.pcoa_rh.plot
-aob.bray.plot
+aob.bray.plot.envfit <- aob.pcoa_bulk.plot|aob.pcoa_rh.plot
+  
+aob.bray.plot.envfit
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
 ggsave("aob.bray.tiff",
        aob.bray.plot, device = "tiff",
@@ -1027,7 +1049,10 @@ ggsave("aob.bray.tiff",
        aob.bray.plot, device = "tiff",
        width = 12, height = 5, 
        units= "in", dpi = 600)
-
+ggsave("aob.bray.envfit.tiff",
+       aob.bray.plot.envfit, device = "tiff",
+       width = 16, height = 6, 
+       units= "in", dpi = 600)
 
 # A. Jaccard - Bulk Soil :
 aob.pcoa_bulk.jac <- ggplot(data = aob.map.pcoa.j.bulk, aes(x=ax1.scores.j.bulk, y=ax2.scores.j.bulk, colour=Treatment))+
@@ -1086,13 +1111,31 @@ ggsave("aob.jac.tiff",
        units= "in", dpi = 600)
 
 # A. Weighted UniFrac - Bulk Soil :
+set.seed(33)
+A.wu <- as.list(env_fit.aob.wuF$vectors) #shortcutting ef$vectors
+pvals.wu<-as.data.frame(A.wu$pvals) #creating the dataframe
+#environment scores (vectors scaled by R2 values)
+env.scores1.wu <- as.data.frame(scores(env_fit.aob.wuF, display="vectors"))
+env.scores2.wu <- cbind(env.scores1.wu, pvals)
+env.scores3.wu <- cbind(env.scores2.wu,Variable=rownames(env.scores2.wu))
+env.scores4.wu <- subset(env.scores3.wu,pvals<0.05)
+set.seed(33)
+mult <-.25
 aob.pcoa_bulk.wUF <- ggplot(data = aob.map.pcoa.wUF.bulk, aes(x=ax1.scores.wUF.bulk, y=ax2.scores.wUF.bulk, colour=Treatment))+
   theme_bw()+
-  geom_point(data = aob.map.pcoa.wUF.bulk, aes(x = ax1.scores.wUF.bulk, y = ax2.scores.wUF.bulk, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = aob.map.pcoa.wUF.bulk, aes(x = ax1.scores.wUF.bulk, y = ax2.scores.wUF.bulk, shape=Irrigation),size=5, alpha= 0.6)+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.wUF.bulk,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.wUF.bulk,3)*100,"% var. explained", sep=""))+
   labs(colour = "Treatment",  title = "A. Bulk Soil")+
+  geom_segment(data=env.scores4.wu,
+               aes(x=0, xend=mult*Dim1, y=0, yend=mult*Dim2), 
+               arrow = arrow(length = unit(0.3, "cm")),
+               colour = "grey",inherit.aes = FALSE)+
+  geom_text_repel(data = env.scores4.wu,
+                  aes(x = mult*Dim1, y = mult*Dim2, label = Variable),
+                  size = 5,fontface="bold",
+                  position=position_jitter(width=0.03,height=0.001), inherit.aes = FALSE)+
   theme(legend.position="none",
         legend.title = element_text(size=15, face='bold'),
         plot.background = element_blank(),
@@ -1109,7 +1152,7 @@ aob.pcoa_bulk.wUF
 # B. Weighted UniFrac - Rhizosphere :
 aob.pcoa_rh.wUF <- ggplot(data = aob.map.pcoa.wUF.rh, aes(x=ax1.scores.wUF.rh, y=ax2.scores.wUF.rh, colour=Treatment))+
   theme_bw()+
-  geom_point(data = aob.map.pcoa.wUF.rh, aes(x = ax1.scores.wUF.rh, y = ax2.scores.wUF.rh, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = aob.map.pcoa.wUF.rh, aes(x = ax1.scores.wUF.rh, y = ax2.scores.wUF.rh, shape=Irrigation),size=5, alpha= 0.6)+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.wUF.rh,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.wUF.rh,3)*100,"% var. explained", sep=""))+
@@ -1127,7 +1170,7 @@ aob.pcoa_rh.wUF <- ggplot(data = aob.map.pcoa.wUF.rh, aes(x=ax1.scores.wUF.rh, y
   stat_ellipse()
 aob.pcoa_rh.wUF
 
-aob.wUF.plot <- aob.pcoa_bulk.wUF |  aob.pcoa_rh.wUF
+aob.wUF.plot.envfit <- aob.pcoa_bulk.wUF |  aob.pcoa_rh.wUF
 aob.wUF.plot
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
 ggsave("aob.wUF.tiff",
@@ -1138,6 +1181,10 @@ setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
 ggsave("aob.wUF.tiff",
        aob.wUF.plot, device = "tiff",
        width = 12, height = 5, 
+       units= "in", dpi = 600)
+ggsave("aob.wUF.envfit.tiff",
+       aob.wUF.plot.envfit, device = "tiff",
+       width = 16, height = 6, 
        units= "in", dpi = 600)
 
 # A. Unweighted UniFrac - Bulk Soil :
@@ -1681,6 +1728,14 @@ sample_data(aob.sp.ra)
 
 aob.sp.df <- psmelt(aob.sp.ra) %>%
   group_by(var2, Type, Date, Treatment, Irrigation, Genus, Species) %>%
+  summarize(Mean = mean(Abundance)) %>%
+  arrange(-Mean)
+
+
+aob.gen <- tax_glom(aob.rare.1282.seq, taxrank = "Genus", NArm = F)
+aob.gen.ra <- transform_sample_counts(aob.gen, function(x) x/sum(x))
+aob.abund.trt <- psmelt(aob.gen.ra) %>%
+  group_by(Type, Treatment, Genus) %>%
   summarize(Mean = mean(Abundance)) %>%
   arrange(-Mean)
 

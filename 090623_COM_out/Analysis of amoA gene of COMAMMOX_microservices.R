@@ -116,7 +116,7 @@ com.tax <- column_to_rownames(com.tax, var = "ASVid")
 com.tax.physeq = tax_table(as.matrix(com.tax)) # taxonomy table
 
 # phyloseq object of the metadata
-meta_micro_sub$Date <- factor(meta_micro_sub$Date, levels = c("4/28/22", "6/1/22", "7/5/22", "7/20/22", "9/13/22"),
+meta_micro_sub$Date <- factor(meta_micro_sub$Date, levels = c("4/28/22", "06/01/2022", "07/05/2022", "7/20/22", "9/13/22"),
                           labels = c("04-28-22", "06-01-22", "07-05-22", "07-20-22", "09-13-22"))
 rownames(meta_micro_sub) <- sample_names(com.asv.physeq)
 com.meta.physeq <- sample_data(meta_micro_sub)# meta data
@@ -858,9 +858,25 @@ ax2.scores.wUF.bulk <- com.bulk_pcoa_wUF$points[,2]
 ax1.scores.uwUF.bulk <- com.bulk_pcoa.uwUF$points[,1]
 ax2.scores.uwUF.bulk <- com.bulk_pcoa.uwUF$points[,2]
 
-#env_fit <- envfit(otu_pcoa, env, na.rm=TRUE)
+# 4. Envfit
+env.com.bulk <- com.meta.df[1:118,c(13:19, 22,26:28)]
+str(env.com.bulk)
+env.com.bulk <- env.com.bulk %>% mutate_at(colnames(env.com.bulk), as.numeric)
+# bray-curtis
+set.seed(13)
+env_fit.com.bc.bulk <- envfit(com.bulk_pcoa_bc, env.com.bulk, na.rm=TRUE)
+env_fit.com.bc.bulk
+# Jaccard 
+set.seed(13)
+env_fit.com.jac <- envfit(com.bulk_pcoa_jac, env.com.bulk, na.rm=TRUE)
+# Weighted UniFrac
+set.seed(13)
+env_fit.com.wuF <- envfit(com.bulk_pcoa_wUF, env.com.bulk, na.rm=TRUE)
+# UnWeighted UniFrac
+set.seed(13)
+env_fit.com.uwuF <- envfit(com.bulk_pcoa.uwUF, env.com.bulk, na.rm=TRUE)
 
-# 4. calculate percent variance explained, then add to plot
+# 5. calculate percent variance explained, then add to plot
 com.meta.bulk <- com.meta.df[1:118,]
 # Bray-curtis - Bulk Soil:
 ax1.bulk <- com.bulk_pcoa_bc$eig[1]/sum(com.bulk_pcoa_bc$eig)
@@ -931,7 +947,7 @@ ax2.scores.uwUF.rh <- com.rh_pcoa.uwUF$points[,2]
 #env_fit <- envfit(otu_pcoa, env, na.rm=TRUE)
 
 # 4. calculate percent variance explained, then add to plot
-com.meta.rh <- com.meta.df[121:192,]
+com.meta.rh <- com.meta.df[119:190,]
 # Bray-curtis - Rhizosphere :
 ax1.rh <- com.rh_pcoa_bc$eig[1]/sum(com.rh_pcoa_bc$eig)
 ax2.rh <- com.rh_pcoa_bc$eig[2]/sum(com.rh_pcoa_bc$eig)
@@ -957,13 +973,32 @@ library(ggrepel)
 library(viridis)
 
 # A. Bray-Curtis - Bulk Soil :
+set.seed(33)
+A.bc <- as.list(env_fit.com.bc.bulk$vectors) #shortcutting ef$vectors
+pvals.bc<-as.data.frame(A.bc$pvals) #creating the dataframe
+#environment scores (vectors scaled by R2 values)
+env.scores1.bc <- as.data.frame(scores(env_fit.com.bc.bulk, display="vectors"))
+env.scores2.bc <- cbind(env.scores1.bc, pvals)
+env.scores3.bc <- cbind(env.scores2.bc,Variable=rownames(env.scores2.bc))
+env.scores4.bc <- subset(env.scores3.bc,pvals<0.05)
+set.seed(33)
+mult <-.65
+
 com.pcoa_bulk.plot <- ggplot(data = com.map.pcoa.bulk, aes(x=ax1.scores.bulk, y=ax2.scores.bulk, colour=Treatment))+
   theme_bw()+
-  geom_point(data = com.map.pcoa.bulk, aes(x = ax1.scores.bulk, y = ax2.scores.bulk, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = com.map.pcoa.bulk, aes(x = ax1.scores.bulk, y = ax2.scores.bulk, shape=Irrigation),size=5, alpha= 0.6)+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.bulk,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.bulk,3)*100,"% var. explained", sep=""))+
   labs(colour = "Treatment",  title = "A. Bulk Soil")+
+  geom_segment(data=env.scores4.bc,
+               aes(x=0, xend=mult*Dim1, y=0, yend=mult*Dim2), 
+               arrow = arrow(length = unit(0.3, "cm")),
+               colour = "grey",inherit.aes = FALSE)+
+  geom_text_repel(data = env.scores4.bc,
+                  aes(x = mult*Dim1, y = mult*Dim2, label = Variable),
+                  size = 5,fontface="bold",
+                  position=position_jitter(width=0.03,height=0.001), inherit.aes = FALSE)+
   theme(legend.position="none",
         legend.title = element_text(size=15, face='bold'),
         plot.background = element_blank(),
@@ -980,7 +1015,7 @@ com.pcoa_bulk.plot
 # B. Bray-Curtis - Rhizosphere :
 com.pcoa_rh.plot <- ggplot(data = com.map.pcoa.rh, aes(x=ax1.scores.rh, y=ax2.scores.rh, colour=Treatment))+
   theme_bw()+
-  geom_point(data = com.map.pcoa.rh, aes(x = ax1.scores.rh, y = ax2.scores.rh, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = com.map.pcoa.rh, aes(x = ax1.scores.rh, y = ax2.scores.rh, shape=Irrigation),size=5, alpha= 0.6)+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.rh,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.rh,3)*100,"% var. explained", sep=""))+
@@ -1001,7 +1036,7 @@ com.pcoa_rh.plot
 #install.packages("patchwork")
 library(patchwork)
 
-com.bray.plot <- com.pcoa_bulk.plot |  com.pcoa_rh.plot
+com.bray.plot.envfit <- com.pcoa_bulk.plot |  com.pcoa_rh.plot
 com.bray.plot
 setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
 ggsave("com.bray.tiff",
@@ -1013,7 +1048,10 @@ ggsave("com.bray.tiff",
        com.bray.plot, device = "tiff",
        width = 12, height = 5, 
        units= "in", dpi = 600)
-
+ggsave("com.bray.envfit.tiff",
+       com.bray.plot.envfit, device = "tiff",
+       width = 16, height = 6, 
+       units= "in", dpi = 600)
 
 # A. Jaccard - Bulk Soil :
 com.pcoa_bulk.jac <- ggplot(data = com.map.pcoa.j.bulk, aes(x=ax1.scores.j.bulk, y=ax2.scores.j.bulk, colour=Treatment))+
@@ -1071,13 +1109,32 @@ ggsave("com.jac.tiff",
        units= "in", dpi = 600)
 
 # A. Weighted UniFrac - Bulk Soil :
+set.seed(33)
+A.wu <- as.list(env_fit.com.wuF$vectors) #shortcutting ef$vectors
+pvals.wu<-as.data.frame(A.wu$pvals) #creating the dataframe
+#environment scores (vectors scaled by R2 values)
+env.scores1.wu <- as.data.frame(scores(env_fit.com.wuF, display="vectors"))
+env.scores2.wu <- cbind(env.scores1.wu, pvals)
+env.scores3.wu <- cbind(env.scores2.wu,Variable=rownames(env.scores2.wu))
+env.scores4.wu <- subset(env.scores3.wu,pvals<0.05)
+set.seed(33)
+mult <-.25
+
 com.pcoa_bulk.wUF <- ggplot(data = com.map.pcoa.wUF.bulk, aes(x=ax1.scores.wUF.bulk, y=ax2.scores.wUF.bulk, colour=Treatment))+
   theme_bw()+
-  geom_point(data = com.map.pcoa.wUF.bulk, aes(x = ax1.scores.wUF.bulk, y = ax2.scores.wUF.bulk, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = com.map.pcoa.wUF.bulk, aes(x = ax1.scores.wUF.bulk, y = ax2.scores.wUF.bulk, shape=Irrigation),size=5, alpha= 0.6)+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.wUF.bulk,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.wUF.bulk,3)*100,"% var. explained", sep=""))+
   labs(colour = "Treatment",  title = "A. Bulk Soil")+
+  geom_segment(data=env.scores4.wu,
+               aes(x=0, xend=mult*Dim1, y=0, yend=mult*Dim2), 
+               arrow = arrow(length = unit(0.3, "cm")),
+               colour = "grey",inherit.aes = FALSE)+
+  geom_text_repel(data = env.scores4.wu,
+                  aes(x = mult*Dim1, y = mult*Dim2, label = Variable),
+                  size = 5,fontface="bold",
+                  position=position_jitter(width=0.03,height=0.001), inherit.aes = FALSE)+
   theme(legend.position="none",
         legend.title = element_text(size=15, face='bold'),
         plot.background = element_blank(),
@@ -1094,7 +1151,7 @@ com.pcoa_bulk.wUF
 # B. Weighted UniFrac - Rhizosphere :
 com.pcoa_rh.wUF <- ggplot(data = com.map.pcoa.wUF.rh, aes(x=ax1.scores.wUF.rh, y=ax2.scores.wUF.rh, colour=Treatment))+
   theme_bw()+
-  geom_point(data = com.map.pcoa.wUF.rh, aes(x = ax1.scores.wUF.rh, y = ax2.scores.wUF.rh, shape=Irrigation),size=5, alpha= 0.8)+
+  geom_point(data = com.map.pcoa.wUF.rh, aes(x = ax1.scores.wUF.rh, y = ax2.scores.wUF.rh, shape=Irrigation),size=5, alpha= 0.6)+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.wUF.rh,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.wUF.rh,3)*100,"% var. explained", sep=""))+
@@ -1112,7 +1169,7 @@ com.pcoa_rh.wUF <- ggplot(data = com.map.pcoa.wUF.rh, aes(x=ax1.scores.wUF.rh, y
   stat_ellipse()
 com.pcoa_rh.wUF
 
-com.wUF.plot <- com.pcoa_bulk.wUF |  com.pcoa_rh.wUF
+com.wUF.plot.envfit <- com.pcoa_bulk.wUF |  com.pcoa_rh.wUF
 com.wUF.plot
 setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
 ggsave("com.wUF.tiff",
@@ -1124,6 +1181,11 @@ ggsave("com.wUF.tiff",
        com.wUF.plot, device = "tiff",
        width = 12, height = 5, 
        units= "in", dpi = 600)
+ggsave("com.wUF.envfit.tiff",
+       com.wUF.plot.envfit, device = "tiff",
+       width = 16, height = 6, 
+       units= "in", dpi = 600)
+
 
 # A. Unweighted UniFrac - Bulk Soil :
 com.pcoa_bulk.uwUF <- ggplot(data = com.map.pcoa.uwUF.bulk, aes(x=ax1.scores.uwUF.bulk, y=ax2.scores.uwUF.bulk, colour=Treatment))+
@@ -1304,135 +1366,38 @@ com.adonis.uwuF.rh
 #devtools::install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
 library(pairwiseAdonis)
 
-# Plotting the Distance Matrices
-
-# 1. Weighted UniFrac
-
-# wrangle distance matrix into a longer data frame
-aob.bulk_dist_wUF
-aob.bulk_dist_wUF.matrix = melt(as.matrix(aob.bulk_dist_wUF))
-# remove self-comparisons
-aob.bulk_dist_wUF.matrix = aob.bulk_dist_wUF.matrix[aob.bulk_dist_wUF.matrix$X1 != aob.bulk_dist_wUF.matrix$X2,]
-# select sample data
-tmp_sam_data = tibble("sample"=aob.physeq_bulk1@sam_data$SampleID,
-                      "irrigation"=aob.physeq_bulk1@sam_data$Irrigation,
-                      "treatment"=aob.physeq_bulk1@sam_data$Treatment,
-                      "date"=aob.physeq_bulk1@sam_data$Date,)
-# combined distance matrix with sample data
-colnames(tmp_sam_data) = c("X1", "irrigation1", "treatment1", "date1")
-tmp_data <- left_join(aob.bulk_dist_wUF.matrix, tmp_sam_data, by = "X1")
-colnames(tmp_sam_data) = c("X2", "irrigation2", "treatment2", "date2")
-tmp_data <- left_join(tmp_data, tmp_sam_data, by = "X2")
-# plot
-tmp_data$date1 <- factor(tmp_data$date1, levels = unique(tmp_data$date1))
-tmp_data$date2 <- factor(tmp_data$date2, levels = unique(tmp_data$date2))
-ggplot(tmp_data, aes(x = date2, y = value)) +
-  theme_bw() +
-  #geom_point(position = position_dodge(width = .75)) +
-  #geom_boxplot()+
-  geom_boxplot(aes(fill=irrigation2), alpha=0.6) +
-  #scale_fill_viridis(discrete = T)+
-  scale_fill_manual(values = c("#e5f5e0","#31a354"))+
-  facet_wrap(~treatment2, scales = "free_x") +
-  theme(axis.text.x=element_text(angle = 90, hjust = 1, vjust = 0.5))
-
-# 2.  Bray - Curtis
-
-aob.bulk_dist_bc
-# wrangle distance matrix into a longer dataframe
-aob.bulk_dist_bc
-aob.bulk_dist_bc.matrix = melt(as.matrix(aob.bulk_dist_bc))
-# remove self-comparisons
-aob.bulk_dist_bc.matrix = aob.bulk_dist_bc.matrix[aob.bulk_dist_bc.matrix$X1 != aob.bulk_dist_bc.matrix$X2,]
-# select sample data
-tmp_sam_data = tibble("sample"=aob.physeq_bulk1@sam_data$SampleID,
-                      "irrigation"=aob.physeq_bulk1@sam_data$Irrigation,
-                      "treatment"=aob.physeq_bulk1@sam_data$Treatment,
-                      "date"=aob.physeq_bulk1@sam_data$Date,)
-# combined distance matrix with sample data
-colnames(tmp_sam_data) = c("X1", "irrigation1", "treatment1", "date1")
-tmp_data_bc <- left_join(aob.bulk_dist_bc.matrix, tmp_sam_data, by = "X1")
-colnames(tmp_sam_data) = c("X2", "irrigation2", "treatment2", "date2")
-tmp_data_bc <- left_join(tmp_data_bc, tmp_sam_data, by = "X2")
-tmp_data_bc$date1 <- factor(tmp_data_bc$date1, levels = unique(tmp_data_bc$date1))
-tmp_data_bc$date2 <- factor(tmp_data_bc$date2, levels = unique(tmp_data_bc$date2))
-# Plot
-ggplot(tmp_data_bc, aes(x = date2, y = value)) +
-  theme_bw() +
-  #geom_point(position = position_dodge(width = .75)) +
-  #geom_boxplot()+
-  geom_boxplot(aes(fill=irrigation2), alpha=0.6) +
-  #scale_fill_viridis(discrete = T)+
-  scale_fill_manual(values = c("#e5f5e0","#31a354"))+
-  facet_wrap(~treatment2, scales = "free_x") +
-  theme(axis.text.x=element_text(angle = 90, hjust = 1, vjust = 0.5))
-
-
-m04dist_bc
-# wrangle distance matrix into a longer dataframe
-m04dist_bc.matrix = melt(as.matrix(m04dist_bc))
-# remove self-comparisons
-m04dist_bc.matrix = m04dist_bc.matrix[m04dist_bc.matrix$X1 != m04dist_bc.matrix$X2,]
-# select sample data
-m04physeq<- subset_samples(aob.physeq_bulk1, Date=="04-28-22" & Treatment=="M")
-m04physeq1 <- prune_taxa(taxa_sums(m04physeq)>0, m04physeq)
-sort(taxa_sums(m04physeq1), decreasing =F)
-m04physeq1
-
-tmp_sam_data.m04 = tibble("sample"=m04physeq1@sam_data$SampleID,
-                          "irrigation"=m04physeq1@sam_data$Irrigation,
-                          "treatment"=m04physeq1@sam_data$Treatment,
-                          "date"=m04physeq1@sam_data$Date,)
-# combined distance matrix with sample data
-colnames(tmp_sam_data.m04) = c("X1", "irrigation1", "treatment1", "date1")
-tmp_data_m04 <- left_join(m04dist_bc.matrix, tmp_sam_data.m04, by = "X1")
-colnames(tmp_sam_data.m04) = c("X2", "irrigation2", "treatment2", "date2")
-tmp_data_m04 <- left_join(tmp_data_m04, tmp_sam_data.m04, by = "X2")
-
-tmp_data_m04$date1 <- factor(tmp_data_m04$date1, levels = unique(tmp_data_m04$date1))
-tmp_data_m04$date2 <- factor(tmp_data_m04$date2, levels = unique(tmp_data_m04$date2))
-ggplot(tmp_data_m04, aes(x = irrigation2, y = value)) +
-  theme_bw() +
-  #geom_point(position = position_dodge(width = .75)) +
-  #geom_boxplot()+
-  geom_boxplot(aes(fill=irrigation2), alpha=0.6) +
-  #scale_fill_viridis(discrete = T)+
-  scale_fill_manual(values = c("#e5f5e0","#31a354"))+
-  #facet_wrap(~treatment2, scales = "free_x") +
-  theme(axis.text.x=element_text(angle = 90, hjust = 1, vjust = 0.5))
-
 
 # A. Pairwise Adonis Among Treatment (overall)
 
 # 1. Bray-Curtis - Bulk Soil:
 set.seed(13)
-pw.bulk.trt_bc <- pairwiseAdonis::pairwise.adonis(aob.bulk_dist_bc, 
-                                                  aob.meta.bulk$Treatment,
+com.pw.bulk.trt_bc <- pairwiseAdonis::pairwise.adonis(com.bulk_dist_bc, 
+                                                      com.meta.bulk$Treatment,
                                                   p.adjust.m = "BH")
-pw.bulk.trt_bc # all pairwise comparisons are significant (p val =0.001**)
+com.pw.bulk.trt_bc # all pairwise comparisons are significant (p val =0.001**)
 
 # 2. weighted UniFrac - Bulk Soil:
 set.seed(13)
-pw.bulk.trt_wUF <- pairwiseAdonis::pairwise.adonis(aob.bulk_dist_wUF, 
-                                                   aob.meta.bulk$Treatment,
+com.pw.bulk.trt_wUF <- pairwiseAdonis::pairwise.adonis(com.bulk_dist_wUF, 
+                                                   com.meta.bulk$Treatment,
                                                    p.adjust.m = "BH")
-pw.bulk.trt_wUF # all pairwise comparisons are significant (p val =0.001**)
+com.pw.bulk.trt_wUF # all pairwise comparisons are significant (p val =0.001**)
 
 # 3. Unweighted UniFrac - Bulk Soil:
 set.seed(13)
-pw.bulk.trt_uwUF <- pairwiseAdonis::pairwise.adonis(aob.bulk_dist_uwUF, 
-                                                    aob.meta.bulk$Treatment,
+com.pw.bulk.trt_uwUF <- pairwiseAdonis::pairwise.adonis(com.bulk_dist_uwUF, 
+                                                    com.meta.bulk$Treatment,
                                                     p.adjust.m = "BH")
-pw.bulk.trt_uwUF # all pairwise comparisons are significant (p val =0.001**)
+com.pw.bulk.trt_uwUF # all pairwise comparisons are significant (p val =0.001**)
 
 # B. Pairwise Adonis Among Date
 
 # 1. Bray-Curtis - Bulk Soil:
 set.seed(13)
-pw.bulk.dat_bc <- pairwiseAdonis::pairwise.adonis(aob.bulk_dist_bc, 
-                                                  aob.meta.bulk$Date,
+com.pw.bulk.dat_bc <- pairwiseAdonis::pairwise.adonis(com.bulk_dist_bc, 
+                                                  com.meta.bulk$Date,
                                                   p.adjust.m = "BH")
-pw.bulk.dat_bc # none are significant 
+com.pw.bulk.dat_bc # none are significant 
 
 # 2. weighted UniFrac - Bulk Soil:
 set.seed(13)
@@ -1661,6 +1626,18 @@ com.sp.df <- psmelt(com.sp.ra) %>%
   group_by(var2, Type, Date, Treatment, Irrigation, Clade, Species) %>%
   summarize(Mean = mean(Abundance)) %>%
   arrange(-Mean)
+
+com.cla <- tax_glom(com.rare.min.physeq, taxrank = "Clade", NArm = F)
+com.cla.ra <- transform_sample_counts(com.cla, function(x) x/sum(x))
+com.abund.trt.cla <- psmelt(com.cla.ra) %>%
+  group_by(Type, Treatment, Clade) %>%
+  summarize(Mean = mean(Abundance)) %>%
+  arrange(-Mean)
+
+
+
+
+
 
 colours <- ColourPalleteMulti(com.sp.df, "Species")
 colours
