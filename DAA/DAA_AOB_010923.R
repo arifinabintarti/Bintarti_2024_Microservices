@@ -17,19 +17,19 @@ aob.physeq_bulk1 # 937 taxa, 119 samples
 aob04seq<- subset_samples(aob.physeq_bulk1, Date=="04-28-22")
 aob04seq1 <- prune_taxa(taxa_sums(aob04seq)>0, aob04seq)
 sort(rowSums(otu_table(aob04seq1), na.rm = FALSE, dims = 1), decreasing = F)
-aob04seq1 #292 taxa 24 samples
+aob04seq1 #393 taxa 23 samples
 ################################################################################
 # Filter low-abundant taxa
-# keeping OTUs with at least 0.02 % relative abundance across all samples
+# keeping OTUs with at least 0.01 % relative abundance across all samples
 physeq.subset <- aob04seq1
-physeq.subset #292 Taxa, 24 Samples
+physeq.subset #393 Taxa, 23 Samples
 data.obs <- as.data.frame(otu_table(physeq.subset))
-keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0002)
+keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
 data.F=data.obs[keep.taxa.id,,drop=FALSE]
 new.otu <- as.matrix(data.F) # convert it into a matrix.
 new.otu <- otu_table(data.F, taxa_are_rows = TRUE) # convert into phyloseq compatible file.
 otu_table(physeq.subset) <- new.otu # incorporate into phyloseq Object
-physeq.subset # 167 taxa, 24 samples remain in the data set after filtering
+physeq.subset # 316 taxa, 23 samples remain in the data set after filtering
 
 ################################################################################
 #Lets generate a prevalence table (number of samples each taxa occurs in) for each taxa.
@@ -66,18 +66,11 @@ df_otu_prev_ttt$max_prev <- apply(df_otu_prev_ttt,MARGIN=1, FUN=max)
 physeq.subset 
 ps =  physeq.subset 
 df_prev = df_otu_prev_ttt
-tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 50,])
-physeq.subset.50 <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps) # 127 taxa
-
-tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 60,])
-physeq.subset.60 <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
-rm(ps,df_prev,tmp_otu_F)
-physeq.subset.60 # 90 taxa
 
 tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 75,])
 physeq.subset.75 <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
 rm(ps,df_prev,tmp_otu_F)
-physeq.subset.75 # 90 taxa
+physeq.subset.75 # 63 taxa
 ####################################################
 # DIFFERENTIAL ABUNDANCE
 ##################################################
@@ -112,11 +105,11 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
   
   tryCatch({
     ### model
-    glmT3s <- glmer(y ~ a + (1 | z), family='poisson',offset = o)
+    glmT3s <- glmmTMB(y ~ -1+a + (1 | z), family='poisson',offset = o)
     glmT3s.sum = summary(glmT3s)$coefficients
     glmT3s.sum = tibble("OTU"= OTU,
                         "treatment"=rownames(glmT3s.sum),
-                        as_tibble(glmT3s.sum))
+                        as_tibble(glmT3s.sum$cond))
     glmT3s.sum
     glmT3s.sum.global = rbind(glmT3s.sum.global,glmT3s.sum)
     ### multiple comparison
