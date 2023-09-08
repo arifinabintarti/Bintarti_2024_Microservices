@@ -136,10 +136,7 @@ glmT3s.model.global = glmT3s.sum.global
 glmT3s.pairwise.global = glmT3s.pairwise.global
 glmT3s.pairwise.global$p.adjust <- p.adjust(glmT3s.pairwise.global$p.value, method = "fdr")
 
-setwd('D:/Fina/INRAE_Project/microservices/DAA/')
-write.csv(glmT3s.pairwise.global, file = "AOB_date1_rare_pw_300823.csv")
-aob04_subset_table_75 <- as.data.frame(otu_table(physeq.subset.75))
-write.csv(aob04_subset_table_75, file = "AOB_date1_rare_inpt_300823.csv")
+# I don't like the results
 
 ################################################################################
 ### Subset the data set per irrigation-treatment-date (RAREFIED)
@@ -242,18 +239,19 @@ D0705.rh.seq1 <- prune_taxa(taxa_sums(D0705.rh.seq)>0, D0705.rh.seq)
 K0705.rh.seq<- subset_samples(aob.physeq_rh1, Date=="07-05-22" & Treatment=="K")
 K0705.rh.seq1 <- prune_taxa(taxa_sums(K0705.rh.seq)>0, K0705.rh.seq)
 ################################################################################
+
 ###############################################################################
 # Filter low-abundant taxa
-# keeping OTUs with at least 0.02 % relative abundance across all samples
+# keeping OTUs with at least 0.01 % relative abundance across all samples
 physeq.subset <- M04seq1
-physeq.subset #219 Taxa, 8 Samples
+physeq.subset 
 data.obs <- as.data.frame(otu_table(physeq.subset))
-keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0002)
+keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
 data.F=data.obs[keep.taxa.id,,drop=FALSE]
 new.otu <- as.matrix(data.F) # convert it into a matrix.
 new.otu <- otu_table(data.F, taxa_are_rows = TRUE) # convert into phyloseq compatible file.
 otu_table(physeq.subset) <- new.otu # incorporate into phyloseq Object
-physeq.subset # 182 taxa, 8 samples remain in the data set after filtering
+physeq.subset # 
 
 ################################################################################
 #Lets generate a prevalence table (number of samples each taxa occurs in) for each taxa.
@@ -293,7 +291,8 @@ df_prev = df_otu_prev_ttt
 tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 75,])
 physeq.subset.75 <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
 rm(ps,df_prev,tmp_otu_F)
-physeq.subset.75 # 32 taxa
+physeq.subset.75  # 32 taxa
+
 ####################################################
 # DIFFERENTIAL ABUNDANCE
 ##################################################
@@ -310,7 +309,7 @@ a = tibble("sample"= tmp_T3s@sam_data$SampleID,
 a[a == "Control"] <- "1a"
 a = as.factor(a$treatment)
 # offset
-o = log(sample_sums(tmp_T3s))
+o = log(sample_sums(M04seq1)) # using unfiltered data
 # random effect
 z <- as.factor(tmp_T3s@sam_data$SampleID)
 
@@ -359,10 +358,117 @@ glmT3s.model.global = glmT3s.sum.global
 glmT3s.pairwise.global = glmT3s.pairwise.global
 glmT3s.pairwise.global$p.adjust <- p.adjust(glmT3s.pairwise.global$p.value, method = "fdr")
 
-setwd('D:/Fina/INRAE_Project/microservices/DAA/')
-write.csv(glmT3s.pairwise.global, file = "AOB_date1_rare_pw_300823.csv")
-aob04_subset_table_75 <- as.data.frame(otu_table(physeq.subset.75))
-write.csv(aob04_subset_table_75, file = "AOB_date1_rare_inpt_300823.csv")
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+#write.csv(glmT3s.pairwise.global, file = "AOB_K06.rh_070923.csv")
+#aob.K06.rh.fil <- as.data.frame(otu_table(physeq.subset.75))
+#write.csv(aob.K06.rh.fil, file = "AOB_K06.rh.tab_070923.csv")
+##############################################################################################################################
+
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOB_BulkSoil_rare/')
+AOB_M04 <- read.csv("AOB_M04_070923.csv")[,-1]
+AOB_M04$contrast <- paste("M_042822", AOB_M04$contrast, sep="_")
+AOB_D04 <- read.csv("AOB_D04_070923.csv")[,-1]
+AOB_D04$contrast <- paste("D_042822", AOB_D04$contrast, sep="_")
+AOB_K04 <- read.csv("AOB_K04_070923.csv")[,-1]
+AOB_K04$contrast <- paste("K_042822", AOB_K04$contrast, sep="_")
+
+AOB_M06 <- read.csv("AOB_M06_070923.csv")[,-1]
+AOB_M06$contrast <- paste("M_060122", AOB_M06$contrast, sep="_")
+AOB_D06 <- read.csv("AOB_D06_070923.csv")[,-1]
+AOB_D06$contrast <- paste("D_060122", AOB_D06$contrast, sep="_")
+AOB_K06 <- read.csv("AOB_K06_070923.csv")[,-1]
+AOB_K06$contrast <- paste("K_060122", AOB_K06$contrast, sep="_")
+
+AOB_M0705 <- read.csv("AOB_M0705_070923.csv")[,-1]
+AOB_M0705$contrast <- paste("M_070522", AOB_M0705$contrast, sep="_")
+AOB_D0705 <- read.csv("AOB_D0705_070923.csv")[,-1]
+AOB_D0705$contrast <- paste("D_070522", AOB_D0705$contrast, sep="_")
+AOB_K0705 <- read.csv("AOB_K0705_070923.csv")[,-1]
+AOB_K0705$contrast <- paste("K_070522", AOB_K0705$contrast, sep="_")
+
+AOB_M0720 <- read.csv("AOB_M0720_070923.csv")[,-1]
+AOB_M0720$contrast <- paste("M_072022", AOB_M0720$contrast, sep="_")
+AOB_D0720 <- read.csv("AOB_D0720_070923.csv")[,-1]
+AOB_D0720$contrast <- paste("D_072022", AOB_D0720$contrast, sep="_")
+AOB_K0720 <- read.csv("AOB_K0720_070923.csv")[,-1]
+AOB_K0720$contrast <- paste("K_072022", AOB_K0720$contrast, sep="_")
+
+AOB_M09 <- read.csv("AOB_M09_070923.csv")[,-1]
+AOB_M09$contrast <- paste("M_091322", AOB_M09$contrast, sep="_")
+AOB_D09 <- read.csv("AOB_D09_070923.csv")[,-1]
+AOB_D09$contrast <- paste("D_091322", AOB_D09$contrast, sep="_")
+AOB_K09 <- read.csv("AOB_K09_070923.csv")[,-1]
+AOB_K09$contrast <- paste("K_091322", AOB_K09$contrast, sep="_")
+
+glmT3s.pairwise.global.ALL <- rbind(AOB_M04, AOB_D04, AOB_K04, AOB_M06, AOB_D06, AOB_K06,
+                                    AOB_M0705, AOB_D0705, AOB_K0705, AOB_M0720, AOB_D0720, AOB_K0720,
+                                    AOB_M09, AOB_D09, AOB_K09)
+
+# cast pvalues
+contrasts.glm.CBFP.T3s <- glmT3s.pairwise.global.ALL[,c(10,1,2)]
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s) <- c("value", "OTU_names", "contrast")
+#contrasts.glm.CBFP.T3s <- subset(contrasts.glm.CBFP.T3s, (contrasts.glm.CBFP.T3s$OTU_names %in% BFPOTUs.T3snet.sig))
+head(contrasts.glm.CBFP.T3s)
+str(contrasts.glm.CBFP.T3s)
+contrasts.glm.CBFP.T3s <- data.frame(cast(contrasts.glm.CBFP.T3s, contrast ~ OTU_names, value="value"))
+str(contrasts.glm.CBFP.T3s)
+rownames(contrasts.glm.CBFP.T3s) <- contrasts.glm.CBFP.T3s$contrast
+contrasts.glm.CBFP.T3s$contrast <- NULL
+
+
+# keep OTUs with at least one contrast <0.05 
+contrasts.glm.CBFP.T3s.sub <- contrasts.glm.CBFP.T3s[,colSums(contrasts.glm.CBFP.T3s<0.06) >= 1]
+dim(contrasts.glm.CBFP.T3s.sub)
+head(contrasts.glm.CBFP.T3s.sub)
+str(contrasts.glm.CBFP.T3s.sub)
+
+ctrst.glm.CBFP.T3s.sub <- data.frame(t(contrasts.glm.CBFP.T3s.sub))
+
+# replace pvalues to 0 if non significant, or 1 if significant
+#ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub ==NA] <- 0
+ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub >0.06] <- 2
+ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub <0.06] <- 1
+ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub >1] <- 0
+ctrst.glm.CBFP.T3s.sub[is.na(ctrst.glm.CBFP.T3s.sub)] <- 0
+head(ctrst.glm.CBFP.T3s.sub)
+
+# Calculate the OTU avg per treatment
+# CHECK THE OBJECT
+#devtools::install_github("vmikk/metagMisc")
+library(metagMisc)
+meanotus<-phyloseq_average(aob.physeq_bulk1,avg_type="arithmetic",acomp_zero_impute = NULL,group="var3")
+meanotus<-as.data.frame(otu_table(meanotus));meanotus
+# same order for both meanotus and tmp_otu3s
+meanotus<-meanotus[tmp_otu3s,]
+
+# Calculate log2fold ratios for all OTUs in the filtered table
+meanotus$RR_Ahb1 <- log2(meanotus$Ahb1 / meanotus$Col0)
+meanotus$RR_Nia1Nia2 <- log2(meanotus$Nia1Nia2 / meanotus$Col0)
+meanotus$RR_Nox1 <- log2(meanotus$Nox1 / meanotus$Col0)
+meanotus$RR_GSNOR1 <- log2(meanotus$GSNOR1 / meanotus$Col0)
+
+head(meanotus)
+# keep only columns containing log2fold ratios (RRs)
+meanotus<-meanotus[,c(6:9)]
+head(meanotus)
+
+head(ctrst.glm.CBFP.T3s.sub)
+
+# put the same column order in ctrst.glm.CBFP.T3s.sub and in meanotus
+ctrst.glm.CBFP.T3s.sub<-ctrst.glm.CBFP.T3s.sub[,c(1,3,4,2)]
+# replace "-" by "." to be able to compare both datasets. Also, put OTUs in the same order in both cases
+row.names(meanotus)<-gsub("-", ".", row.names(meanotus))
+meanotus<-meanotus[row.names(ctrst.glm.CBFP.T3s.sub),]
+head(meanotus)
+
+# Multiply the matrices to get the RR when it is significant and 0 when it is not significant
+rr<-meanotus*ctrst.glm.CBFP.T3s.sub
+
+
+
+
+
 
 ####################################################################################################################################
 
@@ -538,16 +644,16 @@ K0705.rh_table
 ###################################################################################################################################
 ###############################################################################
 # Filter low-abundant taxa
-# keeping OTUs with at least 0.02 % relative abundance across all samples
+# keeping OTUs with at least 0.01 % relative abundance across all samples
 physeq.subset <- M04rawseq1
-physeq.subset #245 Taxa, 8 Samples
+physeq.subset #
 data.obs <- as.data.frame(otu_table(physeq.subset))
-keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0002)
+keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
 data.F=data.obs[keep.taxa.id,,drop=FALSE]
 new.otu <- as.matrix(data.F) # convert it into a matrix.
 new.otu <- otu_table(data.F, taxa_are_rows = TRUE) # convert into phyloseq compatible file.
 otu_table(physeq.subset) <- new.otu # incorporate into phyloseq Object
-physeq.subset # 192 taxa, 8 samples remain in the data set after filtering
+physeq.subset # 
 
 ################################################################################
 #Lets generate a prevalence table (number of samples each taxa occurs in) for each taxa.
@@ -604,7 +710,7 @@ a = tibble("sample"= tmp_T3s@sam_data$SampleID,
 a[a == "Control"] <- "1a"
 a = as.factor(a$treatment)
 # offset
-o = log(sample_sums(tmp_T3s))
+o = log(sample_sums(M04rawseq1))
 # random effect
 z <- as.factor(tmp_T3s@sam_data$SampleID)
 
@@ -653,10 +759,10 @@ glmT3s.model.global = glmT3s.sum.global
 glmT3s.pairwise.global = glmT3s.pairwise.global
 glmT3s.pairwise.global$p.adjust <- p.adjust(glmT3s.pairwise.global$p.value, method = "fdr")
 
-setwd('D:/Fina/INRAE_Project/microservices/DAA/')
-write.csv(glmT3s.pairwise.global, file = "AOB_date1_rare_pw_300823.csv")
-aob04_subset_table_75 <- as.data.frame(otu_table(physeq.subset.75))
-write.csv(aob04_subset_table_75, file = "AOB_date1_rare_inpt_300823.csv")
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+write.csv(glmT3s.pairwise.global, file = "AOB_M04_070923.csv")
+aob.M04.fil <- as.data.frame(otu_table(physeq.subset.75))
+write.csv(aob.M04.fil, file = "AOB_M04tab_070923.csv")
 
 
 

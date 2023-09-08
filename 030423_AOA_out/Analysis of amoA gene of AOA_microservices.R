@@ -1251,15 +1251,13 @@ aoa.adonis.bulk.irri <- adonis2(aoa.bulk_dist_bc ~ Irrigation, data=aoa.meta.bul
                                 strata = NULL) # not significant
 aoa.adonis.bulk.irri
 
-#set.seed(13)
-#aoa.adonis.bulk.irri2 <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment*Date, data=aoa.meta.bulk, 
-#permutation=perm,
-#method="bray") # not significant
-#aoa.adonis.bulk.irri2
-#perm = how(nperm = 999,
-#within = Within(type="free"), 
-#plots = with(aoa.meta.bulk, Plots(strata=Treatment, type="free")),
-#blocks = aoa.meta.bulk$Date)
+set.seed(13)
+aoa.adonis.bulk.irri2 <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment, data=aoa.meta.bulk, 
+                                 permutation=perm,method="bray") # not significant
+aoa.adonis.bulk.irri2
+perm = how(nperm = 999, within = Within(type="free"), 
+           plots = with(aoa.meta.bulk, Plots(strata=Date, type="free")))
+           #blocks = aoa.meta.bulk$Date)
 
 set.seed(13)
 aoa.adonis.bulk.trt <- adonis2(aoa.bulk_dist_bc ~ Treatment, data=aoa.meta.bulk, 
