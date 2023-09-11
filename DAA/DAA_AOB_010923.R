@@ -404,6 +404,17 @@ glmT3s.pairwise.global.ALL <- rbind(AOB_M04, AOB_D04, AOB_K04, AOB_M06, AOB_D06,
                                     AOB_M0705, AOB_D0705, AOB_K0705, AOB_M0720, AOB_D0720, AOB_K0720,
                                     AOB_M09, AOB_D09, AOB_K09)
 
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global.ALL$p.value <= 0.06)
+table(glmT3s.pairwise.global.ALL$p.adjust <= 0.06)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s = unique(glmT3s.pairwise.global.ALL$OTU[glmT3s.pairwise.global.ALL$p.adjust <= 0.06])
+glmT3s.pairwise.global.signif = glmT3s.pairwise.global.ALL[glmT3s.pairwise.global.ALL$p.adjust <=0.06,]
+
+length(tmp_otu3s)
+tmp_otu3s
+
 # cast pvalues
 contrasts.glm.CBFP.T3s <- glmT3s.pairwise.global.ALL[,c(10,1,2)]
 # numeric variable needs to be named "value" 
@@ -418,7 +429,7 @@ contrasts.glm.CBFP.T3s$contrast <- NULL
 
 
 # keep OTUs with at least one contrast <0.05 
-contrasts.glm.CBFP.T3s.sub <- contrasts.glm.CBFP.T3s[,colSums(contrasts.glm.CBFP.T3s<0.06) >= 1]
+contrasts.glm.CBFP.T3s.sub <- contrasts.glm.CBFP.T3s[,colSums(contrasts.glm.CBFP.T3s<0.06, na.rm=TRUE) >= 1]
 dim(contrasts.glm.CBFP.T3s.sub)
 head(contrasts.glm.CBFP.T3s.sub)
 str(contrasts.glm.CBFP.T3s.sub)
@@ -439,28 +450,56 @@ head(ctrst.glm.CBFP.T3s.sub)
 library(metagMisc)
 meanotus<-phyloseq_average(aob.physeq_bulk1,avg_type="arithmetic",acomp_zero_impute = NULL,group="var3")
 meanotus<-as.data.frame(otu_table(meanotus));meanotus
+
 # same order for both meanotus and tmp_otu3s
 meanotus<-meanotus[tmp_otu3s,]
+#meanotus<-meanotus[c("ASV_10", "ASV_12", "ASV_28", "ASV_33", "ASV_35", "ASV_44", "ASV_52", "ASV_54", "ASV_59", "ASV_64", "ASV_71"),]
+#meanotus<-meanotus[,c("ASV_10", "ASV_12", "ASV_28", "ASV_33", "ASV_35", "ASV_44", "ASV_52", "ASV_54", "ASV_59", "ASV_64", "ASV_71"),]
 
 # Calculate log2fold ratios for all OTUs in the filtered table
-meanotus$RR_Ahb1 <- log2(meanotus$Ahb1 / meanotus$Col0)
-meanotus$RR_Nia1Nia2 <- log2(meanotus$Nia1Nia2 / meanotus$Col0)
-meanotus$RR_Nox1 <- log2(meanotus$Nox1 / meanotus$Col0)
-meanotus$RR_GSNOR1 <- log2(meanotus$GSNOR1 / meanotus$Col0)
+
+meanotus$RR_M_042822 <- log2(meanotus$RMBS1 / meanotus$CMBS1)
+meanotus$RR_M_060122 <- log2(meanotus$RMBS2 / meanotus$CMBS2)
+meanotus$RR_M_070522 <- log2(meanotus$RMBS3 / meanotus$CMBS3)
+meanotus$RR_M_072022 <- log2(meanotus$RMBS4 / meanotus$CMBS4)
+meanotus$RR_M_091322 <- log2(meanotus$RMBS5 / meanotus$CMBS5)
+
+meanotus$RR_D_042822 <- log2(meanotus$RDBS1 / meanotus$CDBS1)
+meanotus$RR_D_060122 <- log2(meanotus$RDBS2 / meanotus$CDBS2)
+meanotus$RR_D_070522 <- log2(meanotus$RDBS3 / meanotus$CDBS3)
+meanotus$RR_D_072022 <- log2(meanotus$RDBS4 / meanotus$CDBS4)
+meanotus$RR_D_091322 <- log2(meanotus$RDBS5 / meanotus$CDBS5)
+
+meanotus$RR_K_042822 <- log2(meanotus$RKBS1 / meanotus$CKBS1)
+meanotus$RR_K_060122 <- log2(meanotus$RKBS2 / meanotus$CKBS2)
+meanotus$RR_K_070522 <- log2(meanotus$RKBS3 / meanotus$CKBS3)
+meanotus$RR_K_072022 <- log2(meanotus$RKBS4 / meanotus$CKBS4)
+meanotus$RR_K_091322 <- log2(meanotus$RKBS5 / meanotus$CKBS5)
+
 
 head(meanotus)
 # keep only columns containing log2fold ratios (RRs)
-meanotus<-meanotus[,c(6:9)]
+meanotus<-meanotus[,c(31:45)]
 head(meanotus)
+meanotus[meanotus == "-Inf"] <- 0
+meanotus[meanotus == "Inf"] <- 0
+meanotus[meanotus == "NaN"] <- 0
 
+
+ctrst.glm.CBFP.T3s.sub.ed <- 
 head(ctrst.glm.CBFP.T3s.sub)
 
 # put the same column order in ctrst.glm.CBFP.T3s.sub and in meanotus
-ctrst.glm.CBFP.T3s.sub<-ctrst.glm.CBFP.T3s.sub[,c(1,3,4,2)]
+ctrst.glm.CBFP.T3s.sub<-ctrst.glm.CBFP.T3s.sub[,c(11,12,13,14,15,
+                                                  1,2,3,4,5,
+                                                  6,7,8,9,10)]
+ctrst.glm.CBFP.T3s.sub <- ctrst.glm.CBFP.T3s.sub[rownames(meanotus), ]
+
 # replace "-" by "." to be able to compare both datasets. Also, put OTUs in the same order in both cases
 row.names(meanotus)<-gsub("-", ".", row.names(meanotus))
 meanotus<-meanotus[row.names(ctrst.glm.CBFP.T3s.sub),]
 head(meanotus)
+head(ctrst.glm.CBFP.T3s.sub)
 
 # Multiply the matrices to get the RR when it is significant and 0 when it is not significant
 rr<-meanotus*ctrst.glm.CBFP.T3s.sub

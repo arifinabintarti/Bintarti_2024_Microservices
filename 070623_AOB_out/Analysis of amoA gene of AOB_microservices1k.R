@@ -67,6 +67,7 @@ library(fitdistrplus)
 library(lme4)
 library(nlme)
 library(ape)
+library(phyloseq)
 
 # SET THE WORKING DIRECTORY
 setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB.ASV-analysis')
@@ -99,7 +100,7 @@ aob.tre <- ape::read.tree("tree.AOB.nwk")
 set.seed(13)
 rarecurve(t(aob.asv), step=50, cex=0.5, lwd=2, ylab="ASV", label=F)
 #BiocManager::install("phyloseq")
-library(phyloseq)
+
 
 ## make a phyloseq object of the asv table, taxonomy table, metadata
 
