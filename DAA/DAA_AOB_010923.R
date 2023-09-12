@@ -10,133 +10,6 @@ aob.physeq_bulk <- subset_samples(aob.rare.1282.seq, Type=="BS")
 aob.physeq_bulk
 aob.physeq_bulk1 <- prune_taxa(taxa_sums(aob.physeq_bulk)>0, aob.physeq_bulk)
 aob.physeq_bulk1 # 937 taxa, 119 samples
-###############################################################################
-# Subset the data set BY date
-
-# Date: 04-28-2022
-aob04seq<- subset_samples(aob.physeq_bulk1, Date=="04-28-22")
-aob04seq1 <- prune_taxa(taxa_sums(aob04seq)>0, aob04seq)
-sort(rowSums(otu_table(aob04seq1), na.rm = FALSE, dims = 1), decreasing = F)
-aob04seq1 #393 taxa 23 samples
-################################################################################
-# Filter low-abundant taxa
-# keeping OTUs with at least 0.01 % relative abundance across all samples
-physeq.subset <- aob04seq1
-physeq.subset #393 Taxa, 23 Samples
-data.obs <- as.data.frame(otu_table(physeq.subset))
-keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
-data.F=data.obs[keep.taxa.id,,drop=FALSE]
-new.otu <- as.matrix(data.F) # convert it into a matrix.
-new.otu <- otu_table(data.F, taxa_are_rows = TRUE) # convert into phyloseq compatible file.
-otu_table(physeq.subset) <- new.otu # incorporate into phyloseq Object
-physeq.subset # 316 taxa, 23 samples remain in the data set after filtering
-
-################################################################################
-#Lets generate a prevalence table (number of samples each taxa occurs in) for each taxa.
-prevalencedf = apply(X = otu_table(physeq.subset),
-                     MARGIN = 1,
-                     FUN = function(x){sum(x > 0)})
-# Add taxonomy and total read counts to this data.frame
-prevalencedf = data.frame(Prevalence = prevalencedf,
-                          TotalAbundance = taxa_sums(physeq.subset))
-prevalencedf[1:10,]
-dim(prevalencedf)
-# calculate prevalence
-ps = physeq.subset
-df_tmp <- psmelt(ps)
-df_tmp$sample <- 0
-df_tmp$sample[df_tmp$Abundance > 0] <- 1 #E: DON'T UNDERSTAND WHY THIS IS DONE
-df_otu_prev_ttt <- data.frame(matrix(ncol=nlevels(as.factor(df_tmp$x)),
-                                     nrow=nlevels(as.factor(df_tmp$OTU)), 
-                                     dimnames=list(levels(as.factor(df_tmp$OTU)),
-                                                   levels(as.factor(df_tmp$x)))))
-#attention il ya Sample et sample
-for (i in unique(df_tmp$OTU)) {
-  for (j in unique(df_tmp$x)) {
-    df_otu_prev_ttt[i,j] <- sum(df_tmp$sample[df_tmp$OTU == i & df_tmp$x == j],na.rm = T) / nrow(df_tmp[df_tmp$OTU == i & df_tmp$x == j,]) *100
-    print(paste(i,j,df_otu_prev_ttt[i,j]),sep="\t")
-    #print(df_otu_prev_ttt[i,j])
-  }
-  
-}
-
-df_otu_prev_ttt$max_prev <- apply(df_otu_prev_ttt,MARGIN=1, FUN=max)
-
-# filter otu par prevalence
-physeq.subset 
-ps =  physeq.subset 
-df_prev = df_otu_prev_ttt
-
-tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 75,])
-physeq.subset.75 <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
-rm(ps,df_prev,tmp_otu_F)
-physeq.subset.75 # 63 taxa
-####################################################
-# DIFFERENTIAL ABUNDANCE
-##################################################
-#install.packages("glmmTMB")
-library(glmmTMB)
-library(emmeans)
-
-tmp_T3s <- physeq.subset.75
-str(tmp_T3s)
-#  treatment
-a = tibble("sample"= tmp_T3s@sam_data$SampleID,
-           "treatment"= as.character(tmp_T3s@sam_data$x))
-# force control as intercept
-#a[a == "Control"] <- "1a"
-a = as.factor(a$treatment)
-# offset
-o = log(sample_sums(tmp_T3s))
-# random effect
-z <- as.factor(tmp_T3s@sam_data$SampleID)
-
-# model with pairwise comparison ---------------------------------------------------------------------------------
-glmT3s.sum.global = data.frame()
-glmT3s.pairwise.global = data.frame()
-#fam=genpois(link = "log")
-
-for (i in 1:length(taxa_names(tmp_T3s))) {
-  
-  OTU = taxa_names(tmp_T3s)[i] 
-  
-  # response variable
-  y = as.vector(tmp_T3s@otu_table[OTU,]@.Data)
-  
-  tryCatch({
-    ### model
-    glmT3s <- glmmTMB(y ~ -1+a + (1 | z), family='poisson',offset = o)
-    glmT3s.sum = summary(glmT3s)$coefficients
-    glmT3s.sum = tibble("OTU"= OTU,
-                        "treatment"=rownames(glmT3s.sum),
-                        as_tibble(glmT3s.sum$cond))
-    glmT3s.sum
-    glmT3s.sum.global = rbind(glmT3s.sum.global,glmT3s.sum)
-    ### multiple comparison
-    glmT3s.pairwise = emmeans(glmT3s,pairwise~a)
-    # select p value
-    glmT3s.pairwise.sum = summary(glmT3s.pairwise)
-    glmT3s.pairwise.sum = glmT3s.pairwise.sum[["contrasts"]]
-    # extract summary
-    tmp_df = glmT3s.pairwise.sum
-    # keep only comparisons of interest
-    tmp = unlist(strsplit(as.character(tmp_df$contrast)," - "))
-    tmp_df[,"a"] <- tmp[seq(1,length(tmp),by=2)]
-    tmp_df[,"b"] <- tmp[seq(2,length(tmp),by=2)]
-    #tmp_df = tmp_df[grep("Ni",tmp_df$b), ]
-    tmp_df = cbind("OTU"=OTU,tmp_df)
-    # extract results in data frame
-    glmT3s.pairwise.global = rbind(glmT3s.pairwise.global,tmp_df)
-  },
-  error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
-  rm(OTU,y,glmT3s,glmT3s.sum)
-}
-
-glmT3s.model.global = glmT3s.sum.global
-glmT3s.pairwise.global = glmT3s.pairwise.global
-glmT3s.pairwise.global$p.adjust <- p.adjust(glmT3s.pairwise.global$p.value, method = "fdr")
-
-# I don't like the results
 
 ################################################################################
 ### Subset the data set per irrigation-treatment-date (RAREFIED)
@@ -309,7 +182,7 @@ a = tibble("sample"= tmp_T3s@sam_data$SampleID,
 a[a == "Control"] <- "1a"
 a = as.factor(a$treatment)
 # offset
-o = log(sample_sums(M04seq1)) # using unfiltered data
+o = log(sample_sums(tmp_T3s)) # using unfiltered data
 # random effect
 z <- as.factor(tmp_T3s@sam_data$SampleID)
 
@@ -327,7 +200,8 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
   
   tryCatch({
     ### model
-    glmT3s <- glmmTMB(y ~ a + (1 | z), family='poisson',offset = o)
+    glmT3s <- glmmTMB(y ~ a + (1 | z), family='poisson', offset = o)
+    #glmT3s <- glm(y ~ a, family='poisson')
     glmT3s.sum = summary(glmT3s)$coefficients
     glmT3s.sum = tibble("OTU"= OTU,
                         "treatment"=rownames(glmT3s.sum),
@@ -504,11 +378,7 @@ head(ctrst.glm.CBFP.T3s.sub)
 # Multiply the matrices to get the RR when it is significant and 0 when it is not significant
 rr<-meanotus*ctrst.glm.CBFP.T3s.sub
 
-
-
-
-
-
+####################################################################################################################################
 ####################################################################################################################################
 
 ##### 1. BULK SOIL - NOT RAREFIED #####
@@ -684,7 +554,7 @@ K0705.rh_table
 ###############################################################################
 # Filter low-abundant taxa
 # keeping OTUs with at least 0.01 % relative abundance across all samples
-physeq.subset <- M04rawseq1
+physeq.subset <- K09rawseq1
 physeq.subset #
 data.obs <- as.data.frame(otu_table(physeq.subset))
 keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
@@ -749,7 +619,7 @@ a = tibble("sample"= tmp_T3s@sam_data$SampleID,
 a[a == "Control"] <- "1a"
 a = as.factor(a$treatment)
 # offset
-o = log(sample_sums(M04rawseq1))
+o = log(sample_sums(K09rawseq1))
 # random effect
 z <- as.factor(tmp_T3s@sam_data$SampleID)
 
@@ -798,12 +668,56 @@ glmT3s.model.global = glmT3s.sum.global
 glmT3s.pairwise.global = glmT3s.pairwise.global
 glmT3s.pairwise.global$p.adjust <- p.adjust(glmT3s.pairwise.global$p.value, method = "fdr")
 
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
-write.csv(glmT3s.pairwise.global, file = "AOB_M04_070923.csv")
-aob.M04.fil <- as.data.frame(otu_table(physeq.subset.75))
-write.csv(aob.M04.fil, file = "AOB_M04tab_070923.csv")
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOB_BulkSoil_raw/')
+AOB_M04 <- read.csv("AOB_M04_120923.csv")[,-1]
+AOB_M04$contrast <- paste("M_042822", AOB_M04$contrast, sep="_")
+AOB_D04 <- read.csv("AOB_D04_120923.csv")[,-1]
+AOB_D04$contrast <- paste("D_042822", AOB_D04$contrast, sep="_")
+AOB_K04 <- read.csv("AOB_K04_120923.csv")[,-1]
+AOB_K04$contrast <- paste("K_042822", AOB_K04$contrast, sep="_")
 
+AOB_M06 <- read.csv("AOB_M06_120923.csv")[,-1]
+AOB_M06$contrast <- paste("M_060122", AOB_M06$contrast, sep="_")
+AOB_D06 <- read.csv("AOB_D06_120923.csv")[,-1]
+AOB_D06$contrast <- paste("D_060122", AOB_D06$contrast, sep="_")
+AOB_K06 <- read.csv("AOB_K06_120923.csv")[,-1]
+AOB_K06$contrast <- paste("K_060122", AOB_K06$contrast, sep="_")
 
+AOB_M0705 <- read.csv("AOB_M0705_120923.csv")[,-1]
+AOB_M0705$contrast <- paste("M_070522", AOB_M0705$contrast, sep="_")
+AOB_D0705 <- read.csv("AOB_D0705_120923.csv")[,-1]
+AOB_D0705$contrast <- paste("D_070522", AOB_D0705$contrast, sep="_")
+AOB_K0705 <- read.csv("AOB_K0705_120923.csv")[,-1]
+AOB_K0705$contrast <- paste("K_070522", AOB_K0705$contrast, sep="_")
+
+AOB_M0720 <- read.csv("AOB_M0720_120923.csv")[,-1]
+AOB_M0720$contrast <- paste("M_072022", AOB_M0720$contrast, sep="_")
+AOB_D0720 <- read.csv("AOB_D0720_120923.csv")[,-1]
+AOB_D0720$contrast <- paste("D_072022", AOB_D0720$contrast, sep="_")
+AOB_K0720 <- read.csv("AOB_K0720_120923.csv")[,-1]
+AOB_K0720$contrast <- paste("K_072022", AOB_K0720$contrast, sep="_")
+
+AOB_M09 <- read.csv("AOB_M09_120923.csv")[,-1]
+AOB_M09$contrast <- paste("M_091322", AOB_M09$contrast, sep="_")
+AOB_D09 <- read.csv("AOB_D09_120923.csv")[,-1]
+AOB_D09$contrast <- paste("D_091322", AOB_D09$contrast, sep="_")
+AOB_K09 <- read.csv("AOB_K09_120923.csv")[,-1]
+AOB_K09$contrast <- paste("K_091322", AOB_K09$contrast, sep="_")
+
+glmT3s.pairwise.global.ALL.raw <- rbind(AOB_M04, AOB_D04, AOB_K04, AOB_M06, AOB_D06, AOB_K06,
+                                    AOB_M0705, AOB_D0705, AOB_K0705, AOB_M0720, AOB_D0720, AOB_K0720,
+                                    AOB_M09, AOB_D09, AOB_K09)
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global.ALL.raw$p.value <= 0.06)
+table(glmT3s.pairwise.global.ALL.raw$p.adjust <= 0.06)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s = unique(glmT3s.pairwise.global.ALL.raw$OTU[glmT3s.pairwise.global.ALL.raw$p.adjust <= 0.06])
+glmT3s.pairwise.global.signif.raw = glmT3s.pairwise.global.ALL.raw[glmT3s.pairwise.global.ALL.raw$p.adjust <=0.06,]
+
+length(tmp_otu3s)
+tmp_otu3s
 
 
 
