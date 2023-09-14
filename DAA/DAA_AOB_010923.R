@@ -116,7 +116,7 @@ K0705.rh.seq1 <- prune_taxa(taxa_sums(K0705.rh.seq)>0, K0705.rh.seq)
 ###############################################################################
 # Filter low-abundant taxa
 # keeping OTUs with at least 0.01 % relative abundance across all samples
-physeq.subset <- M04seq1
+physeq.subset <- K0705.rh.seq1
 physeq.subset 
 data.obs <- as.data.frame(otu_table(physeq.subset))
 keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
@@ -161,7 +161,7 @@ df_otu_prev_ttt$max_prev <- apply(df_otu_prev_ttt,MARGIN=1, FUN=max)
 physeq.subset 
 ps =  physeq.subset 
 df_prev = df_otu_prev_ttt
-tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 75,])
+tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 80,])
 physeq.subset.75 <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
 rm(ps,df_prev,tmp_otu_F)
 physeq.subset.75  # 32 taxa
@@ -232,10 +232,10 @@ glmT3s.model.global = glmT3s.sum.global
 glmT3s.pairwise.global = glmT3s.pairwise.global
 glmT3s.pairwise.global$p.adjust <- p.adjust(glmT3s.pairwise.global$p.value, method = "fdr")
 
-#setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
-#write.csv(glmT3s.pairwise.global, file = "AOB_K06.rh_070923.csv")
-#aob.K06.rh.fil <- as.data.frame(otu_table(physeq.subset.75))
-#write.csv(aob.K06.rh.fil, file = "AOB_K06.rh.tab_070923.csv")
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOB_Rhizo_rare_prev80/')
+write.csv(glmT3s.pairwise.global, file = "AOB_K0705.rh_130923.csv")
+aob.K0705.rh.fil <- as.data.frame(otu_table(physeq.subset.75))
+write.csv(aob.K0705.rh.fil, file = "AOB_K0705.rh.tab_130923.csv")
 ##############################################################################################################################
 
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOB_BulkSoil_rare/')
@@ -279,12 +279,12 @@ glmT3s.pairwise.global.ALL <- rbind(AOB_M04, AOB_D04, AOB_K04, AOB_M06, AOB_D06,
                                     AOB_M09, AOB_D09, AOB_K09)
 
 ## nb of pval <= 0.05 before and after filter
-table(glmT3s.pairwise.global.ALL$p.value <= 0.06)
-table(glmT3s.pairwise.global.ALL$p.adjust <= 0.06)
+table(glmT3s.pairwise.global.ALL$p.value <= 0.05)
+table(glmT3s.pairwise.global.ALL$p.adjust <= 0.05)
 
 ## nb of OTU with a pval <= 0.05 before and after filter
-tmp_otu3s = unique(glmT3s.pairwise.global.ALL$OTU[glmT3s.pairwise.global.ALL$p.adjust <= 0.06])
-glmT3s.pairwise.global.signif = glmT3s.pairwise.global.ALL[glmT3s.pairwise.global.ALL$p.adjust <=0.06,]
+tmp_otu3s = unique(glmT3s.pairwise.global.ALL$OTU[glmT3s.pairwise.global.ALL$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif = glmT3s.pairwise.global.ALL[glmT3s.pairwise.global.ALL$p.adjust <=0.05,]
 
 length(tmp_otu3s)
 tmp_otu3s
@@ -303,7 +303,7 @@ contrasts.glm.CBFP.T3s$contrast <- NULL
 
 
 # keep OTUs with at least one contrast <0.05 
-contrasts.glm.CBFP.T3s.sub <- contrasts.glm.CBFP.T3s[,colSums(contrasts.glm.CBFP.T3s<0.06, na.rm=TRUE) >= 1]
+contrasts.glm.CBFP.T3s.sub <- contrasts.glm.CBFP.T3s[,colSums(contrasts.glm.CBFP.T3s<0.05, na.rm=TRUE) >= 1]
 dim(contrasts.glm.CBFP.T3s.sub)
 head(contrasts.glm.CBFP.T3s.sub)
 str(contrasts.glm.CBFP.T3s.sub)
@@ -312,8 +312,8 @@ ctrst.glm.CBFP.T3s.sub <- data.frame(t(contrasts.glm.CBFP.T3s.sub))
 
 # replace pvalues to 0 if non significant, or 1 if significant
 #ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub ==NA] <- 0
-ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub >0.06] <- 2
-ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub <0.06] <- 1
+ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub >0.05] <- 2
+ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub <0.05] <- 1
 ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub >1] <- 0
 ctrst.glm.CBFP.T3s.sub[is.na(ctrst.glm.CBFP.T3s.sub)] <- 0
 head(ctrst.glm.CBFP.T3s.sub)
@@ -369,16 +369,298 @@ ctrst.glm.CBFP.T3s.sub<-ctrst.glm.CBFP.T3s.sub[,c(11,12,13,14,15,
                                                   6,7,8,9,10)]
 ctrst.glm.CBFP.T3s.sub <- ctrst.glm.CBFP.T3s.sub[rownames(meanotus), ]
 
-# replace "-" by "." to be able to compare both datasets. Also, put OTUs in the same order in both cases
-row.names(meanotus)<-gsub("-", ".", row.names(meanotus))
-meanotus<-meanotus[row.names(ctrst.glm.CBFP.T3s.sub),]
-head(meanotus)
+# Multiply the matrices to get the RR when it is significant and 0 when it is not significant
+rr<-meanotus*ctrst.glm.CBFP.T3s.sub
+
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOB_Rare/AOB_BulkSoil_rare/')
+write.csv(rr, file = "AOB_RR_130923.csv")
+
+
+
+####################################################################################################################################
+# BULK SOIL-FOR PREVALENCE 80
+#############################################################################################################################
+
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOB_BulkSoil_rare_prev80/')
+AOB_M04 <- read.csv("AOB_M04_130923.csv")[,-1]
+AOB_M04$contrast <- paste("M_042822", AOB_M04$contrast, sep="_")
+AOB_D04 <- read.csv("AOB_D04_130923.csv")[,-1]
+AOB_D04$contrast <- paste("D_042822", AOB_D04$contrast, sep="_")
+AOB_K04 <- read.csv("AOB_K04_130923.csv")[,-1]
+AOB_K04$contrast <- paste("K_042822", AOB_K04$contrast, sep="_")
+
+AOB_M06 <- read.csv("AOB_M06_130923.csv")[,-1]
+AOB_M06$contrast <- paste("M_060122", AOB_M06$contrast, sep="_")
+AOB_D06 <- read.csv("AOB_D06_130923.csv")[,-1]
+AOB_D06$contrast <- paste("D_060122", AOB_D06$contrast, sep="_")
+AOB_K06 <- read.csv("AOB_K06_130923.csv")[,-1]
+AOB_K06$contrast <- paste("K_060122", AOB_K06$contrast, sep="_")
+
+AOB_M0705 <- read.csv("AOB_M0705_130923.csv")[,-1]
+AOB_M0705$contrast <- paste("M_070522", AOB_M0705$contrast, sep="_")
+AOB_D0705 <- read.csv("AOB_D0705_130923.csv")[,-1]
+AOB_D0705$contrast <- paste("D_070522", AOB_D0705$contrast, sep="_")
+AOB_K0705 <- read.csv("AOB_K0705_130923.csv")[,-1]
+AOB_K0705$contrast <- paste("K_070522", AOB_K0705$contrast, sep="_")
+
+AOB_M0720 <- read.csv("AOB_M0720_130923.csv")[,-1]
+AOB_M0720$contrast <- paste("M_072022", AOB_M0720$contrast, sep="_")
+AOB_D0720 <- read.csv("AOB_D0720_130923.csv")[,-1]
+AOB_D0720$contrast <- paste("D_072022", AOB_D0720$contrast, sep="_")
+AOB_K0720 <- read.csv("AOB_K0720_130923.csv")[,-1]
+AOB_K0720$contrast <- paste("K_072022", AOB_K0720$contrast, sep="_")
+
+AOB_M09 <- read.csv("AOB_M09_130923.csv")[,-1]
+AOB_M09$contrast <- paste("M_091322", AOB_M09$contrast, sep="_")
+AOB_D09 <- read.csv("AOB_D09_130923.csv")[,-1]
+AOB_D09$contrast <- paste("D_091322", AOB_D09$contrast, sep="_")
+AOB_K09 <- read.csv("AOB_K09_130923.csv")[,-1]
+AOB_K09$contrast <- paste("K_091322", AOB_K09$contrast, sep="_")
+
+glmT3s.pairwise.global.ALL <- rbind(AOB_M04, AOB_D04, AOB_K04, AOB_M06, AOB_D06, AOB_K06,
+                                    AOB_M0705, AOB_D0705, AOB_K0705, AOB_M0720, AOB_D0720, AOB_K0720,
+                                    AOB_M09, AOB_D09, AOB_K09)
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global.ALL$p.value <= 0.05)
+table(glmT3s.pairwise.global.ALL$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s = unique(glmT3s.pairwise.global.ALL$OTU[glmT3s.pairwise.global.ALL$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif = glmT3s.pairwise.global.ALL[glmT3s.pairwise.global.ALL$p.adjust <=0.05,]
+
+length(tmp_otu3s)
+tmp_otu3s
+
+# cast pvalues
+contrasts.glm.CBFP.T3s <- glmT3s.pairwise.global.ALL[,c(10,1,2)]
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s) <- c("value", "OTU_names", "contrast")
+#contrasts.glm.CBFP.T3s <- subset(contrasts.glm.CBFP.T3s, (contrasts.glm.CBFP.T3s$OTU_names %in% BFPOTUs.T3snet.sig))
+head(contrasts.glm.CBFP.T3s)
+str(contrasts.glm.CBFP.T3s)
+contrasts.glm.CBFP.T3s <- data.frame(cast(contrasts.glm.CBFP.T3s, contrast ~ OTU_names, value="value"))
+str(contrasts.glm.CBFP.T3s)
+rownames(contrasts.glm.CBFP.T3s) <- contrasts.glm.CBFP.T3s$contrast
+contrasts.glm.CBFP.T3s$contrast <- NULL
+
+
+# keep OTUs with at least one contrast <0.05 
+contrasts.glm.CBFP.T3s.sub <- contrasts.glm.CBFP.T3s[,colSums(contrasts.glm.CBFP.T3s<0.05, na.rm=TRUE) >= 1]
+dim(contrasts.glm.CBFP.T3s.sub)
+head(contrasts.glm.CBFP.T3s.sub)
+str(contrasts.glm.CBFP.T3s.sub)
+
+ctrst.glm.CBFP.T3s.sub <- data.frame(t(contrasts.glm.CBFP.T3s.sub))
+
+# replace pvalues to 0 if non significant, or 1 if significant
+#ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub ==NA] <- 0
+ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub >0.05] <- 2
+ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub <0.05] <- 1
+ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub >1] <- 0
+ctrst.glm.CBFP.T3s.sub[is.na(ctrst.glm.CBFP.T3s.sub)] <- 0
 head(ctrst.glm.CBFP.T3s.sub)
+
+# Calculate the OTU avg per treatment
+# CHECK THE OBJECT
+#devtools::install_github("vmikk/metagMisc")
+library(metagMisc)
+meanotus<-phyloseq_average(aob.physeq_bulk1,avg_type="arithmetic",acomp_zero_impute = NULL,group="var3")
+meanotus<-as.data.frame(otu_table(meanotus));meanotus
+
+# same order for both meanotus and tmp_otu3s
+meanotus<-meanotus[tmp_otu3s,]
+#meanotus<-meanotus[c("ASV_10", "ASV_12", "ASV_28", "ASV_33", "ASV_35", "ASV_44", "ASV_52", "ASV_54", "ASV_59", "ASV_64", "ASV_71"),]
+#meanotus<-meanotus[,c("ASV_10", "ASV_12", "ASV_28", "ASV_33", "ASV_35", "ASV_44", "ASV_52", "ASV_54", "ASV_59", "ASV_64", "ASV_71"),]
+
+# Calculate log2fold ratios for all OTUs in the filtered table
+
+meanotus$RR_M_042822 <- log2(meanotus$RMBS1 / meanotus$CMBS1)
+meanotus$RR_M_060122 <- log2(meanotus$RMBS2 / meanotus$CMBS2)
+meanotus$RR_M_070522 <- log2(meanotus$RMBS3 / meanotus$CMBS3)
+meanotus$RR_M_072022 <- log2(meanotus$RMBS4 / meanotus$CMBS4)
+meanotus$RR_M_091322 <- log2(meanotus$RMBS5 / meanotus$CMBS5)
+
+meanotus$RR_D_042822 <- log2(meanotus$RDBS1 / meanotus$CDBS1)
+meanotus$RR_D_060122 <- log2(meanotus$RDBS2 / meanotus$CDBS2)
+meanotus$RR_D_070522 <- log2(meanotus$RDBS3 / meanotus$CDBS3)
+meanotus$RR_D_072022 <- log2(meanotus$RDBS4 / meanotus$CDBS4)
+meanotus$RR_D_091322 <- log2(meanotus$RDBS5 / meanotus$CDBS5)
+
+meanotus$RR_K_042822 <- log2(meanotus$RKBS1 / meanotus$CKBS1)
+meanotus$RR_K_060122 <- log2(meanotus$RKBS2 / meanotus$CKBS2)
+meanotus$RR_K_070522 <- log2(meanotus$RKBS3 / meanotus$CKBS3)
+meanotus$RR_K_072022 <- log2(meanotus$RKBS4 / meanotus$CKBS4)
+meanotus$RR_K_091322 <- log2(meanotus$RKBS5 / meanotus$CKBS5)
+
+
+head(meanotus)
+# keep only columns containing log2fold ratios (RRs)
+meanotus<-meanotus[,c(31:45)]
+head(meanotus)
+meanotus[meanotus == "-Inf"] <- 0
+meanotus[meanotus == "Inf"] <- 0
+meanotus[meanotus == "NaN"] <- 0
+
+
+ctrst.glm.CBFP.T3s.sub.ed <- 
+  head(ctrst.glm.CBFP.T3s.sub)
+
+# put the same column order in ctrst.glm.CBFP.T3s.sub and in meanotus
+ctrst.glm.CBFP.T3s.sub<-ctrst.glm.CBFP.T3s.sub[,c(11,12,13,14,15,
+                                                  1,2,3,4,5,
+                                                  6,7,8,9,10)]
+ctrst.glm.CBFP.T3s.sub <- ctrst.glm.CBFP.T3s.sub[rownames(meanotus), ]
+
+# Multiply the matrices to get the RR when it is significant and 0 when it is not significant
+rr<-meanotus*ctrst.glm.CBFP.T3s.sub
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOB_BulkSoil_rare_prev80/')
+#write.csv(rr, file = "AOB_RR_prev80_130923.csv")
+
+
+# Calculate the percentage of increased and decreased OTUs for each treatment
+
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOB_BulkSoil_rare_prev80/')
+rr <- read.csv("AOB_RR_prev80_130923.csv", row.names = 1)
+
+install.packages("colorRamp2")
+library(colorRamp2)
+BiocManager::install("ComplexHeatmap")
+library(ComplexHeatmap)
+
+col_fun = colorRamp2(c(-10, 0, 10), c("blue", "white", "red"))
+Heatmap(as.matrix(rr), cluster_columns = F, col= col_fun)
+
+
+
+
+
+
+
+
+
+
+
+
+
+####################################################################################################################################
+# RHIZOSPHERE SOIL-FOR PREVALENCE 80
+##############################################################################################################################
+
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOB_Rhizo_rare_prev80/')
+AOB_M04 <- read.csv("AOB_M04.rh_130923.csv")[,-1]
+AOB_M04$contrast <- paste("M_042822", AOB_M04$contrast, sep="_")
+AOB_D04 <- read.csv("AOB_D04.rh_130923.csv")[,-1]
+AOB_D04$contrast <- paste("D_042822", AOB_D04$contrast, sep="_")
+AOB_K04 <- read.csv("AOB_K04.rh_130923.csv")[,-1]
+AOB_K04$contrast <- paste("K_042822", AOB_K04$contrast, sep="_")
+
+AOB_M06 <- read.csv("AOB_M06.rh_130923.csv")[,-1]
+AOB_M06$contrast <- paste("M_060122", AOB_M06$contrast, sep="_")
+AOB_D06 <- read.csv("AOB_D06.rh_130923.csv")[,-1]
+AOB_D06$contrast <- paste("D_060122", AOB_D06$contrast, sep="_")
+AOB_K06 <- read.csv("AOB_K06.rh_130923.csv")[,-1]
+AOB_K06$contrast <- paste("K_060122", AOB_K06$contrast, sep="_")
+
+AOB_M0705 <- read.csv("AOB_M0705.rh_130923.csv")[,-1]
+AOB_M0705$contrast <- paste("M_070522", AOB_M0705$contrast, sep="_")
+AOB_D0705 <- read.csv("AOB_D0705.rh_130923.csv")[,-1]
+AOB_D0705$contrast <- paste("D_070522", AOB_D0705$contrast, sep="_")
+AOB_K0705 <- read.csv("AOB_K0705.rh_130923.csv")[,-1]
+AOB_K0705$contrast <- paste("K_070522", AOB_K0705$contrast, sep="_")
+
+glmT3s.pairwise.global.ALL <- rbind(AOB_M04, AOB_D04, AOB_K04, AOB_M06, AOB_D06, AOB_K06,
+                                    AOB_M0705, AOB_D0705, AOB_K0705)
+
+## nb of pval <= 0.05 before and after filter
+table(glmT3s.pairwise.global.ALL$p.value <= 0.05)
+table(glmT3s.pairwise.global.ALL$p.adjust <= 0.05)
+
+## nb of OTU with a pval <= 0.05 before and after filter
+tmp_otu3s = unique(glmT3s.pairwise.global.ALL$OTU[glmT3s.pairwise.global.ALL$p.adjust <= 0.05])
+glmT3s.pairwise.global.signif = glmT3s.pairwise.global.ALL[glmT3s.pairwise.global.ALL$p.adjust <=0.05,]
+
+length(tmp_otu3s)
+tmp_otu3s
+
+# cast pvalues
+contrasts.glm.CBFP.T3s <- glmT3s.pairwise.global.ALL[,c(10,1,2)]
+# numeric variable needs to be named "value" 
+colnames(contrasts.glm.CBFP.T3s) <- c("value", "OTU_names", "contrast")
+#contrasts.glm.CBFP.T3s <- subset(contrasts.glm.CBFP.T3s, (contrasts.glm.CBFP.T3s$OTU_names %in% BFPOTUs.T3snet.sig))
+head(contrasts.glm.CBFP.T3s)
+str(contrasts.glm.CBFP.T3s)
+contrasts.glm.CBFP.T3s <- data.frame(cast(contrasts.glm.CBFP.T3s, contrast ~ OTU_names, value="value"))
+str(contrasts.glm.CBFP.T3s)
+rownames(contrasts.glm.CBFP.T3s) <- contrasts.glm.CBFP.T3s$contrast
+contrasts.glm.CBFP.T3s$contrast <- NULL
+
+
+# keep OTUs with at least one contrast <0.05 
+contrasts.glm.CBFP.T3s.sub <- contrasts.glm.CBFP.T3s[,colSums(contrasts.glm.CBFP.T3s<0.05, na.rm=TRUE) >= 1]
+dim(contrasts.glm.CBFP.T3s.sub)
+head(contrasts.glm.CBFP.T3s.sub)
+str(contrasts.glm.CBFP.T3s.sub)
+
+ctrst.glm.CBFP.T3s.sub <- data.frame(t(contrasts.glm.CBFP.T3s.sub))
+
+# replace pvalues to 0 if non significant, or 1 if significant
+#ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub ==NA] <- 0
+ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub >0.05] <- 2
+ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub <0.05] <- 1
+ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub >1] <- 0
+ctrst.glm.CBFP.T3s.sub[is.na(ctrst.glm.CBFP.T3s.sub)] <- 0
+head(ctrst.glm.CBFP.T3s.sub)
+
+# Calculate the OTU avg per treatment
+# CHECK THE OBJECT
+#devtools::install_github("vmikk/metagMisc")
+library(metagMisc)
+meanotus<-phyloseq_average(aob.physeq_rh1,avg_type="arithmetic",acomp_zero_impute = NULL,group="var3")
+meanotus<-as.data.frame(otu_table(meanotus));meanotus
+
+# same order for both meanotus and tmp_otu3s
+meanotus<-meanotus[tmp_otu3s,]
+#meanotus<-meanotus[c("ASV_10", "ASV_12", "ASV_28", "ASV_33", "ASV_35", "ASV_44", "ASV_52", "ASV_54", "ASV_59", "ASV_64", "ASV_71"),]
+#meanotus<-meanotus[,c("ASV_10", "ASV_12", "ASV_28", "ASV_33", "ASV_35", "ASV_44", "ASV_52", "ASV_54", "ASV_59", "ASV_64", "ASV_71"),]
+
+# Calculate log2fold ratios for all OTUs in the filtered table
+
+meanotus$RR_M_042822 <- log2(meanotus$RMRS1 / meanotus$CMRS1)
+meanotus$RR_M_060122 <- log2(meanotus$RMRS2 / meanotus$CMRS2)
+meanotus$RR_M_070522 <- log2(meanotus$RMRS3 / meanotus$CMRS3)
+
+meanotus$RR_D_042822 <- log2(meanotus$RDRS1 / meanotus$CDRS1)
+meanotus$RR_D_060122 <- log2(meanotus$RDRS2 / meanotus$CDRS2)
+meanotus$RR_D_070522 <- log2(meanotus$RDRS3 / meanotus$CDRS3)
+
+meanotus$RR_K_042822 <- log2(meanotus$RKRS1 / meanotus$CKRS1)
+meanotus$RR_K_060122 <- log2(meanotus$RKRS2 / meanotus$CKRS2)
+meanotus$RR_K_070522 <- log2(meanotus$RKRS3 / meanotus$CKRS3)
+
+head(meanotus)
+# keep only columns containing log2fold ratios (RRs)
+meanotus<-meanotus[,c(19:27)]
+head(meanotus)
+meanotus[meanotus == "-Inf"] <- 0
+meanotus[meanotus == "Inf"] <- 0
+meanotus[meanotus == "NaN"] <- 0
+
+ctrst.glm.CBFP.T3s.sub.ed <- 
+  head(ctrst.glm.CBFP.T3s.sub)
+
+# put the same column order in ctrst.glm.CBFP.T3s.sub and in meanotus
+ctrst.glm.CBFP.T3s.sub<-ctrst.glm.CBFP.T3s.sub[,c(7,8,9,
+                                                  1,2,3,
+                                                  4,5,6)]
+ctrst.glm.CBFP.T3s.sub <- ctrst.glm.CBFP.T3s.sub[rownames(meanotus), ]
 
 # Multiply the matrices to get the RR when it is significant and 0 when it is not significant
 rr<-meanotus*ctrst.glm.CBFP.T3s.sub
 
-####################################################################################################################################
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOB_Rhizo_rare_prev80/')
+write.csv(rr, file = "AOB_RR_Rhizo_130923.csv")
+
 ####################################################################################################################################
 
 ##### 1. BULK SOIL - NOT RAREFIED #####

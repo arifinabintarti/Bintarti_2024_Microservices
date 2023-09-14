@@ -200,7 +200,7 @@ set.seed(333)
 aob.rare.1282.seq <- rarefy_even_depth(aob.physeq, sample.size = 1282,
                                        rngseed = 333, replace = FALSE, trimOTUs = TRUE, verbose = TRUE)
 aob.rare.1282.seq # 1 samples removed (S11), 116 ASVs were removed
-sort(rowSums(otu_table(aob.rare.1282.seq), na.rm = FALSE, dims = 1), decreasing = F)
+ sort(rowSums(otu_table(aob.rare.1282.seq), na.rm = FALSE, dims = 1), decreasing = F)
 ######################################################################################################
 
 # Calculate the alpha diversity (Richness and Pielou's evenness, we also calculates Shannon index) 
