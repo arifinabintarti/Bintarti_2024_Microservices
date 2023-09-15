@@ -129,6 +129,13 @@ sample_names(aob.meta.physeq)
 setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB-rooted-tree/')
 setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB-rooted-tree/')
 AOB_rooted_tree <- ape::read.tree("tree.nwk")
+# tree visualization
+library("treeio")
+library("ggtree")
+p <- ggtree(AOB_rooted_tree, layout = "circular") + 
+  geom_tiplab(size=3, color="purple")
+p 
+
 
 # make phyloseq object
 aob.physeq <- merge_phyloseq(aob.asv.physeq,aob.tax.physeq,aob.meta.physeq,AOB_rooted_tree)

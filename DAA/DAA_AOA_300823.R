@@ -331,6 +331,47 @@ rr<-meanotus*ctrst.glm.CBFP.T3s.sub
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOA_BulkSoil_rare_prev80/')
 write.csv(rr, file = "AOA_RR_130923.csv")
 
+# HeatMap
+
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOA_BulkSoil_rare_prev80/')
+rr.aoa <- read.csv("AOA_RR_130923.csv", row.names = 1)
+names(rr.aoa)=str_sub(names(rr.aoa),4)
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOA_Rhizo_rare_prev80/')
+rr.aoa.rhizo <- read.csv("AOA_RR_Rhizo_140923.csv", row.names = 1)
+names(rr.aoa.rhizo)=str_sub(names(rr.aoa.rhizo),4)
+
+
+#install.packages("colorRamp2")
+library(colorRamp2)
+#BiocManager::install("ComplexHeatmap")
+library(ComplexHeatmap)
+
+col_fun = colorRamp2(c(-10, 0, 10), c("blue", "white", "red"))
+aoa.bs.hm <- Heatmap(as.matrix(rr.aoa), cluster_columns = F, col= col_fun)
+aoa.bs.hm
+aoa.rz.hm <- Heatmap(as.matrix(rr.aoa.rhizo), cluster_columns = F, col= col_fun)
+aoa.rz.hm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ####################################################################################################################
 ####################################################################################################################
 ##### 2. RHIZOSPHERE - RAREFIED #####

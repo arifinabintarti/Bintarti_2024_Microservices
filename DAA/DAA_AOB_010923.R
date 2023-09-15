@@ -116,7 +116,7 @@ K0705.rh.seq1 <- prune_taxa(taxa_sums(K0705.rh.seq)>0, K0705.rh.seq)
 ###############################################################################
 # Filter low-abundant taxa
 # keeping OTUs with at least 0.01 % relative abundance across all samples
-physeq.subset <- K0705.rh.seq1
+physeq.subset <- M04seq1
 physeq.subset 
 data.obs <- as.data.frame(otu_table(physeq.subset))
 keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
@@ -200,12 +200,12 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
   
   tryCatch({
     ### model
-    glmT3s <- glmmTMB(y ~ a + (1 | z), family='poisson', offset = o)
+    glmT3s <- glmmTMB(y ~ a + (1|z) , family="poisson", offset = o)
     #glmT3s <- glm(y ~ a, family='poisson')
     glmT3s.sum = summary(glmT3s)$coefficients
     glmT3s.sum = tibble("OTU"= OTU,
                         "treatment"=rownames(glmT3s.sum),
-                        as_tibble(glmT3s.sum$cond))
+                        as_tibble(glmT3s.sum))
     glmT3s.sum
     glmT3s.sum.global = rbind(glmT3s.sum.global,glmT3s.sum)
     ### multiple comparison
@@ -518,26 +518,29 @@ rr<-meanotus*ctrst.glm.CBFP.T3s.sub
 #write.csv(rr, file = "AOB_RR_prev80_130923.csv")
 
 
-# Calculate the percentage of increased and decreased OTUs for each treatment
+# HeatMap
 
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOB_BulkSoil_rare_prev80/')
 rr <- read.csv("AOB_RR_prev80_130923.csv", row.names = 1)
+names(rr)=str_sub(names(rr),4)
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOB_Rhizo_rare_prev80/')
+rr.rhizo <- read.csv("AOB_RR_Rhizo_130923.csv", row.names = 1)
+names(rr.rhizo)=str_sub(names(rr.rhizo),4)
 
-install.packages("colorRamp2")
+#install.packages("colorRamp2")
 library(colorRamp2)
-BiocManager::install("ComplexHeatmap")
+#BiocManager::install("ComplexHeatmap")
 library(ComplexHeatmap)
 
 col_fun = colorRamp2(c(-10, 0, 10), c("blue", "white", "red"))
-Heatmap(as.matrix(rr), cluster_columns = F, col= col_fun)
+aob.bs.hm <- Heatmap(as.matrix(rr),
+                     name = "Log2-ratio",
+                     column_title = "AOB",
+                     row_title = "Taxa",
+                     cluster_columns = F, 
+                     col= col_fun)
 
-
-
-
-
-
-
-
+bs.hm.all <- aob.bs.hm+aoa.bs.hm+com.bs.hm
 
 
 
@@ -836,7 +839,7 @@ K0705.rh_table
 ###############################################################################
 # Filter low-abundant taxa
 # keeping OTUs with at least 0.01 % relative abundance across all samples
-physeq.subset <- K09rawseq1
+physeq.subset <- M04rawseq1
 physeq.subset #
 data.obs <- as.data.frame(otu_table(physeq.subset))
 keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
@@ -881,7 +884,7 @@ df_otu_prev_ttt$max_prev <- apply(df_otu_prev_ttt,MARGIN=1, FUN=max)
 physeq.subset 
 ps =  physeq.subset 
 df_prev = df_otu_prev_ttt
-tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 75,])
+tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 80,])
 physeq.subset.75 <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
 rm(ps,df_prev,tmp_otu_F)
 physeq.subset.75 # 36 taxa
@@ -901,7 +904,7 @@ a = tibble("sample"= tmp_T3s@sam_data$SampleID,
 a[a == "Control"] <- "1a"
 a = as.factor(a$treatment)
 # offset
-o = log(sample_sums(K09rawseq1))
+o = log(sample_sums(M04rawseq1))
 # random effect
 z <- as.factor(tmp_T3s@sam_data$SampleID)
 
