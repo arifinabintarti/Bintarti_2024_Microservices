@@ -335,23 +335,83 @@ write.csv(rr, file = "COMA_RR_130923.csv")
 
 # HeatMap
 
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/COM_BulkSoil_rare_prev80/')
-rr.com <- read.csv("COMA_RR_130923.csv", row.names = 1)
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/log2fold/')
+rr.com <- read.csv("COMA_RR_Bulk_130923.csv", row.names = 1)
 names(rr.com)=str_sub(names(rr.com),4)
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/COM_Rhizo_rare_prev80/')
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/log2fold/')
 rr.com.rhizo <- read.csv("COMA_RR_Rhizo_140923.csv", row.names = 1)
 names(rr.com.rhizo)=str_sub(names(rr.com.rhizo),4)
+#Set annotation
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+ann.com <- read.csv("COM.anno.csv", row.names = 1)
+colours.com <- list("Taxonomy"=c("Clade B Nitrospira-sp.LPPL-bin249"="#E5B17E",
+                                 "Clade B Nitrospira-sp.GGF-bin22"="#B26F2C",
+                                 "Clade B Nitrospira-sp.LM-bin98"="#CC8E51"))
 
-#install.packages("colorRamp2")
-library(colorRamp2)
-#BiocManager::install("ComplexHeatmap")
-library(ComplexHeatmap)
-
-col_fun = colorRamp2(c(-10, 0, 10), c("blue", "white", "red"))
-com.bs.hm <- Heatmap(as.matrix(rr.com), cluster_columns = F, col= col_fun)
+colAnn.com <- rowAnnotation(df=ann.com,name = "Taxonomy",col=colours.com,
+                            annotation_width=unit(c(1, 4), "cm"), 
+                            gap=unit(1, "mm"))
+colAnn.com
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+ann.fert <- read.csv("BulkSoil.anno.csv", row.names = 1)
+colours.fert <- list("Fertilization"=c("M"="#ffcf20FF",
+                                       "D"="#541352FF",
+                                       "K"="#2f9aa0FF"))
+colFert.Ann <- columnAnnotation(df=ann.fert, col=colours.fert,
+                                show_legend =F,
+                                show_annotation_name =F,
+                                annotation_width=unit(c(1, 4), "cm"), 
+                                gap=unit(1, "mm"))
+# heatmap
+col_fun = colorRamp2(c(10, 0, -10), c("blue", "white", "red"))
+com.bs.hm <- Heatmap(as.matrix(rr.com),
+                     name = "Log2-ratio",
+                     column_title = "Bulk Soil",
+                     cluster_columns = F,
+                     column_order = order(colnames(as.matrix(rr.com))),
+                     bottom_annotation = colFert.Ann,
+                     #column_names_gp = gpar(col = c(rep("red", 10), rep("blue", 8)))
+                     #column_names_rot = 45,
+                     show_column_dend = F,
+                     show_row_dend = F,
+                     border_gp = gpar(col = "black", lty = 2),
+                     col= col_fun)
 com.bs.hm
-com.rz.hm <- Heatmap(as.matrix(rr.com.rhizo), cluster_columns = F, col= col_fun)
-com.rz.hm
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+ann.fert.rh <- read.csv("Rhizo.anno.csv", row.names = 1)
+colours.fert <- list("Fertilization"=c("M"="#ffcf20FF",
+                                       "D"="#541352FF",
+                                       "K"="#2f9aa0FF"))
+colFert.Ann.rh <- columnAnnotation(df=ann.fert.rh, col=colours.fert,
+                                   show_legend =F,
+                                   show_annotation_name =F,
+                                   annotation_width=unit(c(1, 4), "cm"), 
+                                   gap=unit(1, "mm"))
+com.rh.hm <- Heatmap(as.matrix(rr.com.rhizo),
+                     name = "Log2-ratio",
+                     column_title = "Rhizosphere",
+                     cluster_columns = F,
+                     column_order = order(colnames(as.matrix(rr.com.rhizo))),
+                     right_annotation = colAnn.com,
+                     bottom_annotation = colFert.Ann.rh,
+                     #column_names_rot = 45,
+                     show_column_dend = F,
+                     show_row_dend = F,
+                     border_gp = gpar(col = "black", lty = 2),
+                     col= col_fun)
+com.rh.hm
+com.hm <- com.bs.hm+com.rh.hm
+com.hm
+com.hm2 <- draw(com.hm,column_title = "Comammox", 
+                align_heatmap_legend="heatmap_top",
+                column_title_gp = gpar(fontsize = 16))
+com.hm2
+# save image
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM/')
+png("heatm.com.tiff",width=12,height=5,units="in",res=1200)
+com.hm2
+dev.off()
+
 
 
 #################################################################################

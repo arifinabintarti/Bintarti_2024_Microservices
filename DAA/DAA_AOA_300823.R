@@ -330,28 +330,91 @@ rr<-meanotus*ctrst.glm.CBFP.T3s.sub
 
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOA_BulkSoil_rare_prev80/')
 write.csv(rr, file = "AOA_RR_130923.csv")
-
-# HeatMap
-
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOA_BulkSoil_rare_prev80/')
-rr.aoa <- read.csv("AOA_RR_130923.csv", row.names = 1)
-names(rr.aoa)=str_sub(names(rr.aoa),4)
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOA_Rhizo_rare_prev80/')
-rr.aoa.rhizo <- read.csv("AOA_RR_Rhizo_140923.csv", row.names = 1)
-names(rr.aoa.rhizo)=str_sub(names(rr.aoa.rhizo),4)
-
-
+################################################################################
+#HeatMap
 #install.packages("colorRamp2")
 library(colorRamp2)
 #BiocManager::install("ComplexHeatmap")
 library(ComplexHeatmap)
+# read the log2fold ratio data files
+# bulk soil
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/log2fold/')
+rr.aoa <- read.csv("AOA_RR_Bulk_130923.csv", row.names = 1)
+names(rr.aoa)=str_sub(names(rr.aoa),4)
+# rizosphere
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/log2fold/')
+rr.aoa.rhizo <- read.csv("AOA_RR_Rhizo_140923.csv", row.names = 1)
+names(rr.aoa.rhizo)=str_sub(names(rr.aoa.rhizo),4)
+#Set annotation
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+ann.aoa <- read.csv("AOA.anno.csv", row.names = 1)
+colours.aoa <- list("Taxonomy"=c("Nitrososphaerales (NS-Delta-1.Incertae_sedis)"="#A3CC51",
+                            "Nitrososphaerales (NS-Gamma-1.2)"="#E5FFB2",
+                            "Ca.Nitrosotaleales (NT-Alpha-1.1.2.2)"="#B22C2C",
+                            "Nitrososphaerales (NS-Gamma-2.3.1)"="#B2E5FF"))
 
-col_fun = colorRamp2(c(-10, 0, 10), c("blue", "white", "red"))
-aoa.bs.hm <- Heatmap(as.matrix(rr.aoa), cluster_columns = F, col= col_fun)
+colAnn.aoa <- rowAnnotation(df=ann.aoa,name = "Taxonomy",col=colours.aoa,
+                        annotation_width=unit(c(1, 4), "cm"), 
+                        gap=unit(1, "mm"))
+colAnn.aoa
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+ann.fert <- read.csv("BulkSoil.anno.csv", row.names = 1)
+colours.fert <- list("Fertilization"=c("M"="#ffcf20FF",
+                                       "D"="#541352FF",
+                                       "K"="#2f9aa0FF"))
+colFert.Ann <- columnAnnotation(df=ann.fert, col=colours.fert,
+                                show_legend =F,
+                                show_annotation_name =F,
+                                annotation_width=unit(c(1, 4), "cm"), 
+                                gap=unit(1, "mm"))
+# heatmap
+dev.off()
+col_fun = colorRamp2(c(10, 0, -10), c("blue", "white", "red"))
+aoa.bs.hm <- Heatmap(as.matrix(rr.aoa),
+                     name = "Log2-ratio",
+                     column_title = "Bulk Soil",
+                     cluster_columns = F,
+                     column_order = order(colnames(as.matrix(rr.aoa))),
+                     bottom_annotation = colFert.Ann,
+                     #column_names_gp = gpar(fontsize=15, col = c(rep("#ffcf20FF", 5), rep("#541352FF", 5), rep("#2f9aa0FF", 5))),
+                     #column_names_rot = 45,
+                     show_column_dend = F,
+                     show_row_dend = F,
+                     border_gp = gpar(col = "black", lty = 2),
+                     col= col_fun)
 aoa.bs.hm
-aoa.rz.hm <- Heatmap(as.matrix(rr.aoa.rhizo), cluster_columns = F, col= col_fun)
-aoa.rz.hm
-
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+ann.fert.rh <- read.csv("Rhizo.anno.csv", row.names = 1)
+colours.fert <- list("Fertilization"=c("M"="#ffcf20FF",
+                                       "D"="#541352FF",
+                                       "K"="#2f9aa0FF"))
+colFert.Ann.rh <- columnAnnotation(df=ann.fert.rh, col=colours.fert,
+                                   show_legend =F,
+                                   show_annotation_name =F,
+                                   annotation_width=unit(c(1, 4), "cm"), 
+                                   gap=unit(1, "mm"))
+aoa.rh.hm <- Heatmap(as.matrix(rr.aoa.rhizo),
+                     name = "Log2-ratio",
+                     column_title = "Rhizosphere",
+                     cluster_columns = F,
+                     column_order = order(colnames(as.matrix(rr.aoa.rhizo))),
+                     right_annotation = colAnn.aoa,
+                     bottom_annotation = colFert.Ann.rh,
+                     #column_names_rot = 45,
+                     show_column_dend = F,
+                     show_row_dend = F,
+                     border_gp = gpar(col = "black", lty = 2),
+                     col= col_fun)
+aoa.rh.hm
+aoa.hm <- aoa.bs.hm+aoa.rh.hm
+aoa.hm2 <- draw(aoa.hm,column_title = "AOA", align_heatmap_legend="heatmap_top", 
+                column_title_gp = gpar(fontsize = 16))
+aoa.hm2
+# save image
+setwd('D:/Fina/INRAE_Project/microservices_fig/AOA/')
+png("heatm.aoa.tiff",width=12,height=5,units="in",res=1200)
+aoa.hm2
+dev.off()
 
 
 

@@ -129,6 +129,7 @@ sample_names(aob.meta.physeq)
 setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB-rooted-tree/')
 setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB-rooted-tree/')
 AOB_rooted_tree <- ape::read.tree("tree.nwk")
+AOB_rooted_tree
 # tree visualization
 library("treeio")
 library("ggtree")
@@ -1768,6 +1769,7 @@ color <- c("#260F99","#422CB2", "#6551CC", "#8F7EE5", "#BFB2FF",
            "#6B990F", "#85B22C", "#A3CC51", "#C3E57E", "#E5FFB2",
            "#990F0F", "#B22C2C", "#CC5151", "#E57E7E", "#FFB2B2","#99540F", "#B26F2C")
 displayAvailablePalette(color="white")
+displayAvailablePalette()
 SteppedSequential5Steps
 str(aob.sp.df)
 #install.packages("ggh4x")

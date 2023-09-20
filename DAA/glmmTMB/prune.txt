@@ -1,0 +1,32 @@
+PRUNE
+#use this template to automatically prune the tree. All IDs listed below DATA line will be selected and included in the
+#pruned tree. Internal tree nodes can be specified using IDs directly, or using the 'last common ancestor' method 
+#described in iTOL help pages
+
+#lines starting with a hash are comments and ignored during parsing
+#=================================================================#
+#       Actual data follows after the "DATA" keyword              #
+#=================================================================#
+DATA
+'ASV_1'
+'ASV_10'
+'ASV_12'
+'ASV_17'
+'ASV_21'
+'ASV_28'
+'ASV_33'
+'ASV_35'
+'ASV_44'
+'ASV_52'
+'ASV_53'
+'ASV_54'
+'ASV_59'
+'ASV_64'
+'ASV_71'
+'ASV_87'
+'ASV_7'
+
+
+
+
+
