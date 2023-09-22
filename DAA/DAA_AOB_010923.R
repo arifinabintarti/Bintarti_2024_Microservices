@@ -571,7 +571,7 @@ aob.bs.hm <- Heatmap(as.matrix(rr),
                      #right_annotation = colAnn,
                      #column_names_gp = gpar(col = c(rep("red", 10), rep("blue", 8)))
                      #column_names_rot = 45,
-                     bottom_annotation = colFert.Ann,
+                     #bottom_annotation = colFert.Ann,
                      show_column_dend = F,
                      show_row_dend = F,
                      border_gp = gpar(col = "black", lty = 2),
@@ -595,7 +595,7 @@ aob.rh.hm <- Heatmap(as.matrix(rr.rhizo),
                      column_order = order(colnames(as.matrix(rr.rhizo))),
                      #column_names_gp = gpar(fontsize=15, col = c(rep("#ffcf20FF", 3), rep("#541352FF", 3), rep("#2f9aa0FF", 3))),
                      right_annotation = colAnn,
-                     bottom_annotation = colFert.Ann.rh,
+                     #bottom_annotation = colFert.Ann.rh,
                      #column_names_rot = 45,
                      show_column_dend = F,
                      show_row_dend = F,
@@ -604,7 +604,9 @@ aob.rh.hm <- Heatmap(as.matrix(rr.rhizo),
                      col= col_fun)
 aob.rh.hm
 aob.hm <- aob.bs.hm+aob.rh.hm
-aob.hm2 <- draw(aob.hm,column_title = "AOB",align_heatmap_legend="heatmap_top", column_title_gp = gpar(fontsize = 16))
+aob.hm2 <- draw(aob.hm,column_title = "AOB")
+                #align_heatmap_legend="heatmap_top", 
+                #column_title_gp = gpar(fontsize = 16))
 aob.hm2
 # save image
 setwd('D:/Fina/INRAE_Project/microservices_fig/AOB/')
@@ -612,8 +614,8 @@ png("heatm.aob.tiff",width=12,height=5,units="in",res=1200)
 aob.hm2
 dev.off()
 
-
-
+comb.hm <- aob.hm %v% aoa.hm
+comb.hm
 
 
 

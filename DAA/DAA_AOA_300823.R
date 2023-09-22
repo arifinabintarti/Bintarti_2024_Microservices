@@ -375,7 +375,7 @@ aoa.bs.hm <- Heatmap(as.matrix(rr.aoa),
                      column_title = "Bulk Soil",
                      cluster_columns = F,
                      column_order = order(colnames(as.matrix(rr.aoa))),
-                     bottom_annotation = colFert.Ann,
+                     #bottom_annotation = colFert.Ann,
                      #column_names_gp = gpar(fontsize=15, col = c(rep("#ffcf20FF", 5), rep("#541352FF", 5), rep("#2f9aa0FF", 5))),
                      #column_names_rot = 45,
                      show_column_dend = F,
@@ -399,7 +399,7 @@ aoa.rh.hm <- Heatmap(as.matrix(rr.aoa.rhizo),
                      cluster_columns = F,
                      column_order = order(colnames(as.matrix(rr.aoa.rhizo))),
                      right_annotation = colAnn.aoa,
-                     bottom_annotation = colFert.Ann.rh,
+                     #bottom_annotation = colFert.Ann.rh,
                      #column_names_rot = 45,
                      show_column_dend = F,
                      show_row_dend = F,
@@ -412,7 +412,8 @@ aoa.hm2 <- draw(aoa.hm,column_title = "AOA", align_heatmap_legend="heatmap_top",
 aoa.hm2
 # save image
 setwd('D:/Fina/INRAE_Project/microservices_fig/AOA/')
-png("heatm.aoa.tiff",width=12,height=5,units="in",res=1200)
+png("heatm.aoa.test.tiff")
+png("heatm.aoa.test.tiff",width=12,height=2.5,units="in",res=1200)
 aoa.hm2
 dev.off()
 
