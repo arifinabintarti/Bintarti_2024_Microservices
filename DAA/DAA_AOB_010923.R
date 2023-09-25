@@ -525,16 +525,23 @@ library(colorRamp2)
 library(ComplexHeatmap)
 # read the log2fold ratio data files
 # bulk soil
+setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/log2fold/')
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/log2fold/')
 rr <- read.csv("AOB_RR_Bulk_130923.csv", row.names = 1)
 names(rr)=str_sub(names(rr),4)
+
 # rizosphere
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/log2fold/')
 rr.rhizo <- read.csv("AOB_RR_Rhizo_130923.csv", row.names = 1)
 names(rr.rhizo)=str_sub(names(rr.rhizo),4)
 #Set annotation
+setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/')
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
 ann <- read.csv("AOB.anno.csv", row.names = 1)
+
+rr.ord <- rr[rownames(ann), ]
+rr.rhizo.ord <- rr.rhizo[rownames(ann), ]
+
 colours <- list("Taxonomy"=c("Nitrosospira-sp-17Nsp14_2671457573"="#2C85B2",
                             "Nitrosolobus-multiformis-Nl1_2667636517"="#990F0F",
                              "Nitrosospira-sp_2636913388"="#B2E5FF",
@@ -544,6 +551,7 @@ colours <- list("Taxonomy"=c("Nitrosospira-sp-17Nsp14_2671457573"="#2C85B2",
 colAnn <- rowAnnotation(df=ann,name = "Taxonomy",col=colours,
                             annotation_width=unit(c(1, 4), "cm"), 
                             gap=unit(1, "mm"))
+
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
 ann.fert <- read.csv("BulkSoil.anno.csv", row.names = 1)
 colours.fert <- list("Fertilization"=c("M"="#ffcf20FF",
@@ -560,23 +568,28 @@ colFert.Ann <- columnAnnotation(df=ann.fert, col=colours.fert,
 #column_split[6:10] = "D"
 #column_split[11:15] = "K"
 col_fun = colorRamp2(c(10, 0, -10), c("blue", "white", "red"))
-aob.bs.hm <- Heatmap(as.matrix(rr),
+tax = Heatmap(as.matrix(ann), cluster_rows  = F)
+aob.bs.hm <- Heatmap(as.matrix(rr.ord),
                      name = "Log2-ratio",
                      column_title = "Bulk Soil",
-                     cluster_columns = F,
+                     #cluster_columns = F,
+                     cluster_rows  = F,
                      column_order = order(colnames(as.matrix(rr))),
+                     #row_order = order(rownames(as.matrix(rr))),
                      #column_split = data.frame(rep(c("D", "K", "M"),5,5,5)),
                      #column_split = column_split,
                      #column_names_gp = gpar(fontsize=15, col = c(rep("#ffcf20FF", 5), rep("#541352FF", 5), rep("#2f9aa0FF", 5))),
-                     #right_annotation = colAnn,
+                     right_annotation = colAnn,
                      #column_names_gp = gpar(col = c(rep("red", 10), rep("blue", 8)))
                      #column_names_rot = 45,
-                     #bottom_annotation = colFert.Ann,
+                     bottom_annotation = colFert.Ann,
                      show_column_dend = F,
                      show_row_dend = F,
                      border_gp = gpar(col = "black", lty = 2),
                      col= col_fun)
 aob.bs.hm
+aob.bs.hm+tax
+
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
 ann.fert.rh <- read.csv("Rhizo.anno.csv", row.names = 1)
 colours.fert <- list("Fertilization"=c("M"="#ffcf20FF",
@@ -595,7 +608,7 @@ aob.rh.hm <- Heatmap(as.matrix(rr.rhizo),
                      column_order = order(colnames(as.matrix(rr.rhizo))),
                      #column_names_gp = gpar(fontsize=15, col = c(rep("#ffcf20FF", 3), rep("#541352FF", 3), rep("#2f9aa0FF", 3))),
                      right_annotation = colAnn,
-                     #bottom_annotation = colFert.Ann.rh,
+                     bottom_annotation = colFert.Ann.rh,
                      #column_names_rot = 45,
                      show_column_dend = F,
                      show_row_dend = F,
@@ -604,7 +617,8 @@ aob.rh.hm <- Heatmap(as.matrix(rr.rhizo),
                      col= col_fun)
 aob.rh.hm
 aob.hm <- aob.bs.hm+aob.rh.hm
-aob.hm2 <- draw(aob.hm,column_title = "AOB")
+aob.hm
+aob.hm2 <- draw(aob.hm,column_title = "AOB",cluster_rows = TRUE)
                 #align_heatmap_legend="heatmap_top", 
                 #column_title_gp = gpar(fontsize = 16))
 aob.hm2
