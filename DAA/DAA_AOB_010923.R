@@ -525,7 +525,7 @@ library(colorRamp2)
 library(ComplexHeatmap)
 # read the log2fold ratio data files
 # bulk soil
-setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/log2fold/')
+#setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/log2fold/')
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/log2fold/')
 rr <- read.csv("AOB_RR_Bulk_130923.csv", row.names = 1)
 names(rr)=str_sub(names(rr),4)
@@ -535,7 +535,7 @@ setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/log2fold/')
 rr.rhizo <- read.csv("AOB_RR_Rhizo_130923.csv", row.names = 1)
 names(rr.rhizo)=str_sub(names(rr.rhizo),4)
 #Set annotation
-setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/')
+#setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/')
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
 ann <- read.csv("AOB.anno.csv", row.names = 1)
 
@@ -564,22 +564,20 @@ colFert.Ann <- columnAnnotation(df=ann.fert, col=colours.fert,
                                 gap=unit(1, "mm"))
 
 # heatmap
-#column_split = rep("M", 5)
-#column_split[6:10] = "D"
-#column_split[11:15] = "K"
+
 col_fun = colorRamp2(c(10, 0, -10), c("blue", "white", "red"))
-tax = Heatmap(as.matrix(ann), cluster_rows  = F)
+#tax = Heatmap(as.matrix(ann), cluster_rows  = F)
 aob.bs.hm <- Heatmap(as.matrix(rr.ord),
                      name = "Log2-ratio",
                      column_title = "Bulk Soil",
                      #cluster_columns = F,
                      cluster_rows  = F,
-                     column_order = order(colnames(as.matrix(rr))),
+                     column_order = order(colnames(as.matrix(rr.ord))),
                      #row_order = order(rownames(as.matrix(rr))),
                      #column_split = data.frame(rep(c("D", "K", "M"),5,5,5)),
                      #column_split = column_split,
                      #column_names_gp = gpar(fontsize=15, col = c(rep("#ffcf20FF", 5), rep("#541352FF", 5), rep("#2f9aa0FF", 5))),
-                     right_annotation = colAnn,
+                     #right_annotation = colAnn,
                      #column_names_gp = gpar(col = c(rep("red", 10), rep("blue", 8)))
                      #column_names_rot = 45,
                      bottom_annotation = colFert.Ann,
@@ -588,7 +586,6 @@ aob.bs.hm <- Heatmap(as.matrix(rr.ord),
                      border_gp = gpar(col = "black", lty = 2),
                      col= col_fun)
 aob.bs.hm
-aob.bs.hm+tax
 
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
 ann.fert.rh <- read.csv("Rhizo.anno.csv", row.names = 1)
@@ -600,12 +597,13 @@ colFert.Ann.rh <- columnAnnotation(df=ann.fert.rh, col=colours.fert,
                                 show_annotation_name =F,
                                 annotation_width=unit(c(1, 4), "cm"), 
                                 gap=unit(1, "mm"))
-aob.rh.hm <- Heatmap(as.matrix(rr.rhizo),
+aob.rh.hm <- Heatmap(as.matrix(rr.rhizo.ord),
                      name = "Log2-ratio",
                      column_title = "Rhizosphere",
                      cluster_columns = F,
+                     cluster_rows  = F,
                      #column_split = column_split,
-                     column_order = order(colnames(as.matrix(rr.rhizo))),
+                     column_order = order(colnames(as.matrix(rr.rhizo.ord))),
                      #column_names_gp = gpar(fontsize=15, col = c(rep("#ffcf20FF", 3), rep("#541352FF", 3), rep("#2f9aa0FF", 3))),
                      right_annotation = colAnn,
                      bottom_annotation = colFert.Ann.rh,
@@ -618,7 +616,7 @@ aob.rh.hm <- Heatmap(as.matrix(rr.rhizo),
 aob.rh.hm
 aob.hm <- aob.bs.hm+aob.rh.hm
 aob.hm
-aob.hm2 <- draw(aob.hm,column_title = "AOB",cluster_rows = TRUE)
+aob.hm2 <- draw(aob.hm,column_title = "AOB", ht_gap = unit(0.5, "cm"))
                 #align_heatmap_legend="heatmap_top", 
                 #column_title_gp = gpar(fontsize = 16))
 aob.hm2
@@ -631,6 +629,114 @@ dev.off()
 comb.hm <- aob.hm %v% aoa.hm
 comb.hm
 
+###compile 3 genes in one heatmap###
+
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+rr.comp <- read.csv("3genes.RR.csv", row.names = 1)
+names(rr.comp)=str_sub(names(rr.comp),4)
+#Set annotation
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+ann.comp <- read.csv("3genes.anno.csv", row.names = 1)
+#order rownames
+rr.comp.ord <- rr.comp[rownames(ann.comp), ]
+#set colors
+lgd1 <- Legend(labels = "Nitrosospira-sp-17Nsp14_2671457573",
+               "Nitrosolobus-multiformis-Nl1_2667636517",
+               "Nitrosospira-sp_2636913388",
+               "Nitrosomonas-communis-Nm44_2676397764",
+               "Nitrosospira-sp_2630434854",
+               title= "AOB")
+               
+               
+               
+col.comp <- list("Taxonomy"=c("Nitrosospira-sp-17Nsp14_2671457573"="#2C85B2",
+                             "Nitrosolobus-multiformis-Nl1_2667636517"="#990F0F",
+                             "Nitrosospira-sp_2636913388"="#B2E5FF",
+                             "Nitrosomonas-communis-Nm44_2676397764"="#FFB2B2",
+                             "Nitrosospira-sp_2630434854"="#7EC3E5",
+                             "Nitrososphaerales (NS-Delta-1.Incertae_sedis)"="#A3CC51",
+                             "Nitrososphaerales (NS-Gamma-1.2)"="#E5FFB2",
+                             "Ca.Nitrosotaleales (NT-Alpha-1.1.2.2)"="#B22C2C",
+                             "Nitrososphaerales (NS-Gamma-2.3.1)"="#B2E5FF",
+                             "Clade B Nitrospira-sp.LPPL-bin249"="#E5B17E",
+                             "Clade B Nitrospira-sp.GGF-bin22"="#B26F2C",
+                             "Clade B Nitrospira-sp.LM-bin98"="#CC8E51"))
+
+col.comp.ord <- list("Taxonomy"=c("Nitrosolobus-multiformis-Nl1_2667636517"="#990F0F",
+                              "Nitrosomonas-communis-Nm44_2676397764"="#FFB2B2",
+                              "Nitrosospira-sp-17Nsp14_2671457573"="#2C85B2",
+                              "Nitrosospira-sp_2630434854"="#7EC3E5",
+                              "Nitrosospira-sp_2636913388"="#B2E5FF",
+                              "Ca.Nitrosotaleales (NT-Alpha-1.1.2.2)"="#B22C2C",
+                              "Nitrososphaerales (NS-Delta-1.Incertae_sedis)"="#A3CC51",
+                              "Nitrososphaerales (NS-Gamma-1.2)"="#E5FFB2",
+                              "Nitrososphaerales (NS-Gamma-2.3.1)"="#B2E5FF",
+                              "Clade B Nitrospira-sp.GGF-bin22"="#B26F2C",
+                              "Clade B Nitrospira-sp.LM-bin98"="#CC8E51",
+                              "Clade B Nitrospira-sp.LPPL-bin249"="#E5B17E"))
+col_level <- factor(ann.comp$Taxonomy, levels = c("Nitrosolobus-multiformis-Nl1_2667636517",
+                                                  "Nitrosomonas-communis-Nm44_2676397764",
+                                                  "Nitrosospira-sp-17Nsp14_2671457573",
+                                                  "Nitrosospira-sp_2630434854",
+                                                  "Nitrosospira-sp_2636913388",
+                                                  "Ca.Nitrosotaleales (NT-Alpha-1.1.2.2)",
+                                                  "Nitrososphaerales (NS-Delta-1.Incertae_sedis)",
+                                                  "Nitrososphaerales (NS-Gamma-1.2)",
+                                                  "Nitrososphaerales (NS-Gamma-2.3.1)",
+                                                  "Clade B Nitrospira-sp.GGF-bin22",
+                                                  "Clade B Nitrospira-sp.LM-bin98",
+                                                  "Clade B Nitrospira-sp.LPPL-bin249"))
+tax_level=levels(col_level)
+Taxonomy <- ann.comp$Taxonomy
+colAnn.comp <- rowAnnotation(df=ann.comp,
+                             #name = "Taxonomy",
+                             col=col.comp.ord,
+                             annotation_legend_param = list(Taxonomy = list(
+                               title="Taxonomy",
+                               nrow=5,
+                               at = tax_level)),
+                             annotation_width=unit(c(1, 4), "cm"), 
+                             gap=unit(1, "mm"))
+colAnn.comp
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+ann.fert <- read.csv("BulkSoil.anno.csv", row.names = 1)
+colours.fert <- list("Fertilization"=c("M"="#ffcf20FF",
+                                       "D"="#541352FF",
+                                       "K"="#2f9aa0FF"))
+colFert.Ann <- columnAnnotation(df=ann.fert, col=colours.fert,
+                                show_legend =F,
+                                show_annotation_name =F,
+                                annotation_width=unit(c(1, 4), "cm"), 
+                                gap=unit(1, "mm"))
+
+col_fun = colorRamp2(c(10, 0, -10), c("blue", "white", "red"))
+#tax = Heatmap(as.matrix(ann), cluster_rows  = F)
+row_split = rep("AOB", 17)
+row_split[18:22] = "AOA"
+row_split[23:28] = "COMAMMOX"
+row_split.fa = factor(row_split, levels = c("AOB", "AOA", "COMAMMOX"))
+#row_split= levels = c("AOB","AOA", "COMAMMOX")
+comp.bs.hm <- Heatmap(as.matrix(rr.comp.ord),
+                     name = "Log2-ratio",
+                     column_title = "Bulk Soil",
+                     #cluster_columns = F,
+                     cluster_rows  = F,
+                     cluster_row_slices=F,
+                     column_order = order(colnames(as.matrix(rr.comp.ord))),
+                     #row_order = order(rownames(as.matrix(rr.comp.ord))),
+                     #column_split = data.frame(rep(c("D", "K", "M"),5,5,5)),
+                     row_split = row_split.fa, 
+                     #column_names_gp = gpar(fontsize=15, col = c(rep("#ffcf20FF", 5), rep("#541352FF", 5), rep("#2f9aa0FF", 5))),
+                     right_annotation = colAnn.comp,
+                     #column_names_gp = gpar(col = c(rep("red", 10), rep("blue", 8)))
+                     #column_names_rot = 45,
+                     bottom_annotation = colFert.Ann,
+                     show_column_dend = F,
+                     show_row_dend = F,
+                     border_gp = gpar(col = "black", lty = 2),
+                     col= col_fun)
+
+comp.bs.hm
 
 
 
