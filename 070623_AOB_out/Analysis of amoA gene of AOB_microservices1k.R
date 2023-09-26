@@ -1786,7 +1786,10 @@ library(scales)
 aob.sp.plot <- ggplot(aob.sp.df, aes(x=interaction(Date, Irrigation), y=Mean, fill=Species)) + 
   geom_bar(aes(), stat="identity", position="fill") + 
   scale_fill_manual(legend, values=SteppedSequential5Steps)+
-  facet_nested(~Type+Treatment, nest_line = element_line(linetype = 1), scales="free")+
+  facet_nested(~Type+Treatment, 
+               nest_line = element_line(linetype = 1, linewidth = 1), 
+               scales="free",
+               resect = unit(0.4, "cm"))+
   theme(legend.direction = "vertical",legend.position="right") + 
   guides(fill=guide_legend(ncol=1))+
   labs(y= "Mean Relative Abundance")+
@@ -1807,6 +1810,8 @@ aob.sp.plot <- ggplot(aob.sp.df, aes(x=interaction(Date, Irrigation), y=Mean, fi
         strip.text.x = element_text(size = 14, face = "bold"),
         panel.border = element_rect(colour = "black", fill = NA,linewidth= 0.2))+
   scale_y_continuous(expand = c(0,0))+ guides(x="axis_nested")
+  #geom_vline(xintercept = 5, linetype="dotted", 
+             #color = "blue", linewidth=1.5)
 aob.sp.plot
 
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')

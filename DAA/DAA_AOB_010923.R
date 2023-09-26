@@ -640,28 +640,31 @@ ann.comp <- read.csv("3genes.anno.csv", row.names = 1)
 #order rownames
 rr.comp.ord <- rr.comp[rownames(ann.comp), ]
 #set colors
-lgd1 <- Legend(labels = "Nitrosospira-sp-17Nsp14_2671457573",
-               "Nitrosolobus-multiformis-Nl1_2667636517",
-               "Nitrosospira-sp_2636913388",
-               "Nitrosomonas-communis-Nm44_2676397764",
-               "Nitrosospira-sp_2630434854",
-               title= "AOB")
-               
-               
-               
-col.comp <- list("Taxonomy"=c("Nitrosospira-sp-17Nsp14_2671457573"="#2C85B2",
-                             "Nitrosolobus-multiformis-Nl1_2667636517"="#990F0F",
-                             "Nitrosospira-sp_2636913388"="#B2E5FF",
-                             "Nitrosomonas-communis-Nm44_2676397764"="#FFB2B2",
-                             "Nitrosospira-sp_2630434854"="#7EC3E5",
-                             "Nitrososphaerales (NS-Delta-1.Incertae_sedis)"="#A3CC51",
-                             "Nitrososphaerales (NS-Gamma-1.2)"="#E5FFB2",
-                             "Ca.Nitrosotaleales (NT-Alpha-1.1.2.2)"="#B22C2C",
-                             "Nitrososphaerales (NS-Gamma-2.3.1)"="#B2E5FF",
-                             "Clade B Nitrospira-sp.LPPL-bin249"="#E5B17E",
-                             "Clade B Nitrospira-sp.GGF-bin22"="#B26F2C",
-                             "Clade B Nitrospira-sp.LM-bin98"="#CC8E51"))
 
+
+lgd1 <- Legend(labels = c("Nitrosolobus-multiformis-Nl1_2667636517",
+                          "Nitrosomonas-communis-Nm44_2676397764",
+                          "Nitrosospira-sp-17Nsp14_2671457573",
+                          "Nitrosospira-sp_2630434854",
+                          "Nitrosospira-sp_2636913388"),
+               legend_gp = gpar(fill=c("#990F0F","#FFB2B2","#2C85B2","#7EC3E5","#B2E5FF")),
+               title= "AOB")
+
+lgd2 <- Legend(labels = c("Ca.Nitrosotaleales (NT-Alpha-1.1.2.2)",
+                          "Nitrososphaerales (NS-Delta-1.Incertae_sedis)",
+                          "Nitrososphaerales (NS-Gamma-1.2)",
+                          "Nitrososphaerales (NS-Gamma-2.3.1)"),
+               legend_gp = gpar(fill=c("#B22C2C","#A3CC51","#E5FFB2","#B2E5FF")),
+               title= "AOA")
+
+lgd3 <- Legend(labels = c("Clade B Nitrospira-sp.GGF-bin22",
+                          "Clade B Nitrospira-sp.LM-bin98",
+                          "Clade B Nitrospira-sp.LPPL-bin249"),
+               legend_gp = gpar(fill=c("#B26F2C","#CC8E51","#E5B17E")),
+               title= "COMAMMOX")
+pd = packLegend(lgd1, lgd2, lgd3, direction = "vertical")
+draw(pd)
+              
 col.comp.ord <- list("Taxonomy"=c("Nitrosolobus-multiformis-Nl1_2667636517"="#990F0F",
                               "Nitrosomonas-communis-Nm44_2676397764"="#FFB2B2",
                               "Nitrosospira-sp-17Nsp14_2671457573"="#2C85B2",
@@ -687,14 +690,16 @@ col_level <- factor(ann.comp$Taxonomy, levels = c("Nitrosolobus-multiformis-Nl1_
                                                   "Clade B Nitrospira-sp.LM-bin98",
                                                   "Clade B Nitrospira-sp.LPPL-bin249"))
 tax_level=levels(col_level)
-Taxonomy <- ann.comp$Taxonomy
+#Taxonomy <- ann.comp$Taxonomy
 colAnn.comp <- rowAnnotation(df=ann.comp,
                              #name = "Taxonomy",
                              col=col.comp.ord,
+                             show_legend =F,
                              annotation_legend_param = list(Taxonomy = list(
-                               title="Taxonomy",
-                               nrow=5,
-                               at = tax_level)),
+                             title="Taxonomy",
+                             ncol=3,
+                             at = tax_level)),
+                             #annotation_legend_param=pd,
                              annotation_width=unit(c(1, 4), "cm"), 
                              gap=unit(1, "mm"))
 colAnn.comp
@@ -717,6 +722,7 @@ row_split[23:28] = "COMAMMOX"
 row_split.fa = factor(row_split, levels = c("AOB", "AOA", "COMAMMOX"))
 #row_split= levels = c("AOB","AOA", "COMAMMOX")
 comp.bs.hm <- Heatmap(as.matrix(rr.comp.ord),
+                      heatmap_legend_param =pd,
                      name = "Log2-ratio",
                      column_title = "Bulk Soil",
                      #cluster_columns = F,
@@ -733,15 +739,25 @@ comp.bs.hm <- Heatmap(as.matrix(rr.comp.ord),
                      bottom_annotation = colFert.Ann,
                      show_column_dend = F,
                      show_row_dend = F,
+                     row_gap = unit(0.4, "cm"),
                      border_gp = gpar(col = "black", lty = 2),
                      col= col_fun)
 
 comp.bs.hm
+comp.bs.hm2 <- draw(comp.bs.hm,
+     heatmap_legend_list=pd,
+     align_heatmap_legend="heatmap_top")
+comp.bs.hm2
 
+# calculate relative abundance 
 
-
-
-
+aob.asv.ra <- transform_sample_counts(aob.rare.1282.seq, function(x) x/sum(x))
+aob.asv.ra
+#aob.asv.ra.melt <- psmelt(aob.asv.ra)
+aob.asv.ra.trt <- psmelt(aob.asv.ra) %>%
+  group_by(var2, Type, Date, Treatment, Irrigation, OTU) %>%
+  summarize(Mean = mean(Abundance)) %>%
+  arrange(-Mean)
 
 
 
