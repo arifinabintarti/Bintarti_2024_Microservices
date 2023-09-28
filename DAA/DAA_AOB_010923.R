@@ -629,7 +629,11 @@ dev.off()
 comb.hm <- aob.hm %v% aoa.hm
 comb.hm
 
+################################################################################
 ###compile 3 genes in one heatmap###
+################################################################################
+
+#### Bulk Soil #####
 
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
 rr.comp <- read.csv("3genes.RR.csv", row.names = 1)
@@ -639,9 +643,44 @@ setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
 ann.comp <- read.csv("3genes.anno.csv", row.names = 1)
 #order rownames
 rr.comp.ord <- rr.comp[rownames(ann.comp), ]
+#remove the character before "_"
+#rownames(rr.comp.ord) <- sub('.*_', '', rownames(rr.comp.ord))
+
+#relative abund of bulk soil
+# calculate relative abundance 
+aob.asv.ra <- transform_sample_counts(aob.rare.1282.seq, function(x) x/sum(x))
+aob.asv.ra
+#aob.asv.ra.melt <- psmelt(aob.asv.ra)
+aob.asv.ra.melt <- psmelt(aob.asv.ra) %>%
+  group_by(OTU) %>%
+  summarize(Mean = mean(Abundance)) %>%
+  arrange(-Mean)
+aob.asv.ra.melt$ra.perc <- aob.asv.ra.melt$Mean*100
+# aoa
+aoa.asv.ra <- transform_sample_counts(aoa.rare.min.physeq, function(x) x/sum(x))
+aoa.asv.ra
+aoa.asv.ra.melt <- psmelt(aoa.asv.ra) %>%
+  group_by(OTU) %>%
+  summarize(Mean = mean(Abundance)) %>%
+  arrange(-Mean)
+aoa.asv.ra.melt$ra.perc <- aoa.asv.ra.melt$Mean*100
+# comammox
+com.asv.ra <- transform_sample_counts(com.rare.min.physeq, function(x) x/sum(x))
+com.asv.ra
+com.asv.ra.melt <- psmelt(com.asv.ra) %>%
+  group_by(OTU) %>%
+  summarize(Mean = mean(Abundance)) %>%
+  arrange(-Mean)
+com.asv.ra.melt$ra.perc <- com.asv.ra.melt$Mean*100
+
+# save the results in the computer and read the csv file
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+RA.comp <- read.csv("3genes.ra.all.csv", row.names = 1)
+RA.comp.ord <- RA.comp[match(rownames(ann.comp), rownames(RA.comp)), ]
+
+
+
 #set colors
-
-
 lgd1 <- Legend(labels = c("Nitrosolobus-multiformis-Nl1_2667636517",
                           "Nitrosomonas-communis-Nm44_2676397764",
                           "Nitrosospira-sp-17Nsp14_2671457573",
@@ -690,25 +729,38 @@ col_level <- factor(ann.comp$Taxonomy, levels = c("Nitrosolobus-multiformis-Nl1_
                                                   "Clade B Nitrospira-sp.LM-bin98",
                                                   "Clade B Nitrospira-sp.LPPL-bin249"))
 tax_level=levels(col_level)
-#Taxonomy <- ann.comp$Taxonomy
+
 colAnn.comp <- rowAnnotation(df=ann.comp,
-                             #name = "Taxonomy",
                              col=col.comp.ord,
                              show_legend =F,
                              annotation_legend_param = list(Taxonomy = list(
                              title="Taxonomy",
                              ncol=3,
                              at = tax_level)),
-                             #annotation_legend_param=pd,
                              annotation_width=unit(c(1, 4), "cm"), 
                              gap=unit(1, "mm"))
 colAnn.comp
+
+bar.ann.comp <- rowAnnotation(RelativeAbundance = anno_barplot(RA.comp.ord,
+                                                  gp = gpar(fill = c("#990F0F", "#990F0F","#990F0F","#990F0F","#990F0F",
+                                                                     "#FFB2B2","#2C85B2","#2C85B2","#2C85B2","#2C85B2",
+                                                                     "#7EC3E5","#B2E5FF","#B2E5FF","#B2E5FF","#B2E5FF",
+                                                                     "#B2E5FF","#B2E5FF","#B22C2C","#A3CC51","#A3CC51",
+                                                                     "#E5FFB2","#B2E5FF","#B26F2C","#B26F2C","#CC8E51",
+                                                                     "#E5B17E","#E5B17E","#E5B17E")),
+                                                  ylim=c(0,0.18),
+                                                  extend = 0.00000000000000001,
+                                                  width  = unit(4, "cm"),
+                                                  height = unit(6, "cm")))
+                                                  #show_annotation_name =F)
+
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
 ann.fert <- read.csv("BulkSoil.anno.csv", row.names = 1)
 colours.fert <- list("Fertilization"=c("M"="#ffcf20FF",
                                        "D"="#541352FF",
                                        "K"="#2f9aa0FF"))
-colFert.Ann <- columnAnnotation(df=ann.fert, col=colours.fert,
+colFert.Ann <- columnAnnotation(df=ann.fert, 
+                                col=colours.fert,
                                 show_legend =F,
                                 show_annotation_name =F,
                                 annotation_width=unit(c(1, 4), "cm"), 
@@ -720,45 +772,90 @@ row_split = rep("AOB", 17)
 row_split[18:22] = "AOA"
 row_split[23:28] = "COMAMMOX"
 row_split.fa = factor(row_split, levels = c("AOB", "AOA", "COMAMMOX"))
-#row_split= levels = c("AOB","AOA", "COMAMMOX")
 comp.bs.hm <- Heatmap(as.matrix(rr.comp.ord),
-                      heatmap_legend_param =pd,
                      name = "Log2-ratio",
                      column_title = "Bulk Soil",
-                     #cluster_columns = F,
                      cluster_rows  = F,
                      cluster_row_slices=F,
                      column_order = order(colnames(as.matrix(rr.comp.ord))),
-                     #row_order = order(rownames(as.matrix(rr.comp.ord))),
-                     #column_split = data.frame(rep(c("D", "K", "M"),5,5,5)),
                      row_split = row_split.fa, 
-                     #column_names_gp = gpar(fontsize=15, col = c(rep("#ffcf20FF", 5), rep("#541352FF", 5), rep("#2f9aa0FF", 5))),
-                     right_annotation = colAnn.comp,
-                     #column_names_gp = gpar(col = c(rep("red", 10), rep("blue", 8)))
-                     #column_names_rot = 45,
+                     left_annotation = bar.ann.comp,
                      bottom_annotation = colFert.Ann,
                      show_column_dend = F,
                      show_row_dend = F,
                      row_gap = unit(0.4, "cm"),
                      border_gp = gpar(col = "black", lty = 2),
                      col= col_fun)
-
 comp.bs.hm
-comp.bs.hm2 <- draw(comp.bs.hm,
-     heatmap_legend_list=pd,
-     align_heatmap_legend="heatmap_top")
-comp.bs.hm2
+#decorate_annotation("RelativeAbundance", {
+  grid.text("Relative Abundance",y = unit(-8.8,"cm"),just = "bottom")
+})
 
-# calculate relative abundance 
 
-aob.asv.ra <- transform_sample_counts(aob.rare.1282.seq, function(x) x/sum(x))
-aob.asv.ra
-#aob.asv.ra.melt <- psmelt(aob.asv.ra)
-aob.asv.ra.trt <- psmelt(aob.asv.ra) %>%
-  group_by(var2, Type, Date, Treatment, Irrigation, OTU) %>%
-  summarize(Mean = mean(Abundance)) %>%
-  arrange(-Mean)
 
+#### Rhizosphere #####
+
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+rr.rhizo.comp <- read.csv("3genes.rhizos.RR.csv", row.names = 1)
+names(rr.rhizo.comp)=str_sub(names(rr.rhizo.comp),4)
+#Set annotation
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+ann.comp <- read.csv("3genes.anno.csv", row.names = 1)
+#order rownames
+rr.rhizo.comp.ord <- rr.rhizo.comp[rownames(ann.comp), ]
+
+colAnn.comp <- rowAnnotation(df=ann.comp,
+                             col=col.comp.ord,
+                             show_legend =F,
+                             annotation_legend_param = list(Taxonomy = list(
+                               title="Taxonomy",
+                               ncol=3,
+                               at = tax_level)),
+                             annotation_width=unit(c(1, 4), "cm"), 
+                             gap=unit(1, "mm"))
+
+setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+ann.fert.rh <- read.csv("Rhizo.anno.csv", row.names = 1)
+colours.fert <- list("Fertilization"=c("M"="#ffcf20FF",
+                                       "D"="#541352FF",
+                                       "K"="#2f9aa0FF"))
+colFert.Ann.rh <- columnAnnotation(df=ann.fert.rh, col=colours.fert,
+                                show_legend =F,
+                                show_annotation_name =F,
+                                annotation_width=unit(c(1, 4), "cm"), 
+                                gap=unit(1, "mm"))
+
+col_fun = colorRamp2(c(10, 0, -10), c("blue", "white", "red"))
+row_split = rep("AOB", 17)
+row_split[18:22] = "AOA"
+row_split[23:28] = "COMAMMOX"
+row_split.fa = factor(row_split, levels = c("AOB", "AOA", "COMAMMOX"))
+comp.rh.hm <- Heatmap(as.matrix(rr.rhizo.comp.ord),
+                      name = "Log2-ratio",
+                      column_title = "Rhizosphere",
+                      cluster_rows  = F,
+                      cluster_row_slices=F,
+                      column_order = order(colnames(as.matrix(rr.rhizo.comp.ord))),
+                      row_split = row_split.fa, 
+                      right_annotation = colAnn.comp,
+                      bottom_annotation = colFert.Ann.rh,
+                      show_column_dend = F,
+                      show_row_dend = F,
+                      row_gap = unit(0.4, "cm"),
+                      border_gp = gpar(col = "black", lty = 2, width=3),
+                      col= col_fun)
+
+comp.rh.hm
+comp.heat <- comp.bs.hm + comp.rh.hm
+comp.heat2 <- draw(comp.heat,
+                   ht_gap = unit(0.4, "cm"),
+                    heatmap_legend_list=pd,
+                    align_heatmap_legend="heatmap_top")
+# save image
+setwd('D:/Fina/INRAE_Project/microservices_fig/')
+png("heatm.3genes4.tiff",width=14,height=7,units="in",res=1200)
+comp.heat2
+dev.off()
 
 
 

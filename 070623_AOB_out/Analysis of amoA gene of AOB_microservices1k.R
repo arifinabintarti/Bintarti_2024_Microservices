@@ -1740,6 +1740,13 @@ aob.sp.df <- psmelt(aob.sp.ra) %>%
   summarize(Mean = mean(Abundance)) %>%
   arrange(-Mean)
 
+test.df <- psmelt(aob.sp.ra) %>%
+  group_by(Type, Date, OTU) %>%
+  summarize(Mean = mean(Abundance)) %>%
+  arrange(-Mean)
+
+
+
 
 aob.gen <- tax_glom(aob.rare.1282.seq, taxrank = "Genus", NArm = F)
 aob.gen.ra <- transform_sample_counts(aob.gen, function(x) x/sum(x))
