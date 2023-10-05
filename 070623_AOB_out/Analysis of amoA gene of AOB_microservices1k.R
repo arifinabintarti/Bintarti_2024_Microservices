@@ -70,7 +70,7 @@ library(ape)
 library(phyloseq)
 
 # SET THE WORKING DIRECTORY
-setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB.ASV-analysis')
+#setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB.ASV-analysis')
 setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB.ASV-analysis')
 wd <- print(getwd())
 # load the asv table
@@ -82,16 +82,16 @@ aob.asv
 dim(aob.asv)# 1338  192
 sort(colSums(aob.asv, na.rm = FALSE, dims = 1), decreasing = F) # there are no asv that does not exist in at least one sample.
 # load the taxonomy table
-setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/')
+#setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/')
 setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out')
 aob.tax <- read.csv("besthit.diamond.output.curateddb.AOB.ASVs.csv")
 dim(aob.tax) # 1338
 # load the metadata
-setwd('/Users/arifinabintarti/Documents/France/microservices/')
+#setwd('/Users/arifinabintarti/Documents/France/microservices/')
 setwd('D:/Fina/INRAE_Project/microservices')
 meta_micro <- read.csv("meta_microservices.csv")
 # load phylogenetic tree (nwk file)
-setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB.Phylogenetic-analysis/')
+#setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB.Phylogenetic-analysis/')
 setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB.Phylogenetic-analysis')
 aob.tre <- ape::read.tree("tree.AOB.nwk")
 
@@ -126,7 +126,7 @@ aob.meta.physeq <- sample_data(meta_micro)# meta data
 sample_names(aob.meta.physeq)
 
 # read the rooted tree
-setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB-rooted-tree/')
+#setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB-rooted-tree/')
 setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB-rooted-tree/')
 AOB_rooted_tree <- ape::read.tree("tree.nwk")
 AOB_rooted_tree
