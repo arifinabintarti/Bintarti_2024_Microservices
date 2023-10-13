@@ -600,7 +600,7 @@ colFert.Ann.rh <- columnAnnotation(df=ann.fert.rh, col=colours.fert,
 aob.rh.hm <- Heatmap(as.matrix(rr.rhizo.ord),
                      name = "Log2-ratio",
                      column_title = "Rhizosphere",
-                     cluster_columns = F,
+                     #cluster_columns = F,
                      cluster_rows  = F,
                      #column_split = column_split,
                      column_order = order(colnames(as.matrix(rr.rhizo.ord))),
@@ -636,7 +636,7 @@ comb.hm
 #### Bulk Soil #####
 
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
-rr.comp <- read.csv("3genes.RR.csv", row.names = 1)
+rr.comp <- read.csv("3genes.bulk.RR.csv", row.names = 1)
 names(rr.comp)=str_sub(names(rr.comp),4)
 #Set annotation
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
@@ -729,6 +729,8 @@ col_level <- factor(ann.comp$Taxonomy, levels = c("Nitrosolobus-multiformis-Nl1_
                                                   "Clade B Nitrospira-sp.LM-bin98",
                                                   "Clade B Nitrospira-sp.LPPL-bin249"))
 tax_level=levels(col_level)
+str(tax_level)
+tax_level
 
 colAnn.comp <- rowAnnotation(df=ann.comp,
                              col=col.comp.ord,
@@ -806,10 +808,10 @@ rr.rhizo.comp.ord <- rr.rhizo.comp[rownames(ann.comp), ]
 
 colAnn.comp <- rowAnnotation(df=ann.comp,
                              col=col.comp.ord,
-                             show_legend =F,
+                             #show_legend =F,
                              annotation_legend_param = list(Taxonomy = list(
                                title="Taxonomy",
-                               ncol=3,
+                               ncol=1,
                                at = tax_level)),
                              annotation_width=unit(c(1, 4), "cm"), 
                              gap=unit(1, "mm"))
