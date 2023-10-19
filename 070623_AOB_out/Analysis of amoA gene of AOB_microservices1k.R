@@ -152,7 +152,7 @@ set.seed(13)
 aob.rare <- ggrare(aob.physeq, step = 1, color = "Type", label = "SampleID", se = FALSE)
 
 #set up your own color palette
-install.packages("colorBlindness")
+#install.packages("colorBlindness")
 library(colorBlindness)
 displayAvailablePalette(color="white")
 #Palette <- c("#1F968BFF","#FDE725FF")
