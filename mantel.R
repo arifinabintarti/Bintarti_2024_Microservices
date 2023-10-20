@@ -44,11 +44,10 @@ quickcor(varechem, type = "upper") + geom_square() +
 
 
 
-aob.data.cor <- aob.meta.df.sub
-aob.data.cor.bulk <- aob.data.cor[1:119,]
 
 
-install.packages("microeco")
+
+#install.packages("microeco")
 library(microeco)
 library(magrittr)
 data(dataset)
@@ -83,7 +82,7 @@ x2 %<>% dplyr::mutate(rd = cut(r, breaks = c(-Inf, 0.3, 0.6, Inf), labels = c("<
                       pd = cut(p.value, breaks = c(-Inf, 0.01, 0.05, Inf), labels = c("< 0.01", "0.01 - 0.05", ">= 0.05")))
 
 # cobine two tables
-plot_table <- rbind(x1, x2)
+tb <- rbind(x1, x2)
 # install ggcor following the steps (https://chiliubio.github.io/microeco_tutorial/intro.html#github-packages)
 library(ggplot2)
 library(ggcor)
@@ -103,11 +102,14 @@ g1
 
 quickcor(t1$data_env, type = "upper") + 
   geom_square() + 
-  add_link(plot_table, mapping = aes(colour = pd, size = rd),
+  add_link(tb, mapping = aes(colour = pd, size = rd),
            diag.label = TRUE) +
   scale_size_manual(values = c(0.5, 1.5, 3)) +
   scale_colour_manual(values = c("#D95F02", "#1B9E77", "#A2A2A288"))+
   geom_diag_label() + remove_axis("x")
+
+quickcor(t2$data_env, type = "upper", cor.test = TRUE, show.diag = FALSE) +
+  geom_square()
 
 
 

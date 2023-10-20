@@ -69,7 +69,7 @@ library(devtools)
 library(phyloseq)
 
 # SET THE WORKING DIRECTORY
-setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/COM.ASV-analysis')
+#setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/COM.ASV-analysis')
 setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/COM.ASV-analysis')
 wd <- print(getwd())
 # load the asv table
@@ -80,12 +80,12 @@ com.asv.sub <- com.asv[, -which(names(com.asv) == "26" )]
 sort(rowSums(com.asv.sub, na.rm = FALSE, dims = 1), decreasing = FALSE)
 dim(com.asv.sub)
 # load the taxonomy table
-setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/')
+#setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/')
 setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/')
 com.tax <- read.table("besthit.diamond.output.curateddb.COM.ASVs.edited.csv", sep = ';', header=T)
 dim(com.tax) # 680 
 # load the metadata
-setwd('/Users/arifinabintarti/Documents/France/microservices/')
+#setwd('/Users/arifinabintarti/Documents/France/microservices/')
 setwd('D:/Fina/INRAE_Project/microservices/')
 meta_micro <- read.csv("meta_microservices.csv")
 # remove the bad sample (sample # 26) from the metadata

@@ -69,7 +69,7 @@ library(devtools)
 library(phyloseq)
 
 # SET THE WORKING DIRECTORY
-setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/AOA.ASV-analysis')
+#setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/AOA.ASV-analysis')
 setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/AOA.ASV-analysis')
 wd <- print(getwd())
 # load the asv table
@@ -77,12 +77,12 @@ aoa.asv <- read.table('annotated.AOA.ASVs.counts.tsv', sep='\t', header=T, row.n
 dim(aoa.asv) # 646  192
 sort(rowSums(aoa.asv, na.rm = FALSE, dims = 1), decreasing = F) # there are no asv that does not exist in at least one sample.
 # load the taxonomy table
-setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/')
+#setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/')
 setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/')
 aoa.tax <- read.table("besthit.diamond.output.curateddb.AOA.ASVs.edited.csv", sep = ';', header=T)
 dim(aoa.tax) # 646
 # load the metadata
-setwd('/Users/arifinabintarti/Documents/France/microservices/')
+#setwd('/Users/arifinabintarti/Documents/France/microservices/')
 setwd('D:/Fina/INRAE_Project/microservices/')
 meta_micro <- read.csv("meta_microservices.csv")
 # load phylogenetic tree (nwk file)
