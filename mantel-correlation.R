@@ -1,3 +1,13 @@
+library(dplyr)
+library(vegan)
+library(ggplot2)
+library(devtools)
+library(microeco)
+library(magrittr)
+#devtools::install_github("hannet91/ggcor")
+library(ggcor)
+
+
 # Preparing the microtable class
 
 # rarefied AOB ASV table of bulk soil
@@ -18,6 +28,7 @@ aob.asv.env <- aob.asv.env %>%
          "AOB_Shannon" = "Shannon",
          "AOB_InvSimpson" = "InvSimpson") # change column names
 aob.asv.env <- aob.asv.env %>% mutate_at(c('GWC_g_g', 'TS', 'NH4', 'NO3', 'Nmin_tot', 'C_tot', 'N_tot', 'pH', 'K_mgkg', 'Mg_mgkg', 'P_mgkg','AOB_Richness'), as.numeric)
+
 # create  a microtable
 aob.microdata <- microtable$new(sample_table = aob.asv.env, otu_table = aob.asv.tab, tax_table = aob.asv.tax)
 # calculate beta diversity
@@ -26,9 +37,10 @@ aob.microdata$cal_betadiv(method = "bray",
                           unifrac = F,
                           binary = F)
 # perform mantel test
-aob.t1 <- trans_env$new(dataset = aob.microdata, env_cols = c(13:19,22,26:28,41:42,44))
+aob.t1 <- trans_env$new(dataset = aob.microdata, env_cols = c(13:19,22,26:28))
 aob.t1$cal_mantel(use_measure = "bray", 
                   partial_mantel = F,
+                  permutations=999,
                   add_matrix = NULL,
                   method = "spearman",
                   p_adjust_method = "fdr")
@@ -66,13 +78,14 @@ aoa.microdata$cal_betadiv(method = "bray",
                           unifrac = F,
                           binary = F)
 # perform mantel test
-aoa.t1 <- trans_env$new(dataset = aoa.microdata, env_cols = c(13:19,22,26:28,41:42,44))
+aoa.t1 <- trans_env$new(dataset = aoa.microdata, env_cols = c(13:19,22,26:28))
 aoa.t1$cal_mantel(use_measure = "bray", 
                   partial_mantel = F,
+                  permutations=999,
                   add_matrix = NULL,
                   method = "spearman",
                   p_adjust_method = "fdr")
-
+aoa.t1$res_mantel
 # extract a part of the results 
 aoa.x1 <- data.frame(aoa.t1$res_mantel) %>% .[, c(1, 2, 5, 7)]
 aoa.x1[aoa.x1=="All"] <- "AOA"
@@ -105,9 +118,10 @@ com.microdata$cal_betadiv(method = "bray",
                           unifrac = F,
                           binary = F)
 # perform mantel test
-com.t1 <- trans_env$new(dataset = com.microdata, env_cols = c(13:19,22,26:28,41:42,44))
+com.t1 <- trans_env$new(dataset = com.microdata, env_cols = c(13:19,22,26:28))
 com.t1$cal_mantel(use_measure = "bray", 
                   partial_mantel = F,
+                  permutations=999,
                   add_matrix = NULL,
                   method = "spearman",
                   p_adjust_method = "fdr")
@@ -127,31 +141,50 @@ com.x1 %<>% dplyr::mutate(rd = cut(r, breaks = c(-Inf, 0.3, 0.6, Inf), labels = 
                       pd = cut(p.value, breaks = c(-Inf, 0.01, 0.05, Inf), labels = c("< 0.01", "0.01 - 0.05", ">= 0.05")))
 # combine three tables
 plot_table <- rbind(aob.x1, aoa.x1,com.x1)
+plot_table <- plot_table %>% 
+  mutate(spec= replace(spec, spec == "AOB", "AOB community")) %>%
+  mutate(spec= replace(spec, spec =="AOA","AOA community")) %>%
+  mutate(spec= replace(spec, spec=="comammox", "Comammox community"))# change column names
+
 # plotting
-all.env <- merge(x = aoa.asv.env, y = aob.t1[ , c("Client", "LO")], by = "Client", all.x=TRUE)
-
-
-
-
+setwd('D:/Fina/INRAE_Project/microservices/')
 aoa.env <- aoa.t1$data_env
-aoa.env <- rownames_to_column(aoa.env, var = "ID")
 aob.env <- aob.t1$data_env
-aob.env <- rownames_to_column(aob.env, var = "ID")
 com.env <- com.t1$data_env
-com.env <- rownames_to_column(com.env, var = "ID")
+#write.csv(aob.env, file = "aob.env.mantel.csv")
+#write.csv(aoa.env, file = "aoa.env.mantel.csv")
+#write.csv(com.env, file = "com.env.mantel.csv")
 
-quickcor(aoa.t1$data_env, type = "upper") + 
+all.env <- read.csv("env.all.mantel.csv", row.names = 1)
+all.env.no.alpha <- all.env[,1:11]
+
+mantelplot <- quickcor(all.env.no.alpha, type = "upper") + 
   geom_square() + 
-  #geom_mark(sig.thres = 0.05, markonly = TRUE, color = "white") +
-  add_link(plot_table, mapping = aes(colour = pd, size = rd),
-           diag.label = TRUE) +
+  #geom_mark(sig.thres = 0.05, color = "white") +
+  add_link(plot_table, mapping = aes(colour = pd, size = rd,),
+           diag.label = TRUE,
+           spec.label.hspace = 0.75,
+           spec.label.vspace = -0.3)+
+           #spec.label.hspace = 2.8,
+           #spec.label.vspace = -1) +
   scale_size_manual(values = c(0.5, 1.5, 3)) +
   scale_colour_manual(values = c("#D95F02", "#1B9E77", "#A2A2A288"))+
+  #scale_size_area(max_size = 3) +
   guides(size = guide_legend(title = "Mantel's r", override.aes = list(colour = "grey35"), order = 2),
-         colour = guide_legend(title = "Mantel's p", override.aes = list(size = 3), order = 1),
-         fill = guide_colorbar(title = "Pearson's r", order = 3))
-  #geom_diag_label() + remove_axis("x")
-
-
+         colour = guide_legend(title = "Mantel's p-value", override.aes = list(size = 3), order = 1),
+         fill = guide_colorbar(title = "Spearman's r", order = 3))+
+  theme(axis.ticks = element_blank())
+  #geom_diag_label() 
+  #remove_axis("x")
+mantelplot
+setwd('D:/Fina/INRAE_Project/microservices_fig/')
+ggsave("mantel.env.tiff",
+       mantelplot, device = "tiff",
+       width = 10, height = 7, 
+       units= "in", dpi = 600)
+ggsave("mantel.env.noalpha.tiff",
+       mantelplot, device = "tiff",
+       width = 10, height = 7, 
+       units= "in", dpi = 600)
 
 
