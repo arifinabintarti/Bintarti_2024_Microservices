@@ -639,6 +639,8 @@ ggsave("AOB_invsimp_irri_boxplot.tiff",
 # FOR ALL SAMPLES
 # 1. Calculating dissimilarity indices for community ecologist to make a distance structure (Bray-Curtis distance between samples)
 aob.asv.rare1k <- as.data.frame(otu_table(aob.rare.1282.seq))
+setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB.ASV-analysis')
+write.csv(aob.asv.rare1k, file = "aob.rare1k.otutab.csv")
 # Bray-Curtis using rarefied data:
 aob_dist_bc <- vegdist(t(aob.asv.rare1k), method = "bray")
 # Jaccard using rarefied data:
@@ -815,6 +817,8 @@ aob.asv.rare1k <- as.data.frame(otu_table(aob.rare.1282.seq))
 aob.asv.bulk <- aob.asv.rare1k[,1:119]
 aob.asv.bulk1 <- aob.asv.bulk[rowSums(aob.asv.bulk)>0,]
 sort(rowSums(aob.asv.bulk1, na.rm = FALSE, dims = 1), decreasing = FALSE)
+setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/')
+#write.csv(aob.asv.bulk1, file = "aob.bulk1.otutab.csv")
 aob.bulk_dist_bc <- vegdist(t(aob.asv.bulk1), method = "bray")
 # jaccard - Bulk Soil :
 aob.bulk_dist_jac <- vegdist(t(aob.asv.bulk1), binary = TRUE, method = "jaccard")
@@ -856,10 +860,11 @@ ax1.scores.uwUF.bulk <- aob.bulk_pcoa.uwUF$points[,1]
 ax2.scores.uwUF.bulk <- aob.bulk_pcoa.uwUF$points[,2]
 
 # 4. Envfit
-env.aob.bulk <- aob.meta.df.sub[1:119,c(13:19, 22,26:28)]
+env.aob.bulk <- aob.meta.df.sub[1:119,c(14:20, 23,27:29)]
 str(env.aob.bulk)
 env.aob.bulk <- env.aob.bulk %>% mutate_at(c('GWC_g_g', 'TS', 'NH4', 'NO3', 'Nmin_tot', 'C_tot', 'N_tot', 'pH', 'K_mgkg', 'Mg_mgkg', 'P_mgkg'), as.numeric)
 # bray-curtis
+set.seed(149)
 env_fit.aob.bc.bulk <- envfit(aob.bulk_pcoa_bc, env.aob.bulk, na.rm=TRUE)
 env_fit.aob.bc.bulk
 # Jaccard 
@@ -986,40 +991,52 @@ A.bc <- as.list(env_fit.aob.bc.bulk$vectors) #shortcutting ef$vectors
 pvals.bc<-as.data.frame(A.bc$pvals) #creating the dataframe
 #environment scores (vectors scaled by R2 values)
 env.scores1.bc <- as.data.frame(scores(env_fit.aob.bc.bulk, display="vectors"))
-env.scores2.bc <- cbind(env.scores1.bc, pvals)
+env.scores2.bc <- cbind(env.scores1.bc, pvals.bc)
 env.scores3.bc <- cbind(env.scores2.bc,Variable=rownames(env.scores2.bc))
-env.scores4.bc <- subset(env.scores3.bc,pvals<0.05)
+env.scores4.bc <- subset(env.scores3.bc,pvals.bc<0.05)
 set.seed(33)
 mult <-.53
 
 aob.pcoa_bulk.plot <- ggplot(data = aob.map.pcoa.bulk, aes(x=ax1.scores.bulk, y=ax2.scores.bulk, colour=Treatment))+
-  theme_bw()+
-  geom_point(data = aob.map.pcoa.bulk, aes(x = ax1.scores.bulk, y = ax2.scores.bulk, shape=Irrigation),size=5, alpha= 0.6)+
-             scale_color_viridis(discrete = T) +
-  labs(colour = "Treatment",  title = "A. Bulk Soil")+
-  scale_x_continuous(name=paste("PCoA1:\n",round(ax1.bulk,3)*100,"% var. explained", sep=""))+
-  scale_y_continuous(name=paste("PCoA2:\n",round(ax2.bulk,3)*100,"% var. explained", sep=""))+
-  geom_segment(data=env.scores4.bc,
-               aes(x=0, xend=mult*Dim1, y=0, yend=mult*Dim2), 
-               arrow = arrow(length = unit(0.3, "cm")),
-               colour = "grey",inherit.aes = FALSE)+
-  geom_text_repel(data = env.scores4.bc,
-                  aes(x = mult*Dim1, y = mult*Dim2, label = Variable),
-                  size = 5,fontface="bold",
-                  position=position_jitter(width=0.03,height=0.001), inherit.aes = FALSE)+
-  #coord_fixed() +
-  theme(legend.position="none",
-        legend.title = element_text(size=15, face='bold'),
-        plot.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        plot.title = element_text(size = 20, face="bold"),
-        axis.text=element_text(size=16), 
-        axis.title=element_text(size=17,face="bold"),
-        legend.text=element_text(size=15),
-        legend.spacing.x = unit(0.05, 'cm'))+
-  stat_ellipse()
+                      theme_bw()+
+                      geom_point(data = aob.map.pcoa.bulk, 
+                                 aes(x = ax1.scores.bulk, y = ax2.scores.bulk))+
+                      #geom_point(data = aob.map.pcoa.bulk, 
+                                 #aes(x = ax1.scores.bulk, y = ax2.scores.bulk, 
+                                 #shape=Irrigation),size=5, alpha= 0.6)+
+                      #scale_color_manual(values=SteppedSequential5Steps)+
+                      geom_label(show.legend  = F,aes(label = PlotID))+
+                      scale_color_viridis(discrete = T) +
+                      labs(colour = "Treatment",  title = "A. Bulk Soil")+
+                      scale_x_continuous(name=paste("PCoA1:\n",round(ax1.bulk,3)*100,"% var. explained", sep=""))+
+                      scale_y_continuous(name=paste("PCoA2:\n",round(ax2.bulk,3)*100,"% var. explained", sep=""))+
+                      #geom_segment(data=env.scores4.bc,
+                                   #aes(x=0, xend=mult*Dim1, y=0, yend=mult*Dim2),
+                                   #arrow = arrow(length = unit(0.3, "cm")),
+                                   #colour = "grey",inherit.aes = FALSE)+
+                      #geom_text_repel(data = env.scores4.bc,
+                                      #aes(x = mult*Dim1, y = mult*Dim2, label = Variable),
+                                      #size = 5,fontface="bold",
+                                      #position=position_jitter(width=0.03,height=0.001), 
+                                      #inherit.aes = FALSE)+
+                      theme(legend.position="right",
+                            legend.title = element_text(size=15, face='bold'),
+                            plot.background = element_blank(),
+                            panel.grid.major = element_blank(),
+                            panel.grid.minor = element_blank(),
+                            plot.title = element_text(size = 20, face="bold"),
+                            axis.text=element_text(size=16), 
+                            axis.title=element_text(size=17,face="bold"),
+                            legend.text=element_text(size=15),
+                            legend.spacing.x = unit(0.05, 'cm'))+
+                       guides(colour=guide_legend(override.aes = list(size=4)))+
+                    stat_ellipse()
 aob.pcoa_bulk.plot
+setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
+ggsave("aob.bray.plotid.tiff",
+       aob.pcoa_bulk.plot, device = "tiff",
+       width = 12, height = 8, 
+       units= "in", dpi = 600)
 
 # B. Bray-Curtis - Rhizosphere :
 aob.pcoa_rh.plot <- ggplot(data = aob.map.pcoa.rh, aes(x=ax1.scores.rh, y=ax2.scores.rh, colour=Treatment))+
@@ -1260,8 +1277,36 @@ ggsave("aob.uwUF.tiff",
 ############################################################################################
 # PERMANOVA FOR BULK SOIL AND RHIZOSPHERE
 ############################################################################################
-
 # A. Bray-Curtis - Bulk Soil : 
+# strata only works with balanced design, since we removed the S11, we need to remove S12
+aob.asv.bulk1.sub <- aob.asv.bulk1[, -which(names(aob.asv.bulk1) == "S12"&
+                                              names(aob.asv.bulk1) == "S12"&
+                                              names(aob.asv.bulk1) == "S12"&
+                                              names(aob.asv.bulk1) == "S12"&
+                                              names(aob.asv.bulk1) == "S12")]
+# calculate the beta diversity 
+aob.bulk_dist_bc.sub <- vegdist(t(aob.asv.bulk1.sub), method = "bray")
+# remove the S12 from the metadata too
+aob.meta.bulk.sub <- aob.meta.bulk[-11,]
+# set up the strata using how()
+set.seed(13)
+perm = how(nperm = 999,
+           within = Within(type="free"), 
+           plots = with(aob.meta.bulk.sub, Plots(strata=Block, type="free")))
+# test the permanova
+set.seed(13)
+aob.adonis.bulk.irri2 <- adonis2(aob.bulk_dist_bc.sub ~ Irrigation*Treatment, data=aob.meta.bulk.sub, 
+                                 permutation=perm,method="bray") # not significant
+aob.adonis.bulk.irri2
+
+
+
+
+
+
+
+################################################################################
+
 set.seed(13)
 aob.adonis.bulk <- adonis2(aob.bulk_dist_bc ~ Irrigation*Treatment*Date, data=aob.meta.bulk, 
                            permutation=999,
@@ -1274,17 +1319,6 @@ aob.adonis.bulk.irri <- adonis2(aob.bulk_dist_bc ~ Irrigation, data=aob.meta.bul
                                 method="bray", 
                                 strata = NULL) # not significant
 aob.adonis.bulk.irri
-
-set.seed(13)
-aob.adonis.bulk.irri2 <- adonis2(aob.bulk_dist_bc ~ Irrigation*Treatment, data=aob.meta.bulk, 
-                                 permutation=perm,method="bray") # not significant
-aob.adonis.bulk.irri2
-
-perm = how(nperm = 999,
-           within = Within(type="free"), 
-           plots = with(aob.meta.bulk, Plots(strata=Date, type="free")))
-           #blocks = aob.meta.bulk$Date)
-
 set.seed(13)
 aob.adonis.bulk.trt <- adonis2(aob.bulk_dist_bc ~ Treatment, data=aob.meta.bulk, 
                                permutation=999,
@@ -1758,6 +1792,8 @@ aob.abund.trt <- psmelt(aob.gen.ra) %>%
 colours <- ColourPalleteMulti(aob.sp.df, "Genus", "Species")
 colours
 #install.packages("Polychrome")
+#install.packages("colorBlindness")
+library(colorBlindness)
 library(Polychrome)
 # build-in color palette
 mycol = glasbey.colors(21)

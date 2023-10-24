@@ -116,7 +116,7 @@ K0705.rh.seq1 <- prune_taxa(taxa_sums(K0705.rh.seq)>0, K0705.rh.seq)
 ###############################################################################
 # Filter low-abundant taxa
 # keeping OTUs with at least 0.01 % relative abundance across all samples
-physeq.subset <- M04seq1
+physeq.subset <- aob.physeq_bulk1
 physeq.subset 
 data.obs <- as.data.frame(otu_table(physeq.subset))
 keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
@@ -141,14 +141,14 @@ ps = physeq.subset
 df_tmp <- psmelt(ps)
 df_tmp$sample <- 0
 df_tmp$sample[df_tmp$Abundance > 0] <- 1 #E: DON'T UNDERSTAND WHY THIS IS DONE
-df_otu_prev_ttt <- data.frame(matrix(ncol=nlevels(as.factor(df_tmp$Irrigation)),
+df_otu_prev_ttt <- data.frame(matrix(ncol=nlevels(as.factor(df_tmp$var3)),
                                      nrow=nlevels(as.factor(df_tmp$OTU)), 
                                      dimnames=list(levels(as.factor(df_tmp$OTU)),
-                                                   levels(as.factor(df_tmp$Irrigation)))))
+                                                   levels(as.factor(df_tmp$var3)))))
 #attention il ya Sample et sample
 for (i in unique(df_tmp$OTU)) {
-  for (j in unique(df_tmp$Irrigation)) {
-    df_otu_prev_ttt[i,j] <- sum(df_tmp$sample[df_tmp$OTU == i & df_tmp$Irrigation == j],na.rm = T) / nrow(df_tmp[df_tmp$OTU == i & df_tmp$Irrigation == j,]) *100
+  for (j in unique(df_tmp$var3)) {
+    df_otu_prev_ttt[i,j] <- sum(df_tmp$sample[df_tmp$OTU == i & df_tmp$var3 == j],na.rm = T) / nrow(df_tmp[df_tmp$OTU == i & df_tmp$var3 == j,]) *100
     print(paste(i,j,df_otu_prev_ttt[i,j]),sep="\t")
     #print(df_otu_prev_ttt[i,j])
   }
@@ -161,11 +161,12 @@ df_otu_prev_ttt$max_prev <- apply(df_otu_prev_ttt,MARGIN=1, FUN=max)
 physeq.subset 
 ps =  physeq.subset 
 df_prev = df_otu_prev_ttt
-tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 80,])
+tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 75,])
 physeq.subset.75 <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
 rm(ps,df_prev,tmp_otu_F)
 physeq.subset.75  # 32 taxa
-
+setwd('D:/Fina/INRAE_Project/microservices/DAA/')
+write.csv(otu_table(physeq.subset.75), file = "aob.filt75.bs.tab.csv")
 ####################################################
 # DIFFERENTIAL ABUNDANCE
 ##################################################
@@ -1325,7 +1326,7 @@ glmT3s.pairwise.global.signif.raw = glmT3s.pairwise.global.ALL.raw[glmT3s.pairwi
 length(tmp_otu3s)
 tmp_otu3s
 
-
+# combine different 
 
 
 

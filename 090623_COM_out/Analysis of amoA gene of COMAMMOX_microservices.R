@@ -805,28 +805,30 @@ A.bc <- as.list(env_fit.com.bc.bulk$vectors) #shortcutting ef$vectors
 pvals.bc<-as.data.frame(A.bc$pvals) #creating the dataframe
 #environment scores (vectors scaled by R2 values)
 env.scores1.bc <- as.data.frame(scores(env_fit.com.bc.bulk, display="vectors"))
-env.scores2.bc <- cbind(env.scores1.bc, pvals)
+env.scores2.bc <- cbind(env.scores1.bc, pvals.bc)
 env.scores3.bc <- cbind(env.scores2.bc,Variable=rownames(env.scores2.bc))
-env.scores4.bc <- subset(env.scores3.bc,pvals<0.05)
+env.scores4.bc <- subset(env.scores3.bc,pvals.bc<0.05)
 set.seed(33)
 mult <-.65
 
 com.pcoa_bulk.plot <- ggplot(data = com.map.pcoa.bulk, aes(x=ax1.scores.bulk, y=ax2.scores.bulk, colour=Treatment))+
   theme_bw()+
-  geom_point(data = com.map.pcoa.bulk, aes(x = ax1.scores.bulk, y = ax2.scores.bulk, shape=Irrigation),size=5, alpha= 0.6)+
+  geom_point(data = com.map.pcoa.bulk, aes(x = ax1.scores.bulk, y = ax2.scores.bulk))+
+  #geom_point(data = com.map.pcoa.bulk, aes(x = ax1.scores.bulk, y = ax2.scores.bulk),size=5, alpha= 0.6)+
+  geom_label(show.legend  = F,aes(label = PlotID))+
   scale_color_viridis(discrete = T) +
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.bulk,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.bulk,3)*100,"% var. explained", sep=""))+
   labs(colour = "Treatment",  title = "A. Bulk Soil")+
-  geom_segment(data=env.scores4.bc,
-               aes(x=0, xend=mult*Dim1, y=0, yend=mult*Dim2), 
-               arrow = arrow(length = unit(0.3, "cm")),
-               colour = "grey",inherit.aes = FALSE)+
-  geom_text_repel(data = env.scores4.bc,
-                  aes(x = mult*Dim1, y = mult*Dim2, label = Variable),
-                  size = 5,fontface="bold",
-                  position=position_jitter(width=0.03,height=0.001), inherit.aes = FALSE)+
-  theme(legend.position="none",
+  #geom_segment(data=env.scores4.bc,
+               #aes(x=0, xend=mult*Dim1, y=0, yend=mult*Dim2), 
+               #arrow = arrow(length = unit(0.3, "cm")),
+               #colour = "grey",inherit.aes = FALSE)+
+  #geom_text_repel(data = env.scores4.bc,
+                  #aes(x = mult*Dim1, y = mult*Dim2, label = Variable),
+                  #size = 5,fontface="bold",
+                  #position=position_jitter(width=0.03,height=0.001), inherit.aes = FALSE)+
+  theme(legend.position="right",
         legend.title = element_text(size=15, face='bold'),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
@@ -836,9 +838,14 @@ com.pcoa_bulk.plot <- ggplot(data = com.map.pcoa.bulk, aes(x=ax1.scores.bulk, y=
         axis.title=element_text(size=17,face="bold"),
         legend.text=element_text(size=15),
         legend.spacing.x = unit(0.05, 'cm'))+
+  guides(colour=guide_legend(override.aes = list(size=4)))+
   stat_ellipse()
 com.pcoa_bulk.plot
-
+setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
+ggsave("com.bray.plotid.tiff",
+       com.pcoa_bulk.plot, device = "tiff",
+       width = 12, height = 8, 
+       units= "in", dpi = 600)
 # B. Bray-Curtis - Rhizosphere :
 com.pcoa_rh.plot <- ggplot(data = com.map.pcoa.rh, aes(x=ax1.scores.rh, y=ax2.scores.rh, colour=Treatment))+
   theme_bw()+
