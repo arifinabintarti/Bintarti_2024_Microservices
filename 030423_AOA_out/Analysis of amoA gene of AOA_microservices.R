@@ -1072,9 +1072,12 @@ ggsave("aoa.uwUF.tiff",
 ############################################################################################
 
 # A. Bray-Curtis - Bulk Soil : 
+
+# 1. Using adonis2 package with defined perm to restrict the permutation
+
 set.seed(133)
-aoa.adonis.bulk.irri2 <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment, data=aoa.meta.bulk, 
-                                 permutation=perm,method="bray") # not significant
+aoa.adonis.bulk.irri2 <- adonis2(aoa.bulk_dist_bc ~ Irrigation, data=aoa.meta.bulk, 
+                                 permutations = perm) # not significant
 aoa.adonis.bulk.irri2
 set.seed(13)
 #perm = how(nperm = 999, 
@@ -1089,6 +1092,11 @@ perm = how(nperm = 999,
        within = Within(type="free"), 
        #plots = Plots(strata = block, type = "free"))
        blocks = block)
+
+# 2. Using ANOSIM package and define the strata
+set.seed(13)
+anosim(aoa.bulk_dist_bc,
+       grouping = aoa.meta.bulk$Irrigation, permutations = 999, strata = block)
 
 
 ################################################################################
