@@ -1278,6 +1278,7 @@ ggsave("aob.uwUF.tiff",
 # PERMANOVA FOR BULK SOIL AND RHIZOSPHERE
 ############################################################################################
 # A. Bray-Curtis - Bulk Soil : 
+
 # strata only works with balanced design, since we removed the S11, we need to remove S12
 aob.asv.bulk1.sub <- aob.asv.bulk1[, -which(names(aob.asv.bulk1) == "S12"&
                                               names(aob.asv.bulk1) == "S12"&
@@ -1299,6 +1300,20 @@ aob.adonis.bulk.irri2 <- adonis2(aob.bulk_dist_bc.sub ~ Irrigation*Treatment, da
                                  permutation=perm,method="bray") # not significant
 aob.adonis.bulk.irri2
 
+## Betadisper 
+groups.trt <- aob.meta.bulk$Treatment
+aob.trt.mod <- betadisper(aob.bulk_dist_bc.sub, groups)
+aob.trt.mod
+boxplot(aob.trt.mod)
+# Null hypothesis of no difference in dispersion between groups
+set.seed(3)
+#permutation-based test for multivariate homogeneity of group dispersion (variances)
+permod <- permutest(mod, permutations = 999, pairwise = T)
+permod # there is significant differences in dispersion between groups
+# the variances among groups are not homogenous,
+hsd=TukeyHSD(mod) #which groups differ in relation to their variances
+hsd
+plot(hsd)
 
 
 

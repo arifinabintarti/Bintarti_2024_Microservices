@@ -25,7 +25,7 @@ par(mfrow = c(1,1))
 plot(success$m, success$class.success, xlab = "Number of PCoA axes included", ylab = "Reclassification success rate (%)")
 text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 
- here for example you would choose 14 PCoA axes
+ #here for example you would choose 14 PCoA axes
 
 # run the final CAP by including PCoA axes showing the highest reclassification rate
 
