@@ -536,8 +536,9 @@ ggsave("cap.all.RZ.legend.tiff",
        width = 13, height = 4, 
        units= "in", dpi = 600)
 
+##################################################################################################################
 
-
+# ConQuR removing batch effect (in this case, treatment effect)
 
 
 

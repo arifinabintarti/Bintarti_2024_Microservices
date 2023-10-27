@@ -1321,12 +1321,14 @@ plot(hsd)
 
 
 ################################################################################
+set.seed(133)
+aob.adonis.bulk.X <- adonis2(aob.bulk_dist_bc ~ x , data=aob.meta.bulk.ed, 
+                             permutations = 999) # not significant
+aob.adonis.bulk.X
 
 set.seed(13)
 aob.adonis.bulk <- adonis2(aob.bulk_dist_bc ~ Irrigation*Treatment*Date, data=aob.meta.bulk, 
-                           permutation=999,
-                           method="bray", 
-                           strata = NULL) # only treatment is significant
+                           permutation=999) # only treatment is significant
 aob.adonis.bulk
 set.seed(13)
 aob.adonis.bulk.irri <- adonis2(aob.bulk_dist_bc ~ Irrigation, data=aob.meta.bulk, 

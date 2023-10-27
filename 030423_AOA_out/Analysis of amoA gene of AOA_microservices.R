@@ -1076,19 +1076,25 @@ ggsave("aoa.uwUF.tiff",
 # 1. Using adonis2 package with defined perm to restrict the permutation
 
 set.seed(133)
-aoa.adonis.bulk.irri2 <- adonis2(aoa.bulk_dist_bc ~ Irrigation, data=aoa.meta.bulk, 
-                                 permutations = perm) # not significant
+aoa.adonis.bulk <- adonis2(aoa.bulk_dist_bc ~ Irrigation, strata=aoa.meta.bulk.ed$block, data=aoa.meta.bulk.ed, 
+                                 permutations = 999) # not significant
+aoa.adonis.bulk
+
+
+set.seed(133)
+aoa.adonis.bulk.irri2 <- adonis2(test ~ Treatment*Irrigation*Date, data=aoa.meta.bulk, 
+                                 permutations = 999) # not significant
 aoa.adonis.bulk.irri2
 set.seed(13)
-#perm = how(nperm = 999, 
-           #within = Within(type="free"), 
-           #plots = with(aoa.meta.bulk,
-                        #Plots(strata=Block, 
-                              #type="free")))
+perm1 = how(nperm = 999, 
+           within = Within(type="free"), 
+           plots = with(aoa.meta.bulk,
+                   Plots(strata=Block, 
+                   type="free")))
 block=as.factor(aoa.meta.bulk$Block)
 plot=as.factor(aoa.meta.bulk$PlotID)
 set.seed(13)
-perm = how(nperm = 999, 
+perm2 = how(nperm = 999, 
        within = Within(type="free"), 
        #plots = Plots(strata = block, type = "free"))
        blocks = block)
@@ -1216,6 +1222,13 @@ aoa.adonis.uwuF.rh
 library(pairwiseAdonis)
 
 # A. Pairwise Adonis Among Treatment (overall)
+
+set.seed(133)
+aoa.pwc.bulk.X <- pairwiseAdonis::pairwise.adonis(aoa.bulk_dist_bc,
+                                                     aoa.meta.bulk.ed$x, 
+                                                     p.adjust.m = "BH") 
+aoa.pwc.bulk.X
+
 
 # 1. Bray-Curtis - Bulk Soil:
 set.seed(13)
