@@ -1074,11 +1074,13 @@ ggsave("aoa.uwUF.tiff",
 # A. Bray-Curtis - Bulk Soil : 
 
 # 1. Using adonis2 package with defined perm to restrict the permutation
+block=as.factor(aoa.meta.bulk.ed$Block)
+plot=as.factor(aoa.meta.bulk.ed$PlotID)
 
 set.seed(133)
-aoa.adonis.bulk <- adonis2(aoa.bulk_dist_bc ~ Irrigation, strata=aoa.meta.bulk.ed$block, data=aoa.meta.bulk.ed, 
+aoa.adonis.bulk.x <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment, strata=block, data=aoa.meta.bulk.ed, 
                                  permutations = 999) # not significant
-aoa.adonis.bulk
+aoa.adonis.bulk.x
 
 
 set.seed(133)
@@ -1091,8 +1093,7 @@ perm1 = how(nperm = 999,
            plots = with(aoa.meta.bulk,
                    Plots(strata=Block, 
                    type="free")))
-block=as.factor(aoa.meta.bulk$Block)
-plot=as.factor(aoa.meta.bulk$PlotID)
+
 set.seed(13)
 perm2 = how(nperm = 999, 
        within = Within(type="free"), 
