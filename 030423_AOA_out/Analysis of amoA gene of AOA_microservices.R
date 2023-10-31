@@ -1072,10 +1072,25 @@ ggsave("aoa.uwUF.tiff",
 ############################################################################################
 
 # A. Bray-Curtis - Bulk Soil : 
+remotes::install_github("phytomosaic/ecole")
+library(ecole)
+
+set.seed(133)
+permanova_pairwise(
+  aoa.bulk_dist_bc,
+  grp=TxI,
+  permutations = 999,
+  method = "bray",
+  padj = "fdr")
+
+
+
 
 # 1. Using adonis2 package with defined perm to restrict the permutation
-block=as.factor(aoa.meta.bulk.ed$Block)
-plot=as.factor(aoa.meta.bulk.ed$PlotID)
+block=as.factor(aoa.meta.bulk$Block)
+plot=as.factor(aoa.meta.bulk$PlotID)
+TxI=as.factor(aoa.meta.bulk$x)
+
 
 set.seed(133)
 aoa.adonis.bulk.x <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment, strata=block, data=aoa.meta.bulk.ed, 
