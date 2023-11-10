@@ -779,7 +779,7 @@ aoa.map.pcoa.uwUF.rh <- cbind(aoa.meta.rh,ax1.scores.uwUF.rh,ax2.scores.uwUF.rh)
 
 #require("ggrepel")
 library(ggrepel)
-install.packages("viridis")
+#install.packages("viridis")
 library(viridis)
 
 # A. Bray-Curtis - Bulk Soil :
@@ -1072,59 +1072,119 @@ ggsave("aoa.uwUF.tiff",
 ############################################################################################
 
 # A. Bray-Curtis - Bulk Soil : 
-remotes::install_github("phytomosaic/ecole")
+#remotes::install_github("phytomosaic/ecole")
+library(multcompView)
 library(ecole)
 
-set.seed(133)
-permanova_pairwise(
-  aoa.bulk_dist_bc,
-  grp=TxI,
-  permutations = 999,
-  method = "bray",
-  padj = "fdr")
-
-
-
-
-# 1. Using adonis2 package with defined perm to restrict the permutation
 block=as.factor(aoa.meta.bulk$Block)
 plot=as.factor(aoa.meta.bulk$PlotID)
 TxI=as.factor(aoa.meta.bulk$x)
+trt=as.factor(aoa.meta.bulk$Treatment)
+irri=as.factor(aoa.meta.bulk$Irrigation)
 
-
-set.seed(133)
-aoa.adonis.bulk.x <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment, strata=block, data=aoa.meta.bulk.ed, 
-                                 permutations = 999) # not significant
-aoa.adonis.bulk.x
-
-
-set.seed(133)
-aoa.adonis.bulk.irri2 <- adonis2(test ~ Treatment*Irrigation*Date, data=aoa.meta.bulk, 
-                                 permutations = 999) # not significant
-aoa.adonis.bulk.irri2
+## Betadisper for treatment
+aoa.trt.mod <- betadisper(aoa.bulk_dist_bc, trt)
+aoa.trt.mod
+boxplot(aoa.trt.mod)
+# Null hypothesis of no difference in dispersion between groups
 set.seed(13)
-perm1 = how(nperm = 999, 
-           within = Within(type="free"), 
-           plots = with(aoa.meta.bulk,
-                   Plots(strata=Block, 
-                   type="free")))
+#permutation-based test for multivariate homogeneity of group dispersion (variances)
+permod.aoa.bs <- permutest(aoa.trt.mod, permutations = 999, pairwise = T)
+permod.aoa.bs # there is significant differences in dispersion between groups
+# the variances among groups are not homogeneous,
+hsd.aoa.bs <- TukeyHSD(aoa.trt.mod) #which groups differ in relation to their variances
+hsd.aoa.bs
 
+## Betadisper for irrigation
+aoa.irri.mod <- betadisper(aoa.bulk_dist_bc, irri)
+aoa.irri.mod
+boxplot(aoa.irri.mod)
+# Null hypothesis of no difference in dispersion between groups
 set.seed(13)
-perm2 = how(nperm = 999, 
-       within = Within(type="free"), 
-       #plots = Plots(strata = block, type = "free"))
-       blocks = block)
+#permutation-based test for multivariate homogeneity of group dispersion (variances)
+permod.aoa.bs.irri <- permutest(aoa.irri.mod, permutations = 999, pairwise = T)
+permod.aoa.bs.irri # there are no significant differences in dispersion between groups
+# the variances among groups are homogeneous,
+hsd.aoa.bs.irri <- TukeyHSD(aoa.irri.mod) #which groups differ in relation to their variances
+hsd.aoa.bs.irri
+
+## Betadisper for treatment x irrigation
+aoa.x.mod <- betadisper(aoa.bulk_dist_bc, TxI)
+aoa.x.mod
+boxplot(aoa.x.mod)
+# Null hypothesis of no difference in dispersion between groups
+set.seed(13)
+#permutation-based test for multivariate homogeneity of group dispersion (variances)
+permod.aoa.bs.x <- permutest(aoa.x.mod, permutations = 999, pairwise = T)
+permod.aoa.bs.x # there is significant differences in dispersion between groups across treatment (not within treatment)
+# the variances among groups are not homogeneous,
+hsd.aoa.bs.x <- TukeyHSD(aoa.x.mod) #which groups differ in relation to their variances
+hsd.aoa.bs.x
+
+# 1. Using adonis2 package with defined perm to restrict the permutation - Weighted UniFrac
+
+set.seed(13333)
+aoa.adonis.bulk.bc <- adonis2(aoa.bulk_dist_bc ~ Irrigation, strata=block, data=aoa.meta.bulk.ed, 
+                                 permutations = 999) # significant
+aoa.adonis.bulk.bc
+
+# similar with below:
+set.seed(133)
+perm1 = how(within = Within(type="free"), 
+            plots = Plots(type = "none"),
+            blocks = block,
+            nperm = 999,
+            observed = TRUE)
+
+CTRL <- how(within = Within(type = "none"),
+    plots = Plots(strata = block, type = "free"),
+    nperm = 999) #This object specifies that blocks are to be freely permuted but that plots within blocks are not permuted
+# Since our intent is to focus on the variation among treatments, 
+# we need to restrict the permutations so that plots are permuted within each block, but plots are not permuted across blocks.
+# these two ways are equivalent:
+CTRL.t <- how(within = Within(type = "free"),
+              plots = Plots(type = "none"),
+              blocks = block,
+              nperm = 999,
+              observed = TRUE)
+
+# and
+CTRL.t <- how(within = Within(type = "free"),
+              plots = Plots(strata = block, type = "none"),
+              nperm = 99999,
+              observed = TRUE)
+
+#they specify that plots are to be freely permuted within blocks but that blocks are not allowed to permute
+set.seed(133)
+aoa.adonis.bulk.bc.perm1 <- adonis2(aoa.bulk_dist_bc ~ block+Irrigation, data=aoa.meta.bulk.ed, 
+                             permutations = CTRL.t)
+aoa.adonis.bulk.bc.perm1
+
+
+
+
 
 # 2. Using ANOSIM package and define the strata
 set.seed(13)
-anosim(aoa.bulk_dist_bc,
-       grouping = aoa.meta.bulk$Irrigation, permutations = 999, strata = block)
+aoa.bc.anosim <- anosim(aoa.bulk_dist_bc,
+       grouping = irri, permutations = 999, strata = block)
+summary(aoa.bc.anosim) # SIGNIFICANT
 
+
+
+
+# it gives significant result for irrigation factor
+
+#. 3. Using dbrda()
+set.seed(133)
+dbrda.aoa <- dbrda(aoa.bulk_dist_bc ~ Treatment+Irrigation,
+      data=aoa.meta.bulk.ed, distance = "bray")
+print(dbrda.aoa)
+set.seed(133)
+nested.npmanova(aoa.bulk_dist_wUF ~ Treatment*Irrigation, data=aoa.meta.bulk.ed,
+                permutations=999)
 
 ################################################################################
-
-
-
 set.seed(13)
 aoa.adonis.bulk <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment*Date, data=aoa.meta.bulk, 
                            permutation=999,

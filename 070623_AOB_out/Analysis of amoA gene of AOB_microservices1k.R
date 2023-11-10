@@ -1279,6 +1279,62 @@ ggsave("aob.uwUF.tiff",
 ############################################################################################
 # A. Bray-Curtis - Bulk Soil : 
 
+block.aob=as.factor(aob.meta.bulk$Block)
+plot.aob=as.factor(aob.meta.bulk$PlotID)
+TxI.aob=as.factor(aob.meta.bulk$x)
+trt.aob=as.factor(aob.meta.bulk$Treatment)
+irri.aob=as.factor(aob.meta.bulk$Irrigation)
+
+## Betadisper for treatment
+aob.trt.mod <- betadisper(aob.bulk_dist_bc, trt.aob)
+aob.trt.mod
+boxplot(aob.trt.mod)
+# Null hypothesis of no difference in dispersion between groups
+set.seed(13)
+#permutation-based test for multivariate homogeneity of group dispersion (variances)
+permod.aob.bs <- permutest(aob.trt.mod, permutations = 999, pairwise = T)
+permod.aob.bs # there is significant differences in dispersion between groups
+# the variances among groups are not homogeneous,
+hsd.aob.bs <- TukeyHSD(aob.trt.mod) #which groups differ in relation to their variances
+hsd.aob.bs
+
+## Betadisper for irrigation
+aob.irri.mod <- betadisper(aob.bulk_dist_bc, irri.aob)
+aob.irri.mod
+boxplot(aob.irri.mod)
+# Null hypothesis of no difference in dispersion between groups
+set.seed(13)
+#permutation-based test for multivariate homogeneity of group dispersion (variances)
+permod.aob.bs.irri <- permutest(aob.irri.mod, permutations = 999, pairwise = T)
+permod.aob.bs.irri # there are no significant differences in dispersion between groups
+# the variances among groups are homogeneous,
+hsd.aob.bs.irri <- TukeyHSD(aob.irri.mod) #which groups differ in relation to their variances
+hsd.aob.bs.irri
+
+set.seed(133)
+aob.adonis.bulk.bc <- adonis2(aob.bulk_dist_bc ~ Irrigation, strata=block.aob, data=aob.meta.bulk, 
+                               permutations = 999) # significant
+aob.adonis.bulk.bc
+# similar with below:
+set.seed(133)
+perm1.aob = how(nperm = 99999, 
+            within = Within(type="free"), 
+            plots = Plots(type = "none"),
+            blocks = block.aob,
+            observed = TRUE)
+set.seed(133)
+aob.adonis.bulk.bc.perm <- adonis2(aob.bulk_dist_bc ~ Irrigation, data=aob.meta.bulk, 
+                              permutations = CTRL.t.aob) # significant
+aob.adonis.bulk.bc.perm 
+
+CTRL.t.aob <- how(within = Within(type = "free"),
+              plots = Plots(strata = block.aob, type = "none"),
+              nperm = 99999,
+              observed = TRUE)
+
+
+
+
 # strata only works with balanced design, since we removed the S11, we need to remove S12
 aob.asv.bulk1.sub <- aob.asv.bulk1[, -which(names(aob.asv.bulk1) == "S12"&
                                               names(aob.asv.bulk1) == "S12"&

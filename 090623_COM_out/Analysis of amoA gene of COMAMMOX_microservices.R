@@ -1087,6 +1087,34 @@ ggsave("com.uwUF.tiff",
 # PERMANOVA FOR BULK SOIL AND RHIZOSPHERE
 ############################################################################################
 
+block.com=as.factor(com.meta.bulk$Block)
+plot.com=as.factor(com.meta.bulk$PlotID)
+TxI.com=as.factor(com.meta.bulk$x)
+trt.com=as.factor(com.meta.bulk$Treatment)
+irri.com=as.factor(com.meta.bulk$Irrigation)
+
+set.seed(13333)
+com.adonis.bulk.bc <- adonis2(com.bulk_dist_bc ~ Irrigation, strata=block.com, data=com.meta.bulk, 
+                              permutations = 999) # significant
+com.adonis.bulk.bc
+# similar with below:
+set.seed(133)
+perm1.com = how(nperm = 999, 
+                within = Within(type="free"), 
+                plots = Plots(type = "none"),
+                blocks = block.com,
+                observed = TRUE)
+set.seed(13333)
+com.adonis.bulk.bc.perm <- adonis2(com.bulk_dist_bc ~ Irrigation, data=com.meta.bulk, 
+                                   permutations = perm1.com) # significant
+com.adonis.bulk.bc.perm 
+
+
+
+
+
+
+
 # A. Bray-Curtis - Bulk Soil : 
 set.seed(13)
 com.adonis.bulk <- adonis2(com.bulk_dist_bc ~ Irrigation*Treatment*Date, data=com.meta.bulk, 
