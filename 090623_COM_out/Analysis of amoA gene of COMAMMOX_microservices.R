@@ -1093,73 +1093,105 @@ TxI.com=as.factor(com.meta.bulk$x)
 trt.com=as.factor(com.meta.bulk$Treatment)
 irri.com=as.factor(com.meta.bulk$Irrigation)
 
-set.seed(13333)
+## Betadisper for treatment
+com.trt.mod <- betadisper(com.bulk_dist_bc, trt.com)
+com.trt.mod
+boxplot(com.trt.mod)
+# Null hypothesis of no difference in dispersion between groups
+set.seed(13)
+#permutation-based test for multivariate homogeneity of group dispersion (variances)
+permod.com.bs <- permutest(com.trt.mod, permutations = 999, pairwise = T)
+permod.com.bs # there is significant differences in dispersion between groups
+# the variances among groups are not homogeneous,
+hsd.com.bs <- TukeyHSD(com.trt.mod) #which groups differ in relation to their variances
+hsd.com.bs
+
+# 1. Using adonis2 package with defined perm to restrict the permutation 
+set.seed(133)
 com.adonis.bulk.bc <- adonis2(com.bulk_dist_bc ~ Irrigation, strata=block.com, data=com.meta.bulk, 
                               permutations = 999) # significant
 com.adonis.bulk.bc
+
 # similar with below:
-set.seed(133)
-perm1.com = how(nperm = 999, 
-                within = Within(type="free"), 
+perm1.com = how(within = Within(type="free"), 
                 plots = Plots(type = "none"),
                 blocks = block.com,
+                nperm = 999,
                 observed = TRUE)
-set.seed(13333)
-com.adonis.bulk.bc.perm <- adonis2(com.bulk_dist_bc ~ Irrigation, data=com.meta.bulk, 
-                                   permutations = perm1.com) # significant
-com.adonis.bulk.bc.perm 
+set.seed(133)
+com.adonis.bulk.bc.perm1 <- adonis2(com.bulk_dist_bc ~ Irrigation, data=com.meta.bulk, 
+                                    permutations = perm1.com)
+com.adonis.bulk.bc.perm1
+
+# another way to use how()
+
+# Since our intent is to focus on the variation among treatments, 
+# we need to restrict the permutations so that plots are permuted within each block, but plots are not permuted across blocks.
+# these two ways are equivalent:
+CTRL.t1.com <- how(within = Within(type = "free"),
+                   plots = Plots(type = "none"),
+                   blocks = block.com,
+                   nperm = 999,
+                   observed = TRUE)
+# and
+CTRL.t2.com <- how(within = Within(type = "free"),
+                   plots = Plots(strata = block.com, type = "none"),
+                   nperm = 999,
+                   observed = TRUE)
+#they specify that plots are to be freely permuted within blocks but that blocks are not allowed to permute
+set.seed(133)
+com.adonis.bulk.bc.CTRL.t2 <- adonis2(com.bulk_dist_wUF ~ Irrigation, data=com.meta.bulk, 
+                                      permutations = CTRL.t2.com)
+com.adonis.bulk.bc.CTRL.t2
+
+# 2. Using ANOSIM package and define the strata
+set.seed(132)
+com.bc.anosim <- anosim(com.bulk_dist_wUF,
+                        grouping = irri.com, permutations = 999, strata = block.com)
+summary(com.bc.anosim) # SIGNIFICANT
 
 
-
-
-
-
-
-# A. Bray-Curtis - Bulk Soil : 
+# test the permanova for farming system
 set.seed(13)
-com.adonis.bulk <- adonis2(com.bulk_dist_bc ~ Irrigation*Treatment*Date, data=com.meta.bulk, 
-                           permutation=999,
-                           method="bray", 
-                           strata = NULL) # only treatment is significant
+com.adonis.bulk <- adonis2(com.bulk_dist_uwUF ~ Irrigation*Treatment*Date, data=com.meta.bulk, 
+                           permutation=999) # only treatment is significant
 com.adonis.bulk
-
-set.seed(13)
-com.adonis.bulk.irri <- adonis2(com.bulk_dist_bc ~ Irrigation, data=com.meta.bulk, 
-                                permutation=999,
-                                method="bray", 
-                                strata = NULL) # not significant
-com.adonis.bulk.irri
-
-set.seed(13)
-com.adonis.bulk.irri2 <- adonis2(com.bulk_dist_bc ~ Irrigation*Treatment, data=com.meta.bulk, 
-                                 permutation=perm,method="bray") # not significant
-com.adonis.bulk.irri2
-perm = how(nperm = 999, within = Within(type="free"), 
-           plots = with(com.meta.bulk, Plots(strata=Date, type="free")))
-#blocks = aoa.meta.bulk$Date)
-
-
-set.seed(13)
-com.adonis.bulk.trt <- adonis2(com.bulk_dist_bc ~ Treatment, data=com.meta.bulk, 
-                               permutation=999,
-                               method="bray", 
-                               strata = NULL) # significant (p val = 0.001***)
-com.adonis.bulk.trt
-
-set.seed(13)
-com.adonis.bulk.date <- adonis2(com.bulk_dist_bc ~ Date, data=com.meta.bulk, 
-                                permutation=999,
-                                method="bray", 
-                                strata = NULL) # not significant
-com.adonis.bulk.date
+###################################################################################################
 
 # B. Bray-Curtis - Rhizosphere : 
+block.com.rh=as.factor(com.meta.rh$Block)
+plot.com.rh=as.factor(com.meta.rh$PlotID)
+TxI.com.rh=as.factor(com.meta.rh$x)
+trt.com.rh=as.factor(com.meta.rh$Treatment)
+irri.com.rh=as.factor(com.meta.rh$Irrigation)
+
+# and
+CTRL.t2.rh.com <- how(within = Within(type = "free"),
+                      plots = Plots(strata = block.com.rh, type = "none"),
+                      nperm = 999,
+                      observed = TRUE)
+#they specify that plots are to be freely permuted within blocks but that blocks are not allowed to permute
 set.seed(13)
-com.adonis.rh <- adonis2(com.rh_dist_bc ~ Irrigation*Treatment*Date, data=com.meta.rh, 
-                         permutation=999,
-                         method="bray", 
-                         strata = NULL) # only treatment is significant
+com.adonis.rh.bc.CTRL.t2 <- adonis2(com.rh_dist_uwUF ~ Irrigation, data=com.meta.rh, 
+                                    permutations = CTRL.t2.rh.com)
+com.adonis.rh.bc.CTRL.t2
+
+# 2. Using ANOSIM package and define the strata
+set.seed(13)
+com.bc.anosim.rh <- anosim(com.rh_dist_wUF,
+                        grouping = irri.com.rh, permutations = 999, strata = block.com.rh)
+summary(com.bc.anosim.rh) # SIGNIFICANT
+
+set.seed(13)
+com.adonis.rh <- adonis2(com.rh_dist_uwUF ~ Irrigation*Treatment*Date, data=com.meta.rh, 
+                         permutation=999) # only treatment is significant
 com.adonis.rh
+
+
+
+
+
+
 
 set.seed(13)
 com.adonis.rh.irri <- adonis2(com.rh_dist_bc ~ Irrigation, data=com.meta.rh, 

@@ -1311,108 +1311,91 @@ permod.aob.bs.irri # there are no significant differences in dispersion between 
 hsd.aob.bs.irri <- TukeyHSD(aob.irri.mod) #which groups differ in relation to their variances
 hsd.aob.bs.irri
 
-set.seed(133)
+# 1. Using adonis2 package with defined perm to restrict the permutation 
+set.seed(13)
 aob.adonis.bulk.bc <- adonis2(aob.bulk_dist_bc ~ Irrigation, strata=block.aob, data=aob.meta.bulk, 
-                               permutations = 999) # significant
+                              permutations = 999) # significant
 aob.adonis.bulk.bc
+
 # similar with below:
-set.seed(133)
-perm1.aob = how(nperm = 99999, 
-            within = Within(type="free"), 
+perm1.aob = how(within = Within(type="free"), 
             plots = Plots(type = "none"),
             blocks = block.aob,
+            nperm = 999,
             observed = TRUE)
-set.seed(133)
-aob.adonis.bulk.bc.perm <- adonis2(aob.bulk_dist_bc ~ Irrigation, data=aob.meta.bulk, 
-                              permutations = CTRL.t.aob) # significant
-aob.adonis.bulk.bc.perm 
-
-CTRL.t.aob <- how(within = Within(type = "free"),
-              plots = Plots(strata = block.aob, type = "none"),
-              nperm = 99999,
-              observed = TRUE)
-
-
-
-
-# strata only works with balanced design, since we removed the S11, we need to remove S12
-aob.asv.bulk1.sub <- aob.asv.bulk1[, -which(names(aob.asv.bulk1) == "S12"&
-                                              names(aob.asv.bulk1) == "S12"&
-                                              names(aob.asv.bulk1) == "S12"&
-                                              names(aob.asv.bulk1) == "S12"&
-                                              names(aob.asv.bulk1) == "S12")]
-# calculate the beta diversity 
-aob.bulk_dist_bc.sub <- vegdist(t(aob.asv.bulk1.sub), method = "bray")
-# remove the S12 from the metadata too
-aob.meta.bulk.sub <- aob.meta.bulk[-11,]
-# set up the strata using how()
 set.seed(13)
-perm = how(nperm = 999,
-           within = Within(type="free"), 
-           plots = with(aob.meta.bulk.sub, Plots(strata=Block, type="free")))
-# test the permanova
+aob.adonis.bulk.bc.perm1 <- adonis2(aob.bulk_dist_bc ~ Irrigation, data=aob.meta.bulk, 
+                                    permutations = perm1.aob)
+aob.adonis.bulk.bc.perm1
+
+# another way to use how()
+
+# Since our intent is to focus on the variation among treatments, 
+# we need to restrict the permutations so that plots are permuted within each block, but plots are not permuted across blocks.
+# these two ways are equivalent:
+CTRL.t1.aob <- how(within = Within(type = "free"),
+               plots = Plots(type = "none"),
+               blocks = block.aob,
+               nperm = 999,
+               observed = TRUE)
+# and
+CTRL.t2.aob <- how(within = Within(type = "free"),
+               plots = Plots(strata = block.aob, type = "none"),
+               nperm = 999,
+               observed = TRUE)
+#they specify that plots are to be freely permuted within blocks but that blocks are not allowed to permute
 set.seed(13)
-aob.adonis.bulk.irri2 <- adonis2(aob.bulk_dist_bc.sub ~ Irrigation*Treatment, data=aob.meta.bulk.sub, 
-                                 permutation=perm,method="bray") # not significant
-aob.adonis.bulk.irri2
+aob.adonis.bulk.bc.CTRL.t2 <- adonis2(aob.bulk_dist_bc ~ Irrigation, data=aob.meta.bulk, 
+                                      permutations = CTRL.t2.aob)
+aob.adonis.bulk.bc.CTRL.t2
 
-## Betadisper 
-groups.trt <- aob.meta.bulk$Treatment
-aob.trt.mod <- betadisper(aob.bulk_dist_bc.sub, groups)
-aob.trt.mod
-boxplot(aob.trt.mod)
-# Null hypothesis of no difference in dispersion between groups
-set.seed(3)
-#permutation-based test for multivariate homogeneity of group dispersion (variances)
-permod <- permutest(mod, permutations = 999, pairwise = T)
-permod # there is significant differences in dispersion between groups
-# the variances among groups are not homogenous,
-hsd=TukeyHSD(mod) #which groups differ in relation to their variances
-hsd
-plot(hsd)
+# 2. Using ANOSIM package and define the strata
+set.seed(13)
+aob.bc.anosim <- anosim(aob.bulk_dist_wUF,
+                        grouping = irri.aob, permutations = 999, strata = block.aob)
+summary(aob.bc.anosim) # NOT SIGNIFICANT
 
 
-
-
-
-
-################################################################################
-set.seed(133)
-aob.adonis.bulk.X <- adonis2(aob.bulk_dist_bc ~ x , data=aob.meta.bulk.ed, 
-                             permutations = 999) # not significant
-aob.adonis.bulk.X
-
+# test the permanova for farming system
 set.seed(13)
 aob.adonis.bulk <- adonis2(aob.bulk_dist_bc ~ Irrigation*Treatment*Date, data=aob.meta.bulk, 
                            permutation=999) # only treatment is significant
 aob.adonis.bulk
-set.seed(13)
-aob.adonis.bulk.irri <- adonis2(aob.bulk_dist_bc ~ Irrigation, data=aob.meta.bulk, 
-                                permutation=999,
-                                method="bray", 
-                                strata = NULL) # not significant
-aob.adonis.bulk.irri
-set.seed(13)
-aob.adonis.bulk.trt <- adonis2(aob.bulk_dist_bc ~ Treatment, data=aob.meta.bulk, 
-                               permutation=999,
-                               method="bray", 
-                               strata = NULL) # significant (p val = 0.001***)
-aob.adonis.bulk.trt
-
-set.seed(13)
-aob.adonis.bulk.date <- adonis2(aob.bulk_dist_bc ~ Date, data=aob.meta.bulk, 
-                                permutation=999,
-                                method="bray", 
-                                strata = NULL) # not significant
-aob.adonis.bulk.date
+####################################################################################################
 
 # B. Bray-Curtis - Rhizosphere : 
+block.aob.rh=as.factor(aob.meta.rh$Block)
+plot.aob.rh=as.factor(aob.meta.rh$PlotID)
+TxI.aob.rh=as.factor(aob.meta.rh$x)
+trt.aob.rh=as.factor(aob.meta.rh$Treatment)
+irri.aob.rh=as.factor(aob.meta.rh$Irrigation)
+
+# and
+CTRL.t2.rh.aob <- how(within = Within(type = "free"),
+                  plots = Plots(strata = block.aob.rh, type = "none"),
+                  nperm = 999,
+                  observed = TRUE)
+#they specify that plots are to be freely permuted within blocks but that blocks are not allowed to permute
 set.seed(13)
-aob.adonis.rh <- adonis2(aob.rh_dist_bc ~ Irrigation*Treatment*Date, data=aob.meta.rh, 
-                         permutation=999,
-                         method="bray", 
-                         strata = NULL) # only treatment is significant
+aob.adonis.rh.bc.CTRL.t2 <- adonis2(aob.rh_dist_uwUF ~ Irrigation, data=aob.meta.rh, 
+                                    permutations = CTRL.t2.rh.aob)
+aob.adonis.rh.bc.CTRL.t2
+
+# 2. Using ANOSIM package and define the strata
+set.seed(13)
+aob.bc.anosim.rh <- anosim(aob.rh_dist_wUF,
+                           grouping = irri.aob.rh, permutations = 999, strata = block.aob.rh)
+summary(aob.bc.anosim.rh) # SIGNIFICANT
+
+set.seed(13)
+aob.adonis.rh <- adonis2(aob.rh_dist_uwUF ~ Irrigation*Treatment*Date, data=aob.meta.rh, 
+                         permutation=999) # only treatment is significant
 aob.adonis.rh
+
+
+
+
+
 
 set.seed(13)
 aob.adonis.rh.irri <- adonis2(aob.rh_dist_bc ~ Irrigation, data=aob.meta.rh, 
