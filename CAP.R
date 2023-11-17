@@ -37,6 +37,9 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 set.seed(13)
 aoa.cap.bulk <- CAPdiscrim(aoa.bulk_dist_bc ~ x, data = aoa.meta.bulk.ed, m = 44, permutations = 9999, add = TRUE) # 94.16667% 
 
+aoa.cap.bulk.dist <- vegdist(aoa.cap.bulk$PCoA, method = "bray")
+
+
 success <- cbind(data.frame(aoa.cap.bulk$group), data.frame(aoa.cap.bulk$CV))
 colnames(success) <- c("source", "classified")
 rownames(success) <- rownames(aoa.cap.bulk$PCoA)
