@@ -1557,7 +1557,7 @@ library(Polychrome)
 #install.packages("colorBlindness")
 library(colorBlindness)
 displayAvailablePalette(color="white")
-SteppedSequential5Steps
+PairedColor12Steps
 str(aoa.sp.df)
 #install.packages("ggh4x")
 library(ggh4x)

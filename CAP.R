@@ -36,8 +36,8 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 # run the final CAP by including PCoA axes showing the highest reclassification rate
 set.seed(13)
 aoa.cap.bulk <- CAPdiscrim(aoa.bulk_dist_bc ~ x, data = aoa.meta.bulk.ed, m = 44, permutations = 9999, add = TRUE) # 94.16667% 
-
-aoa.cap.bulk.dist <- vegdist(aoa.cap.bulk$PCoA, method = "bray")
+aoa.cap.bulk
+aoa.cap.bulk.dist <- dist(aoa.cap.bulk$PCoA)
 
 
 success <- cbind(data.frame(aoa.cap.bulk$group), data.frame(aoa.cap.bulk$CV))
@@ -78,7 +78,7 @@ aoa.cap.plot <- ggplot(as.data.frame(aoa.cap.bulk$x), aes(x = aoa.cap.bulk$x[,1]
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
   geom_mark_ellipse(aes(fill = aoa.meta.bulk.ed$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
-  labs(title = "AOA")+
+  #labs(title = "AOA")+
   theme(axis.text.x = element_text(color = "grey20", size = 10, angle = 0, hjust = .5, vjust = .5, face = "plain"),
         axis.text.y = element_text(color = "grey20", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"),
         axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
@@ -86,11 +86,15 @@ aoa.cap.plot <- ggplot(as.data.frame(aoa.cap.bulk$x), aes(x = aoa.cap.bulk$x[,1]
   #theme(plot.margin = unit(c(1,1,1,1), "cm")) +
   theme(legend.position = "none",
         legend.title = element_text(size=13),
-        legend.text = element_text(size=13)) 
-  #annotate("text",x=-12,y=-15,label= "Overall reclassification rate: 94.2%", hjust = 0, size = 4) 
-  #annotate("text", x=-12, y=-16.5, label= "Pillai's test=3.1***", hjust = 0, size = 4)
+        legend.text = element_text(size=13)) +
+  annotate("text",x=-14,y=-10,label= "Overall reclassification rate: 94.2%", hjust = 0, size = 4) +
+  annotate("text", x=-14, y=-11.5, label= "Pillai's test=4.1***", hjust = 0, size = 4)
 aoa.cap.plot
-
+setwd('D:/Fina/INRAE_Project/microservices_fig/')
+ggsave("AOA_CAP_bulk_bray.tiff",
+       aoa.cap.plot, device = "tiff",
+       width = 4, height =3, 
+       units= "in", dpi = 600)
 ### 1 B. Rhizosphere
 
 # run Bray-Curtis beta diversity on rhizosphere
@@ -120,7 +124,8 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 # run the final CAP by including PCoA axes showing the highest reclassification rate
 set.seed(13)
 aoa.cap.rh <- CAPdiscrim(aoa.rh_dist_bc ~ x, data = aoa.meta.rh.ed, m = 38, permutations = 9999, add = TRUE) # 90.27778 % 
-
+aoa.cap.rh
+aoa.cap.rh.dist <- dist(aoa.cap.rh$PCoA)
 success <- cbind(data.frame(aoa.cap.rh$group), data.frame(aoa.cap.rh$CV))
 colnames(success) <- c("source", "classified")
 rownames(success) <- rownames(aoa.cap.rh$PCoA)
@@ -159,18 +164,21 @@ aoa.cap.rh.plot <- ggplot(as.data.frame(aoa.cap.rh$x), aes(x = aoa.cap.rh$x[,1],
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
   geom_mark_ellipse(aes(fill = aoa.meta.rh.ed$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
-  labs(title = "AOA")+
   theme(axis.text.x = element_text(color = "grey20", size = 10, angle = 0, hjust = .5, vjust = .5, face = "plain"),
         axis.text.y = element_text(color = "grey20", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"),
         axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
         axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")) +
-  #theme(plot.margin = unit(c(1,1,1,1), "cm")) +
   theme(legend.position = "none",
         legend.title = element_text(size=13),
-        legend.text = element_text(size=13)) 
-#annotate("text",x=-12,y=-15,label= "Overall reclassification rate: 94.2%", hjust = 0, size = 4) 
-#annotate("text", x=-12, y=-16.5, label= "Pillai's test=3.1***", hjust = 0, size = 4)
+        legend.text = element_text(size=13)) +
+annotate("text",x=-17,y=-9,label= "Overall reclassification rate: 90.3%", hjust = 0, size = 4) +
+annotate("text", x=-17, y=-10.5, label= "Pillai's test=4.4***", hjust = 0, size = 4)
 aoa.cap.rh.plot
+setwd('D:/Fina/INRAE_Project/microservices_fig/')
+ggsave("AOA_CAP_rhizo_bray.tiff",
+       aoa.cap.rh.plot, device = "tiff",
+       width = 4, height =3, 
+       units= "in", dpi = 600)
 ##############################################################################################################################################
 
 ### 2. COMAMMOX
@@ -204,7 +212,7 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 # run the final CAP by including PCoA axes showing the highest reclassification rate
 set.seed(13)
 com.cap.bulk <- CAPdiscrim(com.bulk_dist_bc ~ x, data = com.meta.bulk.ed, m = 49, permutations = 9999, add = TRUE) # 78.81356% 
-
+com.cap.bulk
 success <- cbind(data.frame(com.cap.bulk$group), data.frame(com.cap.bulk$CV))
 colnames(success) <- c("source", "classified")
 rownames(success) <- rownames(com.cap.bulk$PCoA)
@@ -243,18 +251,22 @@ com.cap.plot <- ggplot(as.data.frame(com.cap.bulk$x), aes(x = com.cap.bulk$x[,1]
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
   geom_mark_ellipse(aes(fill = com.meta.bulk.ed$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
-  labs(title = "Comammox")+
+  #labs(title = "Comammox")+
   theme(axis.text.x = element_text(color = "grey20", size = 10, angle = 0, hjust = .5, vjust = .5, face = "plain"),
         axis.text.y = element_text(color = "grey20", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"),
         axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
         axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")) +
-  #theme(plot.margin = unit(c(1,1,1,1), "cm")) +
   theme(legend.position = "none",
         legend.title = element_text(size=13),
-        legend.text = element_text(size=13)) 
-  #annotate("text",x=-12,y=-15,label= "Overall reclassification rate: 79.7%", hjust = 0, size = 4) 
-#annotate("text", x=-12, y=-16.5, label= "Pillai's test=3.1***", hjust = 0, size = 4)
+        legend.text = element_text(size=13)) +
+  annotate("text",x=-17,y=-7,label= "Overall reclassification rate: 78.8%", hjust = 0, size = 4) +
+  annotate("text", x=-17, y=-8.5, label= "Pillai's test=3.7***", hjust = 0, size = 4)
 com.cap.plot
+setwd('D:/Fina/INRAE_Project/microservices_fig/')
+ggsave("COM_CAP_bulk_bray.tiff",
+       com.cap.plot, device = "tiff",
+       width = 4, height =3, 
+       units= "in", dpi = 600)
 
 ### 2 B. Rhizosphere
 
@@ -285,7 +297,7 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 # run the final CAP by including PCoA axes showing the highest reclassification rate
 set.seed(13)
 com.cap.rh <- CAPdiscrim(com.rh_dist_bc ~ x, data = com.meta.rh.ed, m = 19, permutations = 9999, add = TRUE) #  83.33% 
-
+com.cap.rh
 success <- cbind(data.frame(com.cap.rh$group), data.frame(com.cap.rh$CV))
 colnames(success) <- c("source", "classified")
 rownames(success) <- rownames(com.cap.rh$PCoA)
@@ -324,19 +336,21 @@ com.cap.rh.plot <- ggplot(as.data.frame(com.cap.rh$x), aes(x = com.cap.rh$x[,1],
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
   geom_mark_ellipse(aes(fill = com.meta.rh.ed$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
-  labs(title = "Comammox")+
   theme(axis.text.x = element_text(color = "grey20", size = 10, angle = 0, hjust = .5, vjust = .5, face = "plain"),
         axis.text.y = element_text(color = "grey20", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"),
         axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
         axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")) +
-  #theme(plot.margin = unit(c(1,1,1,1), "cm")) +
   theme(legend.position = "none",
         legend.title = element_text(size=13),
-        legend.text = element_text(size=13))
-  #guides(colour=guide_legend(override.aes = list(size=4)))
-#annotate("text",x=-12,y=-15,label= "Overall reclassification rate: 94.2%", hjust = 0, size = 4) 
-#annotate("text", x=-12, y=-16.5, label= "Pillai's test=3.1***", hjust = 0, size = 4)
+        legend.text = element_text(size=13))+
+  annotate("text",x=-17,y=-7,label= "Overall reclassification rate: 83.3%", hjust = 0, size = 4) +
+  annotate("text", x=-17, y=-8.5, label= "Pillai's test=3.4***", hjust = 0, size = 4)
 com.cap.rh.plot
+setwd('D:/Fina/INRAE_Project/microservices_fig/')
+ggsave("COM_CAP_rhizo_bray.tiff",
+       com.cap.rh.plot, device = "tiff",
+       width = 4, height =3, 
+       units= "in", dpi = 600)
 #################################################################################################################################################
 
 ### 3. AOB
@@ -371,7 +385,7 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 
 set.seed(333)
 aob.cap.bulk <- CAPdiscrim(aob.bulk_dist_bc ~ x, data = aob.meta.bulk.ed, m = 35, permutations = 9999, add = TRUE) # 60.5042 % 
-
+aob.cap.bulk
 success <- cbind(data.frame(aob.cap.bulk$group), data.frame(aob.cap.bulk$CV))
 colnames(success) <- c("source", "classified")
 rownames(success) <- rownames(aob.cap.bulk$PCoA)
@@ -410,7 +424,7 @@ aob.cap.plot <- ggplot(as.data.frame(aob.cap.bulk$x), aes(x = aob.cap.bulk$x[,1]
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
   geom_mark_ellipse(aes(fill = aob.meta.bulk.ed$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
-  labs(title = "AOB")+
+  #labs(title = "AOB")+
   theme(axis.text.x = element_text(color = "grey20", size = 10, angle = 0, hjust = .5, vjust = .5, face = "plain"),
         axis.text.y = element_text(color = "grey20", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"),
         axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
@@ -418,11 +432,15 @@ aob.cap.plot <- ggplot(as.data.frame(aob.cap.bulk$x), aes(x = aob.cap.bulk$x[,1]
   #theme(plot.margin = unit(c(1,1,1,1), "cm")) +
   theme(legend.position = "none",
         legend.title = element_text(size=13),
-        legend.text = element_text(size=13)) 
-  #annotate("text",x=-12,y=-15,label= "Overall reclassification rate: 60.5%", hjust = 0, size = 4) 
-#annotate("text", x=-12, y=-16.5, label= "Pillai's test=3.1***", hjust = 0, size = 4)
+        legend.text = element_text(size=13)) +
+  annotate("text",x=-6,y=-5.5,label= "Overall reclassification rate: 60.5%", hjust = 0, size = 4) +
+  annotate("text", x=-6, y=-6.5, label= "Pillai's test=2.7***", hjust = 0, size = 4)
 aob.cap.plot
-
+setwd('D:/Fina/INRAE_Project/microservices_fig/')
+ggsave("AOB_CAP_bulk_bray.tiff",
+       aob.cap.plot, device = "tiff",
+       width = 4, height =3, 
+       units= "in", dpi = 600)
 ### 3 B. Rhizosphere
 
 # run Bray-Curtis beta diversity on rhizosphere
@@ -452,7 +470,7 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 # run the final CAP by including PCoA axes showing the highest reclassification rate
 set.seed(13)
 aob.cap.rh <- CAPdiscrim(aob.rh_dist_bc ~ x, data = aob.meta.rh.ed, m = 20, permutations = 9999, add = TRUE) # 54.16667 % 
-
+aob.cap.rh
 success <- cbind(data.frame(aob.cap.rh$group), data.frame(aob.cap.rh$CV))
 colnames(success) <- c("source", "classified")
 rownames(success) <- rownames(aob.cap.rh$PCoA)
@@ -491,20 +509,21 @@ aob.cap.rh.plot <- ggplot(as.data.frame(aob.cap.rh$x), aes(x = aob.cap.rh$x[,1],
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
   geom_mark_ellipse(aes(fill = aob.meta.rh.ed$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
-  labs(title = "AOB")+
   theme(axis.text.x = element_text(color = "grey20", size = 10, angle = 0, hjust = .5, vjust = .5, face = "plain"),
         axis.text.y = element_text(color = "grey20", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"),
         axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
         axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")) +
-  #theme(plot.margin = unit(c(1,1,1,1), "cm")) +
   theme(legend.position = "none",
         legend.title = element_text(size=13),
-        legend.text = element_text(size=13))
- 
-#annotate("text",x=-12,y=-15,label= "Overall reclassification rate: 94.2%", hjust = 0, size = 4) 
-#annotate("text", x=-12, y=-16.5, label= "Pillai's test=3.1***", hjust = 0, size = 4)
+        legend.text = element_text(size=13))+
+  annotate("text",x=-6,y=-5.5,label= "Overall reclassification rate: 54.2%", hjust = 0, size = 4) +
+  annotate("text", x=-6, y=-6.5, label= "Pillai's test=2.6***", hjust = 0, size = 4)
 aob.cap.rh.plot
-
+setwd('D:/Fina/INRAE_Project/microservices_fig/')
+ggsave("AOB_CAP_rhizo_bray.tiff",
+       aob.cap.rh.plot, device = "tiff",
+       width = 4, height =3, 
+       units= "in", dpi = 600)
 ############################################################################################################################################
 # Save all the plots 
 library(patchwork)
