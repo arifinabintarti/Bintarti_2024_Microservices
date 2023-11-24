@@ -159,8 +159,8 @@ aoa.cap.rh.plot <- ggplot(as.data.frame(aoa.cap.rh$x), aes(x = aoa.cap.rh$x[,1],
                      name = "Farming system",
                      labels = c("BIODYN", "CONFYM", "CONMIN")) +
   scale_shape_manual(values = c(8, 1),
-                     name = "Irrigation treatment",
-                     labels = c("control", "drought-induced")) + theme_classic() +
+                     name = "Drought",
+                     labels = c("control", "drought")) + theme_classic() +
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
   geom_mark_ellipse(aes(fill = aoa.meta.rh.ed$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
@@ -213,6 +213,7 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 set.seed(13)
 com.cap.bulk <- CAPdiscrim(com.bulk_dist_bc ~ x, data = com.meta.bulk.ed, m = 49, permutations = 9999, add = TRUE) # 78.81356% 
 com.cap.bulk
+com.cap.bulk.dist <- dist(com.cap.bulk$PCoA)
 success <- cbind(data.frame(com.cap.bulk$group), data.frame(com.cap.bulk$CV))
 colnames(success) <- c("source", "classified")
 rownames(success) <- rownames(com.cap.bulk$PCoA)
@@ -246,8 +247,8 @@ com.cap.plot <- ggplot(as.data.frame(com.cap.bulk$x), aes(x = com.cap.bulk$x[,1]
                      name = "Farming system",
                      labels = c("BIODYN", "CONFYM", "CONMIN")) +
   scale_shape_manual(values = c(8, 1),
-                     name = "Irrigation treatment",
-                     labels = c("control", "drought-induced")) + theme_classic() +
+                     name = "Drought",
+                     labels = c("control", "drought")) + theme_classic() +
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
   geom_mark_ellipse(aes(fill = com.meta.bulk.ed$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
@@ -298,6 +299,7 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 set.seed(13)
 com.cap.rh <- CAPdiscrim(com.rh_dist_bc ~ x, data = com.meta.rh.ed, m = 19, permutations = 9999, add = TRUE) #  83.33% 
 com.cap.rh
+com.cap.rh.dist <- dist(com.cap.rh$PCoA)
 success <- cbind(data.frame(com.cap.rh$group), data.frame(com.cap.rh$CV))
 colnames(success) <- c("source", "classified")
 rownames(success) <- rownames(com.cap.rh$PCoA)
@@ -331,8 +333,8 @@ com.cap.rh.plot <- ggplot(as.data.frame(com.cap.rh$x), aes(x = com.cap.rh$x[,1],
                      name = "Farming system",
                      labels = c("BIODYN", "CONFYM", "CONMIN")) +
   scale_shape_manual(values = c(8, 1),
-                     name = "Irrigation treatment",
-                     labels = c("control", "drought-induced")) + theme_classic() +
+                     name = "Drought",
+                     labels = c("control", "drought")) + theme_classic() +
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
   geom_mark_ellipse(aes(fill = com.meta.rh.ed$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
@@ -340,14 +342,14 @@ com.cap.rh.plot <- ggplot(as.data.frame(com.cap.rh$x), aes(x = com.cap.rh$x[,1],
         axis.text.y = element_text(color = "grey20", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"),
         axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
         axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")) +
-  theme(legend.position = "none",
+  theme(legend.position = "right",
         legend.title = element_text(size=13),
         legend.text = element_text(size=13))+
   annotate("text",x=-17,y=-7,label= "Overall reclassification rate: 83.3%", hjust = 0, size = 4) +
   annotate("text", x=-17, y=-8.5, label= "Pillai's test=3.4***", hjust = 0, size = 4)
 com.cap.rh.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
-ggsave("COM_CAP_rhizo_bray.tiff",
+ggsave("COM_CAP_rhizo_legend.tiff",
        com.cap.rh.plot, device = "tiff",
        width = 4, height =3, 
        units= "in", dpi = 600)
@@ -386,6 +388,8 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 set.seed(333)
 aob.cap.bulk <- CAPdiscrim(aob.bulk_dist_bc ~ x, data = aob.meta.bulk.ed, m = 35, permutations = 9999, add = TRUE) # 60.5042 % 
 aob.cap.bulk
+aob.cap.bulk.dist <- dist(aob.cap.bulk$PCoA)
+
 success <- cbind(data.frame(aob.cap.bulk$group), data.frame(aob.cap.bulk$CV))
 colnames(success) <- c("source", "classified")
 rownames(success) <- rownames(aob.cap.bulk$PCoA)
@@ -471,6 +475,7 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 set.seed(13)
 aob.cap.rh <- CAPdiscrim(aob.rh_dist_bc ~ x, data = aob.meta.rh.ed, m = 20, permutations = 9999, add = TRUE) # 54.16667 % 
 aob.cap.rh
+aob.cap.rh.dist <- dist(aob.cap.rh$PCoA)
 success <- cbind(data.frame(aob.cap.rh$group), data.frame(aob.cap.rh$CV))
 colnames(success) <- c("source", "classified")
 rownames(success) <- rownames(aob.cap.rh$PCoA)
