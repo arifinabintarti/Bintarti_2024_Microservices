@@ -1,7 +1,8 @@
 #install.packages("parallel")
+#install.packages("ggforce")
 #install.packages("BiodiversityR")
 library(parallel)
-library(BiodiversityR)
+#library(BiodiversityR) # ALWAYS LOAD FROM THE R CONSOLE!!!!
 library(ggforce)
 
 ### 1. AOA
@@ -37,7 +38,12 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 set.seed(13)
 aoa.cap.bulk <- CAPdiscrim(aoa.bulk_dist_bc ~ x, data = aoa.meta.bulk.ed, m = 44, permutations = 9999, add = TRUE) # 94.16667% 
 aoa.cap.bulk
-aoa.cap.bulk.dist <- dist(aoa.cap.bulk$PCoA)
+#aoa.cap.bulk.dist <- dist(aoa.cap.bulk$PCoA)
+#x: the positions of the sites provided by the discriminant analysis
+
+dist_matrix.aoa <- dist(aoa.cap.bulk$x)
+dist_matrix.aoa
+
 
 
 success <- cbind(data.frame(aoa.cap.bulk$group), data.frame(aoa.cap.bulk$CV))

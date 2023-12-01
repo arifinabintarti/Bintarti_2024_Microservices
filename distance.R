@@ -2726,4 +2726,329 @@ dist.bulk.k<- ggplot(tab.distance.K, aes(x = Label, y = Distance)) +
         legend.spacing.x = unit(0.05, 'cm'))
 dist.bulk.k
 
+############################################################################################################################
+
+#Distance matrix
+
+# 1. AOA Bulk Soil - CAP Distance - CONFYM (K)
+dist_matrix.aoa
+#Sample group
+item_groups <- sample_data(aoa.physeq_bulk1)
+item_groups <- item_groups$x
+#calculate dist between groups
+d.calcul <- dist_groups(dist_matrix.aoa, item_groups)
+d.calcul
+#aoa.cap.bulk.dist <- dist(aoa.cap.bulk$PCoA)
+#Control
+tab.distance = as_tibble(d.calcul) 
+#tab.distance$Label <- gsub('\\s+', '', tab.distance$Label)
+#tab.distance.C <- subset(tab.distance, Label%in% c("Between cont.M and rain.M","Between cont.D and rain.D","Between cont.K and rain.K","Within cont.D","Within cont.M","Within cont.K", "Within rain.D","Within rain.M","Within rain.K"))
+tab.distance.K <- subset(tab.distance, Label%in% c("Between cont.K and rain.K","Within cont.K","Within rain.K"))
+tab.distance.K$Label <- factor(tab.distance.K$Label)
+str(tab.distance.K) 
+# One-way ANOVA
+set.seed(13)
+K.dist.cap.aov <- aov(Distance ~ Label, data = tab.distance.K)
+summary(K.dist.cap.aov) # significant, p-val < 0.0001, f-val= 939.1
+# Post-Hoc Test
+K.dist.cap.tuk <- TukeyHSD(K.dist.cap.aov)
+Tukey.K <- as.data.frame(K.dist.cap.tuk$Label)
+Tukey.K <- rownames_to_column(Tukey.K, var = "Comparison")
+colnames(Tukey.K)[5] <- "p.adj"
+# Make the significance letter
+CLD.k = cldList(p.adj ~ Comparison, data=Tukey.K)
+CLD.k
+# re-order
+CLD.k.ed = CLD.k[c(3,1,2),] # re-order
+CLD.k.ed
+# Plot
+sumData.K <- ddply(tab.distance.K, "Label", summarise,
+                   Max = max(Distance),
+                   N    = length(Distance),
+                   Mean = mean(Distance),
+                   Sd   = sd(Distance),
+                   Se   = Sd / sqrt(N))
+sumData.K
+rownames(CLD.k.ed) = sumData.K$Label
+CLD.k.ed = rownames_to_column(CLD.k.ed, var="Label")
+CLD.k.ed
+# find color gradient
+colfunc <- colorRampPalette(c("#FF618C", "white"))
+colfunc(8)
+col.k <- c("#FF618C","#FF8EAC","#FFBBCD")
+
+dist.CAP.bulk.k<- ggplot(tab.distance.K, aes(x = Label, y = Distance)) + 
+  geom_boxplot(width=0.7,lwd=0.7,aes(fill=Label)) + 
+  scale_fill_manual(values = col.k ,
+                    labels = c("between", "within control", "within drought")) +
+  scale_x_discrete(labels=c("Between", "Control", "Drought"))+
+  ylim(0,15)+
+  geom_text(data=CLD.k.ed,aes(x=Label, y = sumData.K$Max + 1, label=Letter), vjust=0, size=6) +
+  ylab("Bray-Curtis Distances") +
+  theme_bw() +
+  theme(legend.position="none",
+        legend.title = element_text(size=13, face='bold'),
+        plot.title = element_text(hjust = 0.5,size = 15, face='bold'),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x =element_text(size=14),
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        #axis.title.y=element_text(size=13,face="bold"),
+        axis.title.x=element_blank(),
+        legend.text=element_text(size=13),
+        legend.spacing.x = unit(0.05, 'cm'))+
+  #annotate("text",x=0.5,y=1.10,label= "P-value = 0.003", hjust = 0, size = 6, fontface='italic') +
+  ggtitle("CONFYM (K)")
+dist.CAP.bulk.k
+
+# 2. AOA Bulk Soil - CAP Distance - CONMIN
+dist_matrix.aoa
+#Sample group
+item_groups <- sample_data(aoa.physeq_bulk1)
+item_groups <- item_groups$x
+#calculate dist between groups
+d.calcul <- dist_groups(dist_matrix.aoa, item_groups)
+#aoa.cap.bulk.dist <- dist(aoa.cap.bulk$PCoA)
+#Control
+tab.distance = as_tibble(d.calcul) 
+#tab.distance$Label <- gsub('\\s+', '', tab.distance$Label)
+#tab.distance.C <- subset(tab.distance, Label%in% c("Between cont.M and rain.M","Between cont.D and rain.D","Between cont.K and rain.K","Within cont.D","Within cont.M","Within cont.K", "Within rain.D","Within rain.M","Within rain.K"))
+tab.distance.M <- subset(tab.distance, Label%in% c("Between cont.M and rain.M","Within cont.M","Within rain.M"))
+tab.distance.M 
+# One-way ANOVA
+set.seed(13)
+M.dist.cap.aov <- aov(Distance ~ Label, data = tab.distance.M)
+summary(M.dist.cap.aov) # not significant, p-val < 0.0001, f-val= 452.1
+# Post-Hoc Test
+M.dist.cap.tuk <- TukeyHSD(M.dist.cap.aov)
+Tukey.M <- as.data.frame(M.dist.cap.tuk$Label)
+Tukey.M <- rownames_to_column(Tukey.M, var = "Comparison")
+colnames(Tukey.M)[5] <- "p.adj"
+# Make the significance letter
+CLD.m = cldList(p.adj ~ Comparison, data=Tukey.M)
+CLD.m
+# re-order
+CLD.m.ed = CLD.m[c(3,1,2),] # re-order
+CLD.m.ed
+# Plot
+sumData.M <- ddply(tab.distance.M, "Label", summarise,
+                   Max = max(Distance),
+                   N    = length(Distance),
+                   Mean = mean(Distance),
+                   Sd   = sd(Distance),
+                   Se   = Sd / sqrt(N))
+rownames(CLD.m.ed) = sumData.M$Label
+CLD.m.ed = rownames_to_column(CLD.m.ed, var="Label")
+# find color gradient
+colfunc <- colorRampPalette(c("#E69F00", "white"))
+colfunc(8)
+col.m <- c("#E69F00","#EDBA48","#F4D591")
+
+dist.CAP.bulk.m<- ggplot(tab.distance.M, aes(x = Label, y = Distance)) + 
+  geom_boxplot(width=0.7,lwd=0.7,aes(fill=Label)) + 
+  scale_fill_manual(values = col.m,
+                    labels = c("between", "within control", "within drought")) +
+  scale_x_discrete(labels=c("Between", "Control", "Drought"))+
+  geom_text(data=CLD.m.ed,aes(x=Label, y = sumData.M$Max + 1, label=Letter), vjust=0, size=6) +
+  ylab("Bray-Curtis Distances") +
+  ylim(0,15)+
+  theme_bw() +
+  theme(legend.position="none",
+        legend.title = element_text(size=13, face='bold'),
+        plot.background = element_blank(),
+        plot.title = element_text(hjust = 0.5, size = 15, face='bold'),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x =element_text(size=14),
+        axis.text.y =element_blank(),
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        #axis.title.y=element_text(size=13,face="bold"),
+        axis.title.x=element_blank(),
+        legend.text=element_text(size=13),
+        legend.spacing.x = unit(0.05, 'cm'))+
+  #annotate("text",x=0.5,y=1.10,label= "P-value = 0.129", hjust = 0, size = 6, fontface='italic')+
+  ggtitle("CONMIN (M)")
+dist.CAP.bulk.m
+
+# 3. AOA Bulk Soil - Bray Curtis Distance - BIODYN (D)
+dist_matrix.aoa
+#Sample group
+item_groups <- sample_data(aoa.physeq_bulk1)
+item_groups <- item_groups$x
+#calculate dist between groups
+d.calcul <- dist_groups(dist_matrix.aoa, item_groups)
+#Control
+tab.distance = as_tibble(d.calcul) 
+tab.distance.D <- subset(tab.distance, Label%in% c("Between cont.D and rain.D","Within cont.D","Within rain.D"))
+tab.distance.D$Label <- factor(tab.distance.D$Label)
+tab.distance.D$Label
+# One-way ANOVA
+set.seed(13)
+D.dist.cap.aov <- aov(Distance ~ Label, data = tab.distance.D)
+summary(D.dist.cap.aov) # significant, p-val < 0.0001 f-val= 1813
+# Post-Hoc Test
+D.dist.cap.tuk <- TukeyHSD(D.dist.cap.aov)
+D.dist.cap.tuk
+Tukey.D <- as.data.frame(D.dist.cap.tuk$Label)
+Tukey.D <- rownames_to_column(Tukey.D, var = "Comparison")
+colnames(Tukey.D)[5] <- "p.adj"
+# Make the significance letter
+CLD.d = cldList(p.adj ~ Comparison, data=Tukey.D)
+CLD.d
+# re-order
+CLD.d.ed = CLD.d[c(3,1,2),] # re-order
+CLD.d.ed
+# Plot
+sumData.D <- ddply(tab.distance.D, "Label", summarise,
+                   Max = max(Distance),
+                   N    = length(Distance),
+                   Mean = mean(Distance),
+                   Sd   = sd(Distance),
+                   Se   = Sd / sqrt(N))
+rownames(CLD.d.ed) = sumData.D$Label
+CLD.d.ed = rownames_to_column(CLD.d.ed, var="Label")
+# find color gradient
+colfunc <- colorRampPalette(c("#009E73", "white"))
+colfunc(8)
+
+col.d <- c("#009E73","#6DC7AF","#B6E3D7")
+
+dist.CAP.bulk.d<- ggplot(tab.distance.D, aes(x = Label, y = Distance)) + 
+  geom_boxplot(width=0.7,lwd=0.7,aes(fill=Label),outlier.colour = NULL) + 
+  scale_fill_manual(values = col.d,
+                    labels = c("between", "within control", "within drought")) +
+  scale_x_discrete(labels=c("Between", "Control", "Drought"))+
+  geom_text(data=CLD.d.ed,aes(x=Label, y = sumData.D$Max + 1, label=Letter), vjust=0, size=6) +
+  ylab("Distances") +
+  ylim(0,15)+
+  theme_bw() +
+  theme(legend.position="none",
+        legend.title = element_text(size=13, face='bold'),
+        plot.title = element_text(hjust = 0.5, size = 15, face='bold'),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text=element_text(size=14), 
+        axis.title.y=element_text(size=16,face="bold"),
+        axis.title.x=element_blank(),
+        legend.text=element_text(size=13),
+        legend.spacing.x = unit(0.05, 'cm'))+
+  #annotate("text",x=0.5,y=1.10,label= "P-value < 0.001", hjust = 0, size = 6, fontface='italic')+
+  ggtitle("BIODYN (D)")
+dist.CAP.bulk.d
+# Combine figures
+library(patchwork)
+dist.CAP.AOA <- dist.CAP.bulk.d | dist.CAP.bulk.k | dist.CAP.bulk.m
+dist.CAP.AOA
+setwd('D:/Fina/INRAE_Project/microservices_fig/')
+ggsave("AOA_dist.NEWCAP.tiff",
+       dist.CAP.AOA, device = "tiff",
+       width = 9, height =4.5, 
+       units= "in", dpi = 600)
+
+#_______________________________________________________________________________
+
+# AOA distance - everything in one plot
+
+# 1. AOA Bulk Soil - Bray Curtis Distance 
+dist_matrix.aoa
+#Sample group
+item_groups <- sample_data(aoa.physeq_bulk1)
+item_groups <- item_groups$x
+#calculate dist between groups
+d.calcul <- dist_groups(dist_matrix.aoa, item_groups)
+#Control
+tab.distance = as_tibble(d.calcul) 
+tab.distance.C <- subset(tab.distance, Label%in% c("Between cont.M and rain.M","Between cont.D and rain.D","Between cont.K and rain.K"))
+tab.distance.C$Label <- factor(tab.distance.C$Label)
+tab.distance.C$Label
+str(tab.distance.C)
+tab.distance.C$Group2 <- as.character(tab.distance.C$Group2) 
+tab.distance.C.ed <- tab.distance.C %>%
+  mutate(Treatment = case_when(
+    endsWith(Group2, "D") ~ "BIODYN (D)",
+    endsWith(Group2, "K") ~ "CONFYM (K)",
+    endsWith(Group2, "M") ~ "CONMIN (M)"))
+str(tab.distance.C.ed)
+tab.distance.C.ed2 <- tab.distance.C.ed %>% 
+  mutate(Label = factor(Label, 
+                        levels = c("Between cont.D and rain.D","Within cont.D","Within rain.D",
+                                   "Between cont.K and rain.K","Within cont.K","Within rain.K",
+                                   "Between cont.M and rain.M","Within cont.M","Within rain.M")))
+str(tab.distance.C.ed2)
+tab.distance.C.ed2$Label <- factor(tab.distance.C.ed2$Label)
+# One-way ANOVA
+set.seed(13)
+all.dist.cap.aov <- aov(Distance ~ Label, data = tab.distance.C.ed2)
+summary(all.dist.cap.aov) # significant, p-val < 0.0001 f-val= 248.8
+# Post-Hoc Test
+all.dist.cap.tuk <- TukeyHSD(all.dist.cap.aov)
+all.dist.cap.tuk
+Tukey.all <- as.data.frame(all.dist.cap.tuk$Label)
+Tukey.all <- rownames_to_column(Tukey.all, var = "Comparison")
+colnames(Tukey.all)[5] <- "p.adj"
+# Make the significance letter
+CLD.all = cldList(p.adj ~ Comparison, data=Tukey.all)
+CLD.all
+# re-order
+CLD.all.ed = CLD.all[c(3,1,2),] # re-order
+CLD.all.ed
+# Plot
+sumData.all <- ddply(tab.distance.C.ed2, "Label", summarise,
+                   Max = max(Distance),
+                   N    = length(Distance),
+                   Mean = mean(Distance),
+                   Sd   = sd(Distance),
+                   Se   = Sd / sqrt(N))
+rownames(CLD.all.ed) = sumData.all$Label
+CLD.all.ed = rownames_to_column(CLD.all.ed, var="Label")
+CLD.all.ed
+
+CLD.all.ed2 <- CLD.all.ed %>%
+  mutate(Treatment = case_when(
+    endsWith(Group, "D") ~ "BIODYN (D)",
+    endsWith(Group, "K") ~ "CONFYM (K)",
+    endsWith(Group, "M") ~ "CONMIN (M)"))
+
+tab.distance.C.ed2$Treatment <- as.factor(tab.distance.C.ed2$Treatment)
+# Plot
+dist.bulk.all<- ggplot(tab.distance.C.ed2, aes(x = Label, y = Distance)) + 
+  geom_boxplot(width=0.7,lwd=0.7,aes(fill=Label)) + 
+  scale_fill_manual(values = c("#009E73","#FF618C","#E69F00"),
+  labels = c("Between cont.D and rain.D","Between cont.K and rain.K","Between cont.M and rain.M"))+
+  # "Between cont.K and rain.K","Within cont.K","Within rain.K",
+  #"Between cont.M and rain.M","Within cont.M","Within rain.M")) +
+  facet_wrap(~ Treatment,scales = "free_x")+
+  #scale_x_discrete(labels = c("Between cont.D and rain.D","Between cont.K and rain.K","Between cont.M and rain.M"))+
+  geom_text(data=CLD.all.ed2,aes(x=Label, y = sumData.all$Max + 1, label=Letter), vjust=0) +
+  ylab("Bray-Curtis Distances") +
+  theme_bw() +
+  theme(legend.position="none",
+        legend.title = element_text(size=13, face='bold'),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.y=element_text(size=9),
+        axis.text.x=element_text(size=9),#angle=45,hjust=1
+        axis.title.y=element_text(size=13,face="bold"),
+        axis.title.x=element_blank(),
+        legend.text=element_text(size=13),
+        legend.spacing.x = unit(0.05, 'cm'))
+dist.bulk.all
+setwd('D:/Fina/INRAE_Project/microservices_fig/')
+ggsave("AOA_dist_bulk_bray.tiff",
+       dist.bulk.c, device = "tiff",
+       width = 5.6, height =3, 
+       units= "in", dpi = 600)
+
+###########################################################################################################################
+
+
+
+
+
 

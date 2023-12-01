@@ -625,6 +625,10 @@ aoarare.asv.df
 aoa.asv.bulk <- aoarare.asv.df[,1:120]
 aoa.asv.bulk1 <- aoa.asv.bulk[rowSums(aoa.asv.bulk)>0,]
 sort(rowSums(aoa.asv.bulk1, na.rm = FALSE, dims = 1), decreasing = FALSE)
+str(aoa.asv.bulk1)
+#setwd('D:/Fina/INRAE_Project/microservices')
+#write.CSV(aoa.asv.bulk1, file = "aoa.asv.bulk1.csv")
+
 aoa.bulk_dist_bc <- vegdist(t(aoa.asv.bulk1), method = "bray")
 # jaccard - Bulk Soil :
 aoa.bulk_dist_jac <- vegdist(t(aoa.asv.bulk1), binary = TRUE, method = "jaccard")
@@ -1166,7 +1170,7 @@ aoa.bc.anosim <- anosim(aoa.bulk_dist_wUF,
 summary(aoa.bc.anosim) # SIGNIFICANT
 
 set.seed(13)
-aoa.adonis.bulk <- adonis2(aoa.bulk_dist_uwUF ~ Treatment*Irrigation*Date, data=aoa.meta.bulk, 
+aoa.adonis.bulk <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment*Date, data=aoa.meta.bulk, 
                            permutation=999) # only treatment is significant
 aoa.adonis.bulk
 
@@ -1518,6 +1522,74 @@ k0720dist_bc <- vegdist(t(k0720.asv1), method = "bray")
 m09dist_bc <- vegdist(t(m09.asv1), method = "bray")
 d09dist_bc <- vegdist(t(d09.asv1), method = "bray")
 k09dist_bc <- vegdist(t(k09.asv1), method = "bray")
+
+#___________________________________________________________________________________
+library(magrittr)
+library(tidyverse)
+library(purrr)
+
+# separate the otu table and meta data by fertilization:
+
+aoa.physeq_bulk <- subset_samples(aoa.rare.min.physeq, Type=="BS")
+aoa.physeq_bulk1 <- prune_taxa(taxa_sums(aoa.physeq_bulk)>0, aoa.physeq_bulk)
+aoa.physeq_bulk1
+sort(taxa_sums(aoa_seq.BS.biodyn), decreasing =F) #checking
+
+# BIODYN
+aoa_seq.BS.biodyn <- subset_samples(aoa.physeq_bulk1, Treatment=="D")
+aoa_seq.BS.biodyn1 <- prune_taxa(taxa_sums(aoa_seq.BS.biodyn)>0, aoa_seq.BS.biodyn)
+aoa_tab.BS.biodyn <- as.data.frame(otu_table(aoa_seq.BS.biodyn1))
+aoa_meta.BS.biodyn <- aoa.meta.bulk[which(aoa.meta.bulk$Treatment == "Biodynamic"),]
+cols <- c("SampleID", "PlotID", "Block", "Irrigation", "Treatment","Type", "x", "var","var2","var3")
+aoa_meta.BS.biodyn <- aoa_meta.BS.biodyn %>%
+  purrr::modify_at(cols, factor)
+aoa_meta.BS.biodyn$Type <- factor(aoa_meta.BS.biodyn$Type)
+str(aoa_meta.BS.biodyn)
+# MINERAL
+aoa_seq.BS.conmin <- subset_samples(aoa.physeq_bulk1, Treatment=="M")
+aoa_seq.BS.conmin1 <- prune_taxa(taxa_sums(aoa_seq.BS.conmin)>0, aoa_seq.BS.conmin)
+aoa_tab.BS.conmin <- as.data.frame(otu_table(aoa_seq.BS.conmin1))
+aoa_meta.BS.conmin <- aoa.meta.bulk[which(aoa.meta.bulk$Treatment == "Mineral fertilized"),]
+aoa_meta.BS.conmin <- aoa_meta.BS.conmin %>%
+  purrr::modify_at(cols, factor)
+aoa_meta.BS.conmin$Type <- factor(aoa_meta.BS.conmin$Type)
+str(aoa_meta.BS.conmin)
+# CONVENTIONAL
+aoa_seq.BS.confym <- subset_samples(aoa.physeq_bulk1, Treatment=="K")
+aoa_seq.BS.confym1 <- prune_taxa(taxa_sums(aoa_seq.BS.confym)>0, aoa_seq.BS.confym)
+aoa_tab.BS.confym <- as.data.frame(otu_table(aoa_seq.BS.confym1))
+aoa_meta.BS.confym <- aoa.meta.bulk[which(aoa.meta.bulk$Treatment == "Conventional"),]
+aoa_meta.BS.confym <- aoa_meta.BS.confym %>%
+  purrr::modify_at(cols, factor)
+aoa_meta.BS.confym$Type <- factor(aoa_meta.BS.confym$Type)
+str(aoa_meta.BS.confym)
+# Calculate distance for each
+
+aoa_dist.BS.biodyn <- vegdist(t(aoa_tab.BS.biodyn), method = "bray")
+aoa_dist.BS.conmin <- vegdist(t(aoa_tab.BS.conmin), method = "bray")
+aoa_dist.BS.confym <- vegdist(t(aoa_tab.BS.confym), method = "bray")
+
+# PERMANOVA Test
+
+set.seed(13)
+aoa_adonis.BS.biodyn <- adonis2(aoa_dist.BS.biodyn ~ Irrigation, data=aoa_meta.BS.biodyn, 
+                           permutation=999) # not significant (p-val= 0.389)
+aoa_adonis.BS.biodyn
+pairwiseAdonis::pairwise.adonis(aoa_dist.BS.biodyn, aoa_meta.BS.biodyn$Irrigation, p.adjust.m = "BH")
+
+
+set.seed(13)
+aoa_adonis.BS.conmin <- adonis2(aoa_dist.BS.conmin ~ Irrigation, data=aoa_meta.BS.conmin, 
+                                permutation=999) # not significant (p-val= 0.691)
+aoa_adonis.BS.conmin
+pairwiseAdonis::pairwise.adonis(aoa_dist.BS.conmin, aoa_meta.BS.conmin$Irrigation, p.adjust.m = "BH")
+
+
+set.seed(13)
+aoa_adonis.BS.confym <- adonis2(aoa_dist.BS.confym ~ Irrigation, data=aoa_meta.BS.confym, 
+                                permutation=999) # not significant (p-val= 0.193)
+aoa_adonis.BS.confym
+pairwiseAdonis::pairwise.adonis(aoa_dist.BS.confym, aoa_meta.BS.confym$Irrigation, p.adjust.m = "BH")
 
 #########################################################################################
 # AOA Community Composition
