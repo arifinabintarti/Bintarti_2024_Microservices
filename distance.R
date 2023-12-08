@@ -2950,11 +2950,14 @@ ggsave("AOA_dist.NEWCAP.tiff",
        width = 9, height =4.5, 
        units= "in", dpi = 600)
 
-#_______________________________________________________________________________
+#############################################################################################################################################
 
 # AOA distance - everything in one plot
 
-# 1. AOA Bulk Soil - Bray Curtis Distance 
+# 1. AOA Bulk Soil - CAP Distance using LDA results
+
+# calculate distance from the CAP analysis
+dist_matrix.aoa <- dist(aoa.cap.bulk$x)
 dist_matrix.aoa
 #Sample group
 item_groups <- sample_data(aoa.physeq_bulk1)
@@ -2976,27 +2979,42 @@ tab.distance.C.ed <- tab.distance.C %>%
 str(tab.distance.C.ed)
 tab.distance.C.ed2 <- tab.distance.C.ed %>% 
   mutate(Label = factor(Label, 
-                        levels = c("Between cont.D and rain.D","Within cont.D","Within rain.D",
-                                   "Between cont.K and rain.K","Within cont.K","Within rain.K",
-                                   "Between cont.M and rain.M","Within cont.M","Within rain.M")))
+                        levels = c("Between cont.D and rain.D",
+                                   "Between cont.K and rain.K",
+                                   "Between cont.M and rain.M")))
 str(tab.distance.C.ed2)
 tab.distance.C.ed2$Label <- factor(tab.distance.C.ed2$Label)
-# One-way ANOVA
-set.seed(13)
-all.dist.cap.aov <- aov(Distance ~ Label, data = tab.distance.C.ed2)
-summary(all.dist.cap.aov) # significant, p-val < 0.0001 f-val= 248.8
-# Post-Hoc Test
-all.dist.cap.tuk <- TukeyHSD(all.dist.cap.aov)
-all.dist.cap.tuk
-Tukey.all <- as.data.frame(all.dist.cap.tuk$Label)
-Tukey.all <- rownames_to_column(Tukey.all, var = "Comparison")
-colnames(Tukey.all)[5] <- "p.adj"
+
+# Check ANOVA assumptions
+
+# check assumption (outliers)
+tab.distance.C.ed2.out <- tab.distance.C.ed2 %>%
+  group_by(Label) %>%
+  identify_outliers(Distance) # no extreme outliers
+# Saphiro-Wilk for normality
+tab.distance.C.ed2.SW <- tab.distance.C.ed2 %>%
+  group_by(Label) %>%
+  shapiro_test(Distance)
+ggqqplot(tab.distance.C.ed2, "Distance", ggtheme = theme_bw())#All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
+# Lavene test
+tab.distance.C.ed2.Lave <- tab.distance.C.ed2 %>%
+  levene_test(Distance ~ Label)
+
+### LAVENE TEST FOR HOMOGENEITY IS VIOLATED --> Use Kruskal-Wallis
+
+# Kruskal-Wallis Test
+set.seed(1333)
+kruskal.test(Distance ~ Label,
+             data = tab.distance.C.ed2) #Kruskal-Wallis chi-squared = 361.86, df = 2, p-value < 2.2e-16
+# Post Hoc Dunn Test
+set.seed(1333)
+aoa.BS.dunn <- dunnTest(Distance ~ Label,
+                data = tab.distance.C.ed2, method = "bh")
+aoa.BS.dunn
+
 # Make the significance letter
-CLD.all = cldList(p.adj ~ Comparison, data=Tukey.all)
+CLD.all = cldList(P.adj ~ Comparison, data=aoa.BS.dunn$res)
 CLD.all
-# re-order
-CLD.all.ed = CLD.all[c(3,1,2),] # re-order
-CLD.all.ed
 # Plot
 sumData.all <- ddply(tab.distance.C.ed2, "Label", summarise,
                    Max = max(Distance),
@@ -3004,8 +3022,8 @@ sumData.all <- ddply(tab.distance.C.ed2, "Label", summarise,
                    Mean = mean(Distance),
                    Sd   = sd(Distance),
                    Se   = Sd / sqrt(N))
-rownames(CLD.all.ed) = sumData.all$Label
-CLD.all.ed = rownames_to_column(CLD.all.ed, var="Label")
+rownames(CLD.all) = sumData.all$Label
+CLD.all.ed = rownames_to_column(CLD.all, var="Label")
 CLD.all.ed
 
 CLD.all.ed2 <- CLD.all.ed %>%
@@ -3018,37 +3036,605 @@ tab.distance.C.ed2$Treatment <- as.factor(tab.distance.C.ed2$Treatment)
 # Plot
 dist.bulk.all<- ggplot(tab.distance.C.ed2, aes(x = Label, y = Distance)) + 
   geom_boxplot(width=0.7,lwd=0.7,aes(fill=Label)) + 
-  scale_fill_manual(values = c("#009E73","#FF618C","#E69F00"),
-  labels = c("Between cont.D and rain.D","Between cont.K and rain.K","Between cont.M and rain.M"))+
-  # "Between cont.K and rain.K","Within cont.K","Within rain.K",
-  #"Between cont.M and rain.M","Within cont.M","Within rain.M")) +
-  facet_wrap(~ Treatment,scales = "free_x")+
-  #scale_x_discrete(labels = c("Between cont.D and rain.D","Between cont.K and rain.K","Between cont.M and rain.M"))+
-  geom_text(data=CLD.all.ed2,aes(x=Label, y = sumData.all$Max + 1, label=Letter), vjust=0) +
-  ylab("Bray-Curtis Distances") +
+  scale_fill_manual(values = c("#009E73","#FF618C","#E69F00"))+
+  scale_x_discrete(labels = c("control vs drought \nBIODYN","control vs drought \nCONFYM","control vs drought \nCONMIN"))+
+  geom_text(data=CLD.all.ed2,aes(x=Label, y = sumData.all$Max + 1, label=Letter), vjust=0, size=6) +
+  ylab("Distances") +
+  ylim(0,15)+
   theme_bw() +
   theme(legend.position="none",
         legend.title = element_text(size=13, face='bold'),
+        plot.title = element_text(hjust = 0.5, size = 15, face='bold'),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        axis.text.y=element_text(size=9),
-        axis.text.x=element_text(size=9),#angle=45,hjust=1
-        axis.title.y=element_text(size=13,face="bold"),
+        axis.text=element_text(size=15), 
+        axis.title.y=element_text(size=16,face="bold"),
         axis.title.x=element_blank(),
         legend.text=element_text(size=13),
-        legend.spacing.x = unit(0.05, 'cm'))
+        legend.spacing.x = unit(0.05, 'cm'))+
+  annotate("text",x=0.5,y=1,label= "P-value < 0.0001", hjust = 0, size = 6, fontface='italic')
 dist.bulk.all
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
-ggsave("AOA_dist_bulk_bray.tiff",
-       dist.bulk.c, device = "tiff",
-       width = 5.6, height =3, 
+ggsave("AOA_dist_bulk_CAP2.tiff",
+       dist.bulk.all, device = "tiff",
+       width = 6.5, height =4, 
        units= "in", dpi = 600)
+
+#_______________________________________________________________________________
+# 2. AOA Rhizosphere- CAP Distance using LDA Results
+
+# calculate distance from the CAP analysis
+dist_matrix.aoa.rh <- dist(aoa.cap.rh$x)
+dist_matrix.aoa.rh
+#Sample group
+item_groups <- sample_data(aoa.physeq_rh1)
+item_groups <- item_groups$x
+#calculate dist between groups
+d.calcul <- dist_groups(dist_matrix.aoa.rh, item_groups)
+#Control
+tab.distance = as_tibble(d.calcul) 
+tab.distance.C <- subset(tab.distance, Label%in% c("Between cont.M and rain.M","Between cont.D and rain.D","Between cont.K and rain.K"))
+tab.distance.C$Label <- factor(tab.distance.C$Label)
+tab.distance.C$Label
+str(tab.distance.C)
+tab.distance.C$Group2 <- as.character(tab.distance.C$Group2) 
+tab.distance.C.ed <- tab.distance.C %>%
+  mutate(Treatment = case_when(
+    endsWith(Group2, "D") ~ "BIODYN (D)",
+    endsWith(Group2, "K") ~ "CONFYM (K)",
+    endsWith(Group2, "M") ~ "CONMIN (M)"))
+str(tab.distance.C.ed)
+tab.distance.C.ed2 <- tab.distance.C.ed %>% 
+  mutate(Label = factor(Label, 
+                        levels = c("Between cont.D and rain.D",
+                                   "Between cont.K and rain.K",
+                                   "Between cont.M and rain.M")))
+str(tab.distance.C.ed2)
+tab.distance.C.ed2$Label <- factor(tab.distance.C.ed2$Label)
+
+# Check ANOVA assumptions
+
+# check assumption (outliers)
+tab.distance.C.ed2.out <- tab.distance.C.ed2 %>%
+  group_by(Label) %>%
+  identify_outliers(Distance) # no extreme outliers
+# Saphiro-Wilk for normality
+tab.distance.C.ed2.SW <- tab.distance.C.ed2 %>%
+  group_by(Label) %>%
+  shapiro_test(Distance)
+ggqqplot(tab.distance.C.ed2, "Distance", ggtheme = theme_bw())#All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
+# Lavene test
+tab.distance.C.ed2.Lave <- tab.distance.C.ed2 %>%
+  levene_test(Distance ~ Label)
+
+### SAPHIRO-WILK TEST FOR NORMALITY IS VIOLATED --> Use Kruskal-Wallis
+
+#_______________________________________________________________________________
+# One-way ANOVA
+set.seed(13)
+all.dist.cap.aov <- aov(Distance ~ Label, data = tab.distance.C.ed2)
+summary(all.dist.cap.aov) # significant, p-val < 0.0001 f-val= 248.8
+# Post-Hoc Test
+all.dist.cap.tuk <- TukeyHSD(all.dist.cap.aov)
+all.dist.cap.tuk
+Tukey.all <- as.data.frame(all.dist.cap.tuk$Label)
+Tukey.all <- rownames_to_column(Tukey.all, var = "Comparison")
+colnames(Tukey.all)[5] <- "p.adj"
+#_______________________________________________________________________________
+# Kruskal-Wallis Test
+set.seed(1333)
+kruskal.test(Distance ~ Label,
+             data = tab.distance.C.ed2) #Kruskal-Wallis chi-squared = 231.19, df = 2, p-value < 2.2e-16
+# Post Hoc Dunn Test
+set.seed(1333)
+aoa.RS.dunn <- dunnTest(Distance ~ Label,
+                        data = tab.distance.C.ed2, method = "bh")
+aoa.RS.dunn
+#_______________________________________________________________________________
+
+# Make the significance letter
+CLD.RS.all = cldList(P.adj ~ Comparison, data=aoa.RS.dunn$res)
+CLD.RS.all
+# Plot
+sumData.RS.all <- ddply(tab.distance.C.ed2, "Label", summarise,
+                     Max = max(Distance),
+                     N    = length(Distance),
+                     Mean = mean(Distance),
+                     Sd   = sd(Distance),
+                     Se   = Sd / sqrt(N))
+rownames(CLD.RS.all) = sumData.RS.all$Label
+CLD.RS.all.ed = rownames_to_column(CLD.RS.all, var="Label")
+CLD.RS.all.ed
+
+CLD.RS.all.ed2 <- CLD.RS.all.ed %>%
+  mutate(Treatment = case_when(
+    endsWith(Group, "D") ~ "BIODYN (D)",
+    endsWith(Group, "K") ~ "CONFYM (K)",
+    endsWith(Group, "M") ~ "CONMIN (M)"))
+
+tab.distance.C.ed2$Treatment <- as.factor(tab.distance.C.ed2$Treatment)
+# Plot
+dist.rhizo.all<- ggplot(tab.distance.C.ed2, aes(x = Label, y = Distance)) + 
+  geom_boxplot(width=0.7,lwd=0.7,aes(fill=Label)) + 
+  scale_fill_manual(values = c("#009E73","#FF618C","#E69F00"))+
+  scale_x_discrete(labels = c("control vs drought \nBIODYN","control vs drought \nCONFYM","control vs drought \nCONMIN"))+
+  geom_text(data = CLD.RS.all.ed2,aes(x = Label, y = sumData.RS.all$Max + 1, label = Letter), vjust=0, size=6) +
+  ylab("Distances") +
+  ylim(0,15)+
+  theme_bw() +
+  theme(legend.position="none",
+        legend.title = element_text(size=13, face='bold'),
+        plot.title = element_text(hjust = 0.5, size = 15, face='bold'),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text=element_text(size=15), 
+        axis.title.y=element_text(size=16,face="bold"),
+        axis.title.x=element_blank(),
+        legend.text=element_text(size=13),
+        legend.spacing.x = unit(0.05, 'cm'))+
+  annotate("text",x=0.5,y=1,label= "P-value < 0.0001", hjust = 0, size = 6, fontface='italic')
+dist.rhizo.all
+setwd('D:/Fina/INRAE_Project/microservices_fig/')
+ggsave("AOA_dist_rhizo_CAP2.tiff",
+       dist.rhizo.all, device = "tiff",
+       width = 6.5, height =4, 
+       units= "in", dpi = 600)
+
 
 ###########################################################################################################################
 
+# AOB distance - everything in one plot
+
+# 1. AOB Bulk Soil - CAP Distance using LDA results
+
+# calculate distance from the CAP analysis
+dist_matrix.aob <- dist(aob.cap.bulk$x)
+dist_matrix.aob
+#Sample group
+aob.item_groups <- sample_data(aob.physeq_bulk1)
+aob.item_groups <- aob.item_groups$x
+#calculate dist between groups
+aob.d.calcul <- dist_groups(dist_matrix.aob, aob.item_groups)
+#Control
+aob.tab.distance = as_tibble(aob.d.calcul) 
+aob.tab.distance.C <- subset(aob.tab.distance, Label%in% c("Between cont.M and rain.M","Between cont.D and rain.D","Between cont.K and rain.K"))
+aob.tab.distance.C$Label <- factor(aob.tab.distance.C$Label)
+aob.tab.distance.C$Label
+aob.tab.distance.C$Group2 <- as.character(aob.tab.distance.C$Group2) 
+aob.tab.distance.C.ed <- aob.tab.distance.C %>%
+  mutate(Treatment = case_when(
+    endsWith(Group2, "D") ~ "BIODYN (D)",
+    endsWith(Group2, "K") ~ "CONFYM (K)",
+    endsWith(Group2, "M") ~ "CONMIN (M)"))
+aob.tab.distance.C.ed2 <- aob.tab.distance.C.ed %>% 
+  mutate(Label = factor(Label, 
+                        levels = c("Between cont.D and rain.D",
+                                   "Between cont.K and rain.K",
+                                   "Between cont.M and rain.M")))
+aob.tab.distance.C.ed2$Label <- factor(aob.tab.distance.C.ed2$Label)
+
+# Check ANOVA assumptions
+
+# check assumption (outliers)
+aob.tab.distance.C.ed2.out <- aob.tab.distance.C.ed2 %>%
+  group_by(Label) %>%
+  identify_outliers(Distance) # no extreme outliers
+# Saphiro-Wilk for normality
+aob.tab.distance.C.ed2.SW <- aob.tab.distance.C.ed2 %>%
+  group_by(Label) %>%
+  shapiro_test(Distance)
+ggqqplot(aob.tab.distance.C.ed2, "Distance", ggtheme = theme_bw())#All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
+# Lavene test
+aob.tab.distance.C.ed2.Lave <- aob.tab.distance.C.ed2 %>%
+  levene_test(Distance ~ Label)
+
+### LAVENE TEST FOR HOMOGENEITY IS VIOLATED --> Use Kruskal-Wallis
+
+# Kruskal-Wallis Test
+set.seed(1333)
+kruskal.test(Distance ~ Label,
+             data = aob.tab.distance.C.ed2) #Kruskal-Wallis chi-squared = 228.49, df = 2, p-value < 2.2e-16
+# Post Hoc Dunn Test
+set.seed(1333)
+aob.BS.dunn <- dunnTest(Distance ~ Label,
+                        data = aob.tab.distance.C.ed2, method = "bh")
+aob.BS.dunn
+
+# Make the significance letter
+aob.CLD.BS.all = cldList(P.adj ~ Comparison, data=aob.BS.dunn$res)
+aob.CLD.BS.all
+# Plot
+aob.sumData.BS.all <- ddply(aob.tab.distance.C.ed2, "Label", summarise,
+                     Max = max(Distance),
+                     N    = length(Distance),
+                     Mean = mean(Distance),
+                     Sd   = sd(Distance),
+                     Se   = Sd / sqrt(N))
+rownames(aob.CLD.BS.all) = aob.sumData.BS.all$Label
+aob.CLD.BS.all.ed = rownames_to_column(aob.CLD.BS.all, var="Label")
+aob.CLD.BS.all.ed
+
+aob.CLD.BS.all.ed2 <- aob.CLD.BS.all.ed %>%
+  mutate(Treatment = case_when(
+    endsWith(Group, "D") ~ "BIODYN (D)",
+    endsWith(Group, "K") ~ "CONFYM (K)",
+    endsWith(Group, "M") ~ "CONMIN (M)"))
+
+aob.tab.distance.C.ed2$Treatment <- as.factor(aob.tab.distance.C.ed2$Treatment)
+# Plot
+aob.dist.bulk.all<- ggplot(aob.tab.distance.C.ed2, aes(x = Label, y = Distance)) + 
+  geom_boxplot(width=0.7,lwd=0.7,aes(fill=Label)) + 
+  scale_fill_manual(values = c("#009E73","#FF618C","#E69F00"))+
+  scale_x_discrete(labels = c("control vs drought \nBIODYN","control vs drought \nCONFYM","control vs drought \nCONMIN"))+
+  geom_text(data = aob.CLD.BS.all.ed2,aes(x = Label, y = aob.sumData.BS.all$Max + 1, label=Letter), vjust=0, size=6) +
+  ylab("Distances") +
+  ylim(0,15)+
+  theme_bw() +
+  theme(legend.position="none",
+        legend.title = element_text(size=13, face='bold'),
+        plot.title = element_text(hjust = 0.5, size = 15, face='bold'),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text=element_text(size=15), 
+        axis.title.y=element_text(size=16,face="bold"),
+        axis.title.x=element_blank(),
+        legend.text=element_text(size=13),
+        legend.spacing.x = unit(0.05, 'cm'))+
+  annotate("text",x=0.5,y=14.5,label= "P-value < 0.0001", hjust = 0, size = 6, fontface='italic')
+aob.dist.bulk.all
+setwd('D:/Fina/INRAE_Project/microservices_fig/')
+ggsave("AOB_dist_bulk_CAP2.tiff",
+       aob.dist.bulk.all, device = "tiff",
+       width = 6.5, height =4, 
+       units= "in", dpi = 600)
+
+#_______________________________________________________________________________
+# 2. AOB Rhizosphere- CAP Distance using LDA Results
+
+# calculate distance from the CAP analysis
+dist_matrix.aob.rh <- dist(aob.cap.rh$x)
+dist_matrix.aob.rh
+#Sample group
+aob.item_groups.rh <- sample_data(aob.physeq_rh1)
+aob.item_groups.rh <- aob.item_groups.rh$x
+#calculate dist between groups
+aob.d.calcul.rh <- dist_groups(dist_matrix.aob.rh, aob.item_groups.rh)
+#Control
+aob.tab.distance.rh = as_tibble(aob.d.calcul.rh) 
+aob.tab.distance.C.rh <- subset(aob.tab.distance.rh, Label%in% c("Between cont.M and rain.M","Between cont.D and rain.D","Between cont.K and rain.K"))
+aob.tab.distance.C.rh$Label <- factor(aob.tab.distance.C.rh$Label)
+aob.tab.distance.C.rh$Label
+aob.tab.distance.C.rh$Group2 <- as.character(aob.tab.distance.C.rh$Group2) 
+aob.tab.distance.C.rh.ed <- aob.tab.distance.C.rh %>%
+  mutate(Treatment = case_when(
+    endsWith(Group2, "D") ~ "BIODYN (D)",
+    endsWith(Group2, "K") ~ "CONFYM (K)",
+    endsWith(Group2, "M") ~ "CONMIN (M)"))
+aob.tab.distance.C.rh.ed2 <- aob.tab.distance.C.rh.ed %>% 
+  mutate(Label = factor(Label, 
+                        levels = c("Between cont.D and rain.D",
+                                   "Between cont.K and rain.K",
+                                   "Between cont.M and rain.M")))
+aob.tab.distance.C.rh.ed2$Label <- factor(aob.tab.distance.C.rh.ed2$Label)
+
+# Check ANOVA assumptions
+
+# check assumption (outliers)
+aob.tab.distance.C.rh.ed2.out <- aob.tab.distance.C.rh.ed2 %>%
+  group_by(Label) %>%
+  identify_outliers(Distance) # no extreme outliers
+# Saphiro-Wilk for normality
+aob.tab.distance.C.rh.ed2.SW <- aob.tab.distance.C.rh.ed2 %>%
+  group_by(Label) %>%
+  shapiro_test(Distance)
+ggqqplot(aob.tab.distance.C.rh.ed2, "Distance", ggtheme = theme_bw())#All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
+# Lavene test
+aob.tab.distance.C.rh.ed2.Lave <- aob.tab.distance.C.rh.ed2 %>%
+  levene_test(Distance ~ Label)
+
+### NO ASSUMPTIONS ARE VIOLATED --> Use ANOVA
+
+#_______________________________________________________________________________
+# One-way ANOVA
+set.seed(13)
+aob.dist.cap.rh.aov <- aov(Distance ~ Label, data = aob.tab.distance.C.rh.ed2)
+summary(aob.dist.cap.rh.aov) # significant, p-val < 0.0001 f-val= 248.8
+
+# Post-Hoc Test
+aob.dist.cap.rh.tuk <- TukeyHSD(aob.dist.cap.rh.aov)
+aob.dist.cap.rh.tuk
+Tukey.all <- as.data.frame(aob.dist.cap.rh.tuk$Label)
+Tukey.all <- rownames_to_column(Tukey.all, var = "Comparison")
+colnames(Tukey.all)[5] <- "p.adj"
+
+#_____________________________________________________________________________________________________________
+# Kruskal-Wallis Test
+set.seed(1333)
+kruskal.test(Distance ~ Label,
+             data = aob.tab.distance.C.rh.ed2) #Kruskal-Wallis chi-squared = 1.5293, df = 2, p-value = 0.4655
+# Post Hoc Dunn Test
+set.seed(1333)
+aob.RS.dunn <- dunnTest(Distance ~ Label,
+                        data = aob.tab.distance.C.rh.ed2, method = "bh")
+aob.RS.dunn
+#______________________________________________________________________________________________________________
+# Make the significance letter
+aob.CLD.RS.all = cldList(P.adj ~ Comparison, data=aob.RS.dunn$res)
+aob.CLD.RS.all
+# Plot
+aob.sumData.RS.all <- ddply(aob.tab.distance.C.rh.ed2, "Label", summarise,
+                            Max = max(Distance),
+                            N    = length(Distance),
+                            Mean = mean(Distance),
+                            Sd   = sd(Distance),
+                            Se   = Sd / sqrt(N))
+rownames(aob.CLD.RS.all) = aob.sumData.RS.all$Label
+aob.CLD.RS.all.ed = rownames_to_column(aob.CLD.RS.all, var="Label")
+aob.CLD.RS.all.ed
+
+aob.CLD.RS.all.ed2 <- aob.CLD.RS.all.ed %>%
+  mutate(Treatment = case_when(
+    endsWith(Group, "D") ~ "BIODYN (D)",
+    endsWith(Group, "K") ~ "CONFYM (K)",
+    endsWith(Group, "M") ~ "CONMIN (M)"))
+
+aob.tab.distance.C.rh.ed2$Treatment <- as.factor(aob.tab.distance.C.rh.ed2$Treatment)
+# Plot
+aob.dist.rhizo.all<- ggplot(aob.tab.distance.C.rh.ed2, aes(x = Label, y = Distance)) + 
+  geom_boxplot(width=0.7,lwd=0.7,aes(fill=Label)) + 
+  scale_fill_manual(values = c("#009E73","#FF618C","#E69F00"))+
+  scale_x_discrete(labels = c("control vs drought \nBIODYN","control vs drought \nCONFYM","control vs drought \nCONMIN"))+
+  geom_text(data = aob.CLD.RS.all.ed2,aes(x = Label, y = aob.sumData.RS.all$Max + 1, label = Letter), vjust=0, size=6) +
+  ylab("Distances") +
+  ylim(0,15)+
+  theme_bw() +
+  theme(legend.position="none",
+        legend.title = element_text(size=13, face='bold'),
+        plot.title = element_text(hjust = 0.5, size = 15, face='bold'),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text=element_text(size=15), 
+        axis.title.y=element_text(size=16,face="bold"),
+        axis.title.x=element_blank(),
+        legend.text=element_text(size=13),
+        legend.spacing.x = unit(0.05, 'cm'))+
+  annotate("text",x=0.5,y=14.5,label= "P-value = 0.46", hjust = 0, size = 6, fontface='italic')
+aob.dist.rhizo.all
+setwd('D:/Fina/INRAE_Project/microservices_fig/')
+ggsave("AOB_dist_rhizo_CAP2.tiff",
+       aob.dist.rhizo.all, device = "tiff",
+       width = 6.5, height =4, 
+       units= "in", dpi = 600)
 
 
+###########################################################################################################################
 
+# COMAMMOX distance - everything in one plot
 
+# 1. COMAMMOX Bulk Soil - CAP Distance using LDA results
+
+# calculate distance from the CAP analysis
+dist_matrix.com <- dist(com.cap.bulk$x)
+dist_matrix.com
+#Sample group
+com.item_groups <- sample_data(com.physeq_bulk1)
+com.item_groups <- com.item_groups$x
+#calculate dist between groups
+com.d.calcul <- dist_groups(dist_matrix.com, com.item_groups)
+#Control
+com.tab.distance = as_tibble(com.d.calcul) 
+com.tab.distance.C <- subset(com.tab.distance, Label%in% c("Between cont.M and rain.M","Between cont.D and rain.D","Between cont.K and rain.K"))
+com.tab.distance.C$Label <- factor(com.tab.distance.C$Label)
+com.tab.distance.C$Label
+com.tab.distance.C$Group2 <- as.character(com.tab.distance.C$Group2) 
+com.tab.distance.C.ed <- com.tab.distance.C %>%
+  mutate(Treatment = case_when(
+    endsWith(Group2, "D") ~ "BIODYN (D)",
+    endsWith(Group2, "K") ~ "CONFYM (K)",
+    endsWith(Group2, "M") ~ "CONMIN (M)"))
+com.tab.distance.C.ed2 <- com.tab.distance.C.ed %>% 
+  mutate(Label = factor(Label, 
+                        levels = c("Between cont.D and rain.D",
+                                   "Between cont.K and rain.K",
+                                   "Between cont.M and rain.M")))
+com.tab.distance.C.ed2$Label <- factor(com.tab.distance.C.ed2$Label)
+
+# Check ANOVA assumptions
+
+# check assumption (outliers)
+com.tab.distance.C.ed2.out <- com.tab.distance.C.ed2 %>%
+  group_by(Label) %>%
+  identify_outliers(Distance) # no extreme outliers
+# Saphiro-Wilk for normality
+com.tab.distance.C.ed2.SW <- com.tab.distance.C.ed2 %>%
+  group_by(Label) %>%
+  shapiro_test(Distance)
+ggqqplot(com.tab.distance.C.ed2, "Distance", ggtheme = theme_bw())#All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
+# Lavene test
+com.tab.distance.C.ed2.Lave <- com.tab.distance.C.ed2 %>%
+  levene_test(Distance ~ Label)
+
+### SAPHIRO-WILK TEST FOR NORMALITY AND LAVENE TEST FOR HOMOGENEITY ARE VIOLATED --> Use Kruskal-Wallis
+
+# Kruskal-Wallis Test
+set.seed(1333)
+kruskal.test(Distance ~ Label,
+             data = com.tab.distance.C.ed2) #Kruskal-Wallis chi-squared = 578.25, df = 2, p-value < 2.2e-16
+# Post Hoc Dunn Test
+set.seed(1333)
+com.BS.dunn <- dunnTest(Distance ~ Label,
+                        data = com.tab.distance.C.ed2, method = "bh")
+com.BS.dunn
+
+# Make the significance letter
+com.CLD.BS.all = cldList(P.adj ~ Comparison, data=com.BS.dunn$res)
+com.CLD.BS.all
+# Plot
+com.sumData.BS.all <- ddply(com.tab.distance.C.ed2, "Label", summarise,
+                            Max = max(Distance),
+                            N    = length(Distance),
+                            Mean = mean(Distance),
+                            Sd   = sd(Distance),
+                            Se   = Sd / sqrt(N))
+rownames(com.CLD.BS.all) = com.sumData.BS.all$Label
+com.CLD.BS.all.ed = rownames_to_column(com.CLD.BS.all, var="Label")
+com.CLD.BS.all.ed
+
+com.CLD.BS.all.ed2 <- com.CLD.BS.all.ed %>%
+  mutate(Treatment = case_when(
+    endsWith(Group, "D") ~ "BIODYN (D)",
+    endsWith(Group, "K") ~ "CONFYM (K)",
+    endsWith(Group, "M") ~ "CONMIN (M)"))
+
+com.tab.distance.C.ed2$Treatment <- as.factor(com.tab.distance.C.ed2$Treatment)
+# Plot
+com.dist.bulk.all<- ggplot(com.tab.distance.C.ed2, aes(x = Label, y = Distance)) + 
+  geom_boxplot(width=0.7,lwd=0.7,aes(fill=Label)) + 
+  scale_fill_manual(values = c("#009E73","#FF618C","#E69F00"))+
+  scale_x_discrete(labels = c("control vs drought \nBIODYN","control vs drought \nCONFYM","control vs drought \nCONMIN"))+
+  geom_text(data = com.CLD.BS.all.ed2,aes(x = Label, y = com.sumData.BS.all$Max + 1, label=Letter), vjust=0, size=6) +
+  ylab("Distances") +
+  ylim(0,15)+
+  theme_bw() +
+  theme(legend.position="none",
+        legend.title = element_text(size=13, face='bold'),
+        plot.title = element_text(hjust = 0.5, size = 15, face='bold'),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text=element_text(size=15), 
+        axis.title.y=element_text(size=16,face="bold"),
+        axis.title.x=element_blank(),
+        legend.text=element_text(size=13),
+        legend.spacing.x = unit(0.05, 'cm'))+
+  annotate("text",x=0.5,y=14.5,label= "P-value < 0.0001", hjust = 0, size = 6, fontface='italic')
+com.dist.bulk.all
+setwd('D:/Fina/INRAE_Project/microservices_fig/')
+ggsave("COM_dist_bulk_CAP2.tiff",
+       com.dist.bulk.all, device = "tiff",
+       width = 6.5, height =4, 
+       units= "in", dpi = 600)
+
+#_______________________________________________________________________________
+# 2. COMAMMOX Rhizosphere- CAP Distance using LDA Results
+
+# calculate distance from the CAP analysis
+dist_matrix.com.rh <- dist(com.cap.rh$x)
+dist_matrix.com.rh
+#Sample group
+com.item_groups.rh <- sample_data(com.physeq_rh1)
+com.item_groups.rh <- com.item_groups.rh$x
+#calculate dist between groups
+com.d.calcul.rh <- dist_groups(dist_matrix.com.rh, com.item_groups.rh)
+#Control
+com.tab.distance.rh = as_tibble(com.d.calcul.rh) 
+com.tab.distance.C.rh <- subset(com.tab.distance.rh, Label%in% c("Between cont.M and rain.M","Between cont.D and rain.D","Between cont.K and rain.K"))
+com.tab.distance.C.rh$Label <- factor(com.tab.distance.C.rh$Label)
+com.tab.distance.C.rh$Label
+com.tab.distance.C.rh$Group2 <- as.character(com.tab.distance.C.rh$Group2) 
+com.tab.distance.C.rh.ed <- com.tab.distance.C.rh %>%
+  mutate(Treatment = case_when(
+    endsWith(Group2, "D") ~ "BIODYN (D)",
+    endsWith(Group2, "K") ~ "CONFYM (K)",
+    endsWith(Group2, "M") ~ "CONMIN (M)"))
+com.tab.distance.C.rh.ed2 <- com.tab.distance.C.rh.ed %>% 
+  mutate(Label = factor(Label, 
+                        levels = c("Between cont.D and rain.D",
+                                   "Between cont.K and rain.K",
+                                   "Between cont.M and rain.M")))
+com.tab.distance.C.rh.ed2$Label <- factor(com.tab.distance.C.rh.ed2$Label)
+
+# Check ANOVA assumptions
+
+# check assumption (outliers)
+com.tab.distance.C.rh.ed2.out <- com.tab.distance.C.rh.ed2 %>%
+  group_by(Label) %>%
+  identify_outliers(Distance) # no extreme outliers
+# Saphiro-Wilk for normality
+com.tab.distance.C.rh.ed2.SW <- com.tab.distance.C.rh.ed2 %>%
+  group_by(Label) %>%
+  shapiro_test(Distance)
+ggqqplot(com.tab.distance.C.rh.ed2, "Distance", ggtheme = theme_bw())#All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
+# Lavene test
+com.tab.distance.C.rh.ed2.Lave <- com.tab.distance.C.rh.ed2 %>%
+  levene_test(Distance ~ Label)
+
+### SAPHIRO-WILKS TEST FOR NORMALITY IS VIOLATED BUT ONLY ONE POINT --> Use ANOVA or KW
+
+#_______________________________________________________________________________
+# One-way ANOVA
+set.seed(13)
+com.dist.cap.rh.aov <- aov(Distance ~ Label, data = com.tab.distance.C.rh.ed2)
+summary(com.dist.cap.rh.aov) # significant 3.6e-11 ***
+
+# Post-Hoc Test
+com.dist.cap.rh.tuk <- TukeyHSD(com.dist.cap.rh.aov)
+com.dist.cap.rh.tuk
+Tukey.all <- as.data.frame(com.dist.cap.rh.tuk$Label)
+Tukey.all <- rownames_to_column(Tukey.all, var = "Comparison")
+colnames(Tukey.all)[5] <- "p.adj"
+
+#_____________________________________________________________________________________________________________
+# Kruskal-Wallis Test
+set.seed(1333)
+kruskal.test(Distance ~ Label,
+             data = com.tab.distance.C.rh.ed2) #
+# Post Hoc Dunn Test
+set.seed(1333)
+com.RS.dunn <- dunnTest(Distance ~ Label,
+                        data = com.tab.distance.C.rh.ed2, method = "bh")
+com.RS.dunn
+#______________________________________________________________________________________________________________
+# Make the significance letter
+com.CLD.RS.all = cldList(P.adj ~ Comparison, data=com.RS.dunn$res)
+com.CLD.RS.all
+# Plot
+com.sumData.RS.all <- ddply(com.tab.distance.C.rh.ed2, "Label", summarise,
+                            Max = max(Distance),
+                            N    = length(Distance),
+                            Mean = mean(Distance),
+                            Sd   = sd(Distance),
+                            Se   = Sd / sqrt(N))
+rownames(com.CLD.RS.all) = com.sumData.RS.all$Label
+com.CLD.RS.all.ed = rownames_to_column(com.CLD.RS.all, var="Label")
+com.CLD.RS.all.ed
+
+com.CLD.RS.all.ed2 <- com.CLD.RS.all.ed %>%
+  mutate(Treatment = case_when(
+    endsWith(Group, "D") ~ "BIODYN (D)",
+    endsWith(Group, "K") ~ "CONFYM (K)",
+    endsWith(Group, "M") ~ "CONMIN (M)"))
+
+com.tab.distance.C.rh.ed2$Treatment <- as.factor(com.tab.distance.C.rh.ed2$Treatment)
+# Plot
+com.dist.rhizo.all<- ggplot(com.tab.distance.C.rh.ed2, aes(x = Label, y = Distance)) + 
+  geom_boxplot(width=0.7,lwd=0.7,aes(fill=Label)) + 
+  scale_fill_manual(values = c("#009E73","#FF618C","#E69F00"))+
+  scale_x_discrete(labels = c("control vs drought \nBIODYN","control vs drought \nCONFYM","control vs drought \nCONMIN"))+
+  geom_text(data = com.CLD.RS.all.ed2,aes(x = Label, y = com.sumData.RS.all$Max + 1, label = Letter), vjust=0, size=6) +
+  ylab("Distances") +
+  ylim(0,15)+
+  theme_bw() +
+  theme(legend.position="none",
+        legend.title = element_text(size=13, face='bold'),
+        plot.title = element_text(hjust = 0.5, size = 15, face='bold'),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text=element_text(size=15), 
+        axis.title.y=element_text(size=16,face="bold"),
+        axis.title.x=element_blank(),
+        legend.text=element_text(size=13),
+        legend.spacing.x = unit(0.05, 'cm'))+
+  annotate("text",x=0.5,y=14.5,label= "P-value < 0.0001", hjust = 0, size = 6, fontface='italic')
+com.dist.rhizo.all
+setwd('D:/Fina/INRAE_Project/microservices_fig/')
+ggsave("COM_dist_rhizo_CAP2.tiff",
+       com.dist.rhizo.all, device = "tiff",
+       width = 6.5, height =4, 
+       units= "in", dpi = 600)
 

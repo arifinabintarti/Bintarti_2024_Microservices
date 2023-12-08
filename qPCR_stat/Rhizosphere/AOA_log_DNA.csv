@@ -1,0 +1,8 @@
+Effect,DFn,DFd,F,p,p<.05,ges
+irrigation,1,18,5.121,3.60E-02,*,0.163
+fertilization,2,18,2.011,1.63E-01,,0.133
+sampling.date,2,36,6.653,3.00E-03,*,0.104
+irrigation:fertilization,2,18,0.095,9.10E-01,,0.007
+irrigation:sampling.date,2,36,0.522,5.98E-01,,0.009
+fertilization:sampling.date,4,36,1.935,1.26E-01,,0.063
+irrigation:fertilization:sampling.date,4,36,0.884,4.83E-01,,0.03

@@ -2,7 +2,7 @@
 #install.packages("ggforce")
 #install.packages("BiodiversityR")
 library(parallel)
-#library(BiodiversityR) # ALWAYS LOAD FROM THE R CONSOLE!!!!
+library(BiodiversityR) # ALWAYS LOAD FROM THE R CONSOLE!!!!
 library(ggforce)
 
 ### 1. AOA
@@ -43,8 +43,6 @@ aoa.cap.bulk
 
 dist_matrix.aoa <- dist(aoa.cap.bulk$x)
 dist_matrix.aoa
-
-
 
 success <- cbind(data.frame(aoa.cap.bulk$group), data.frame(aoa.cap.bulk$CV))
 colnames(success) <- c("source", "classified")
@@ -131,7 +129,9 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 set.seed(13)
 aoa.cap.rh <- CAPdiscrim(aoa.rh_dist_bc ~ x, data = aoa.meta.rh.ed, m = 38, permutations = 9999, add = TRUE) # 90.27778 % 
 aoa.cap.rh
-aoa.cap.rh.dist <- dist(aoa.cap.rh$PCoA)
+
+dist_matrix.aoa.rh <- dist(aoa.cap.rh$x)
+
 success <- cbind(data.frame(aoa.cap.rh$group), data.frame(aoa.cap.rh$CV))
 colnames(success) <- c("source", "classified")
 rownames(success) <- rownames(aoa.cap.rh$PCoA)
@@ -219,7 +219,11 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 set.seed(13)
 com.cap.bulk <- CAPdiscrim(com.bulk_dist_bc ~ x, data = com.meta.bulk.ed, m = 49, permutations = 9999, add = TRUE) # 78.81356% 
 com.cap.bulk
-com.cap.bulk.dist <- dist(com.cap.bulk$PCoA)
+
+
+dist_matrix.com <- dist(com.cap.bulk$x)
+
+
 success <- cbind(data.frame(com.cap.bulk$group), data.frame(com.cap.bulk$CV))
 colnames(success) <- c("source", "classified")
 rownames(success) <- rownames(com.cap.bulk$PCoA)
@@ -305,7 +309,9 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 set.seed(13)
 com.cap.rh <- CAPdiscrim(com.rh_dist_bc ~ x, data = com.meta.rh.ed, m = 19, permutations = 9999, add = TRUE) #  83.33% 
 com.cap.rh
-com.cap.rh.dist <- dist(com.cap.rh$PCoA)
+
+dist_matrix.com.rh <- dist(com.cap.rh$x)
+
 success <- cbind(data.frame(com.cap.rh$group), data.frame(com.cap.rh$CV))
 colnames(success) <- c("source", "classified")
 rownames(success) <- rownames(com.cap.rh$PCoA)
@@ -394,7 +400,8 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 set.seed(333)
 aob.cap.bulk <- CAPdiscrim(aob.bulk_dist_bc ~ x, data = aob.meta.bulk.ed, m = 35, permutations = 9999, add = TRUE) # 60.5042 % 
 aob.cap.bulk
-aob.cap.bulk.dist <- dist(aob.cap.bulk$PCoA)
+
+dist_matrix.aob <- dist(aob.cap.bulk$x)
 
 success <- cbind(data.frame(aob.cap.bulk$group), data.frame(aob.cap.bulk$CV))
 colnames(success) <- c("source", "classified")
@@ -451,6 +458,8 @@ ggsave("AOB_CAP_bulk_bray.tiff",
        aob.cap.plot, device = "tiff",
        width = 4, height =3, 
        units= "in", dpi = 600)
+
+
 ### 3 B. Rhizosphere
 
 # run Bray-Curtis beta diversity on rhizosphere
@@ -481,7 +490,10 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 set.seed(13)
 aob.cap.rh <- CAPdiscrim(aob.rh_dist_bc ~ x, data = aob.meta.rh.ed, m = 20, permutations = 9999, add = TRUE) # 54.16667 % 
 aob.cap.rh
-aob.cap.rh.dist <- dist(aob.cap.rh$PCoA)
+
+dist_matrix.aob.rh <- dist(aob.cap.rh$x)
+
+
 success <- cbind(data.frame(aob.cap.rh$group), data.frame(aob.cap.rh$CV))
 colnames(success) <- c("source", "classified")
 rownames(success) <- rownames(aob.cap.rh$PCoA)

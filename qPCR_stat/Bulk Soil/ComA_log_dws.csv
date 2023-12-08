@@ -1,0 +1,9 @@
+ANOVA Table (type II tests),,,,,,
+Effect,DFn,DFd,F,p,p<.05,ges
+irrigation,1,18,0.21,6.52E-01,,0.007
+fertilization,2,18,2.745,9.10E-02,,0.159
+sampling.date,1.52,27.43,46.708,1.13E-08,*,0.495
+irrigation:fertilization,2,18,0.043,9.58E-01,,0.003
+irrigation:sampling.date,1.52,27.43,0.861,4.06E-01,,0.018
+fertilization:sampling.date,3.05,27.43,0.552,6.54E-01,,0.023
+irrigation:fertilization:sampling.date,3.05,27.43,0.268,8.51E-01,,0.011

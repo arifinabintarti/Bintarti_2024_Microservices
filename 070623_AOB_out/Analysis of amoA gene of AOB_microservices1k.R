@@ -588,13 +588,15 @@ ggsave("AOB_invsimp_all.tiff",
        width = 14, height =5.8, 
        units= "in", dpi = 600)
 
+
 # inverse simpson between irrigations
-aob.invsimp.pwc.irri.plot <- ggplot(aob.meta.df.sub, aes(x=Date, y=InvSimpson)) +
+aob.invsimp.pwc.irri.plot <- ggplot(aob.meta.bulk, aes(x=Date, y=InvSimpson)) +
   geom_boxplot(aes(group = var3, fill = Irrigation))+
   theme_bw() +
   labs(y="AOB Inverse Simpson")+
   scale_fill_manual(values = c("#996035","#F2DACD"))+
-  facet_grid(Type~ Treatment,scales="free_x")+
+  #facet_grid(Type~ Treatment,scales="free_x")+
+  facet_wrap(~ Treatment,scales="free_x")+
   theme(legend.title = element_text(size=15, face='bold'),
         legend.text = element_text(size=15),
         strip.text = element_text(size=18),
@@ -606,9 +608,18 @@ aob.invsimp.pwc.irri.plot <- ggplot(aob.meta.df.sub, aes(x=Date, y=InvSimpson)) 
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 aob.invsimp.pwc.irri.plot
+
+
+test2 <- aob.invsimp.pwc.irri.plot + 
+  stat_pvalue_manual(xy.invsimp.irri.bulk,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
+  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
+test2
+
+
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
 xy.invsimp.irri.bulk <- emm.invsimp.irri.bulk %>% 
   add_xy_position(x = "Date", dodge = 0.8) # bulk soil
+xy.invsimp.irri.bulk
 xy.invsimp.irri.rh <- emm.invsimp.irri.rh %>% 
   add_xy_position(x = "Date", dodge = 0.8)# rhizosphere
 # #combine two data frames and adding 'Type'
@@ -639,8 +650,8 @@ ggsave("AOB_invsimp_irri_boxplot.tiff",
 # FOR ALL SAMPLES
 # 1. Calculating dissimilarity indices for community ecologist to make a distance structure (Bray-Curtis distance between samples)
 aob.asv.rare1k <- as.data.frame(otu_table(aob.rare.1282.seq))
-setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB.ASV-analysis')
-write.csv(aob.asv.rare1k, file = "aob.rare1k.otutab.csv")
+#setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB.ASV-analysis')
+#write.csv(aob.asv.rare1k, file = "aob.rare1k.otutab.csv")
 # Bray-Curtis using rarefied data:
 aob_dist_bc <- vegdist(t(aob.asv.rare1k), method = "bray")
 # Jaccard using rarefied data:
