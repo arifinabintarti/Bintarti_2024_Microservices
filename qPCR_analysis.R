@@ -479,14 +479,20 @@ table2csv(x=tot.log.dws.aov2.df,file=filen, digits = 1, digitspvals = 3)
 #anova(tot.log.dws.lmer)
 #tot.log.dws.lmer2 <- lmerTest::lmer(Tot_logDWS ~ irrigation*fertilization*sampling.date+(1|block), data=qPCR.BS,na.action = na.omit, REML=F)
 #anova(tot.log.dws.lmer2)
-tot.log.dws.lmer <- lmerTest::lmer(Tot_logDWS ~ irrigation*fertilization*sampling.date+
-                                    (sampling.date|rep), data=qPCR.BS, na.action=na.omit)
+#tot.log.dws.lmer <- lmerTest::lmer(Tot_logDWS ~ irrigation*fertilization+sampling.date+
+                                    #(sampling.date|rep), data=qPCR.BS, na.action=na.omit)
 
 tot.log.dws.lmer <- lmerTest::lmer(Tot_logDWS ~ irrigation*fertilization*sampling.date+
                                     (1|block/plot), data=qPCR.BS, na.action=na.omit)
-
 #t=afex::mixed(Tot_logDWS ~ irrigation*fertilization*sampling.date+
                                     #(1|plot), data=qPCR.BS, na.action=na.omit)
+
+tot.dws.lmer2 <- lmerTest::lmer(Tot_nbc_per_g_DW_soil ~ irrigation*fertilization*sampling.date+
+                                     (1|block/plot), data=qPCR.BS, na.action=na.omit)
+
+t.16S=lmerTest::lmer(Tot_logDWS ~ irrigation*fertilization*sampling.date+
+                       (1|block:sampling.date), 
+                     data=qPCR.BS, na.action=na.omit)
 
 anova(tot.log.dws.lmer)
 shapiro.test(resid(tot.log.dws.lmer)) #normal
@@ -510,11 +516,11 @@ qPCR.BS.Tot_logDWS.SW <- qPCR.BS %>%
 # tidy anova table
 knitr::kable(nice(tot.log.dws.aov))
 # Pairwise comparison:
-tot.log.dws.emm <- emmeans(t, ~ irrigation | fertilization*sampling.date,mode = "satterthwaite")
+tot.log.dws.emm <- emmeans(t.16S, ~ irrigation | fertilization*sampling.date)
 tot.log.dws.pair <- pairs(tot.log.dws.emm)
 tot.log.dws.pair.DF <- as.data.frame(summary(tot.log.dws.pair))
-setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat')
-write.csv(tot.log.dws.pair.DF, file = "16S_log_dws_pair.csv")
+setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Bulk Soil/')
+write.csv(tot.log.dws.pair.DF, file = "16S_log_dws_pair.csv") ### CHANGED
 
 # 6. AOA/16S RATIO
 
@@ -542,13 +548,11 @@ hist(qPCR.BS$AOA_16S_ratio_percent)
 shapiro_test(qPCR.BS$AOA_16S_ratio_percent)
 
 # try another model
-AOA_16.percent.ratio.lme <- lme(AOA_16S_ratio_percent~ irrigation*fertilization*sampling.date, random=~1|rep/sampling.date/fertilization/irrigation, data=qPCR.BS,method="REML",na.action = na.omit)
-anova(AOA_16.percent.ratio.lme)
+#AOA_16.percent.ratio.lme <- lme(AOA_16S_ratio_percent~ irrigation*fertilization*sampling.date, random=~1|rep/fertilization/irrigation, data=qPCR.BS,method="REML",na.action = na.omit)
+#anova(AOA_16.percent.ratio.lme)
 
-AOA_16.percent.ratio.lmer <- lmerTest::lmer(AOA_16S_ratio_percent ~ irrigation*fertilization*sampling.date+(1|plot), data=qPCR.BS,na.action = na.omit)
+AOA_16.percent.ratio.lmer <- lmerTest::lmer(AOA_16S_ratio_percent ~ irrigation*fertilization*sampling.date+(1|block/plot), data=qPCR.BS,na.action = na.omit)
 anova(AOA_16.percent.ratio.lmer)
-
-
 
 # tidy anova table
 knitr::kable(nice(AOA_16.percent.ratio.aov))
@@ -579,19 +583,36 @@ AOA_16.arc.ratio.aov2.df <- get_anova_table(AOA_16.arc.ratio.aov2)
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/AOA_16_arc_ratio")
 table2csv(x=AOA_16.arc.ratio.aov2.df,file=filen, digits = 1, digitspvals = 3)
 
-
 # test assumptions:
 check_homogeneity(AOA_16.arc.ratio.aov) # good
-check_sphericity(AOA_16.arc.ratio.aov) #Sphericity violated
+check_sphericity(AOA_16.arc.ratio.aov2) #Sphericity violated
 AOA_16.arc.ratio.is_norm <- check_normality(AOA_16.arc.ratio.aov)
 ggqqplot(qPCR.BS, "AOA_16.arc.ratio", ggtheme = theme_bw())
 plot(AOA_16.arc.ratio.is_norm, type = "qq")
 plot(AOA_16.arc.ratio.is_norm, type = "qq", detrend = TRUE)
+
+# try another model
+#AOA_16.arc.ratio.lme <- lme(AOA_16.arc.ratio~ irrigation*fertilization*sampling.date, random=~1|rep/fertilization/irrigation, data=qPCR.BS,method="REML",na.action = na.omit)
+#anova(AOA_16.arc.ratio.lme)
+
+AOA_16.arc.ratio.lmer <- lmerTest::lmer(AOA_16.arc.ratio ~ irrigation*fertilization*sampling.date+
+                                          (1|block/plot), data=qPCR.BS, na.action=na.omit)
+anova(AOA_16.arc.ratio.lmer, ddf = "Kenward-Roger")
+shapiro.test(resid(AOA_16.arc.ratio.lmer)) #normal
+
+t.aoa=lmerTest::lmer(AOA_16.arc.ratio ~ irrigation*fertilization*sampling.date+
+                   (1|block:sampling.date), 
+                 data=qPCR.BS, na.action=na.omit)
+anova(t.aoa)
+
+#install.packages("DHARMa")
+library(DHARMa)
+plot(simulateResiduals(AOA_16.arc.ratio.lmer))
 # NORMAL
 # tidy anova table
 knitr::kable(nice(AOA_16.arc.ratio.aov))
 # Pairwise comparison:
-AOA_16.arc.ratio.emm <- emmeans(AOA_16.arc.ratio.aov, ~ irrigation | fertilization*sampling.date)
+AOA_16.arc.ratio.emm <- emmeans(t.aoa, ~ irrigation | fertilization*sampling.date)
 AOA_16.arc.ratio.pair <- pairs(AOA_16.arc.ratio.emm)
 AOA_16.arc.ratio.pair.DF <- as.data.frame(summary(AOA_16.arc.ratio.pair))
 setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat')
@@ -613,7 +634,7 @@ AOB_16.percent.ratio.aov
         #data = qPCR.BS)
 
 # Three-Way Mixed (Split-Plot) ANOVA 
-AOB_16.percent.ratio.aov2 <- anova_test(data = qPCR.BS.noNA, 
+AOB_16.percent.ratio.aov2 <- anova_test(data = qPCR.BS, 
                                     dv = AOB_16S_ratio_percent, 
                                     wid = plot, 
                                     type = 2,
@@ -623,6 +644,23 @@ get_anova_table(AOB_16.percent.ratio.aov2)
 AOB_16.percent.ratio.aov2.df <- get_anova_table(AOB_16.percent.ratio.aov2)
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Bulk Soil/AOB_16_percent_ratio")
 table2csv(x=AOB_16.percent.ratio.aov2.df,file=filen, digits = 1, digitspvals = 3)
+
+# try lmer
+AOB_16.percent.ratio.lmer <- lmerTest::lmer(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
+                                            (1|block/plot), 
+                                            data=qPCR.BS, na.action=na.omit, REML=F)
+
+
+anova(AOB_16.percent.ratio.lmer)
+shapiro.test(resid(AOB_16.arc.ratio.lmer)) #
+
+t.aob=lmerTest::lmer(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
+                 (1|block:sampling.date), 
+               data=qPCR.BS, na.action=na.omit)
+
+anova(t,AOB_16.percent.ratio.lmer)
+
+
 
 # test assumptions:
 check_homogeneity(AOB_16.percent.ratio.aov) # good
@@ -640,12 +678,16 @@ shapiro_test(qPCR.BS$AOB_16.arc.ratio)
 # tidy anova table
 knitr::kable(nice(AOB_16.percent.ratio.aov))
 # Pairwise comparison:
-AOB_16.percent.ratio.emm <- emmeans(AOB_16.percent.ratio.aov, ~ irrigation | fertilization*sampling.date)
+AOB_16.percent.ratio.emm <- emmeans(t, ~ irrigation | fertilization*sampling.date)
 AOB_16.percent.ratio.pair <- pairs(AOB_16.percent.ratio.emm)
 AOB_16.percent.ratio.pair.DF <- as.data.frame(summary(AOB_16.percent.ratio.pair))
 setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Bulk Soil')
 write.csv(AOB_16.percent.ratio.pair.DF, file = "AOB_16_percent_ratio_pair.csv")
 
+emm_s.t <- emmeans(AOA_16.percent.ratio.lmer, ~ x)
+pairs(emm_s.t)
+
+mvcontrast(AOB_16.percent.ratio.emm,mult.name = c("sampling.date", "fertilization"))
 
 ### anova test for AOB/16S Ratio Arcsin
 
@@ -675,9 +717,12 @@ filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/AOB_16_arc_ratio")
 table2csv(x=AOB_16.arc.ratio.aov2.df,file=filen, digits = 1, digitspvals = 3)
 
 # try another model
-me=lme(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date, random=~1|rep/sampling.date/fertilization/irrigation, data=qPCR.BS,na.action = na.omit)
-anova(me)
-
+#me=lme(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date, random=~1|rep/sampling.date/fertilization/irrigation, data=qPCR.BS,na.action = na.omit)
+#anova(me)
+AOB_16.arc.ratio.lmer <- lmerTest::lmer(AOB_16.arc.ratio ~ irrigation*fertilization*sampling.date+
+                                          (1|block/plot), data=qPCR.BS, na.action=na.omit)
+anova(AOB_16.arc.ratio.lmer, ddf = "Kenward-Roger")
+shapiro.test(resid(AOB_16.arc.ratio.lmer)) #normal
 
 #_________________________________________________________________________________________________________________________________________________________________
 AOB_16.arc.ratio.aov3 <- lmerTest::lmer(qPCR.BS$AOB_16.arc.ratio ~ irrigation*fertilization*sampling.date+(1|plot), data=qPCR.BS,
@@ -704,12 +749,6 @@ t2=lmerTest::lmer(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date
                     na.action = na.omit)
 #______________________________________________________________________________________________________________________
 
-
-
-
-
-
-
 # test assumptions:
 check_homogeneity(AOB_16.arc.ratio.aov) # good
 check_sphericity(AOB_16.arc.ratio.aov) #Sphericity violated
@@ -720,7 +759,7 @@ plot(AOB_16.arc.ratio.is_norm, type = "qq", detrend = TRUE)
 # tidy anova table
 knitr::kable(nice(AOB_16.arc.ratio.aov))
 # Pairwise comparison:
-AOB_16.arc.ratio.emm <- emmeans(me, ~ irrigation | fertilization*sampling.date)
+AOB_16.arc.ratio.emm <- emmeans(AOB_16.arc.ratio.aov, ~ irrigation | fertilization*sampling.date)
 AOB_16.arc.ratio.pair <- pairs(AOB_16.arc.ratio.emm)
 AOB_16.arc.ratio.pair.DF <- as.data.frame(summary(AOB_16.arc.ratio.pair))
 setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat')
@@ -779,6 +818,10 @@ ComA_16.arc.ratio.aov2.df <- get_anova_table(ComA_16.arc.ratio.aov2)
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/ComA_16_arc_ratio")
 table2csv(x=ComA_16.arc.ratio.aov2.df,file=filen, digits = 1, digitspvals = 3)
 
+t.comA=lmerTest::lmer(ComA_16.arc.ratio ~ irrigation*fertilization*sampling.date+
+                       (1|block:sampling.date), 
+                     data=qPCR.BS, na.action=na.omit)
+anova(t.comA)
 # test assumptions:
 check_homogeneity(ComA_16.arc.ratio.aov) # good
 check_sphericity(ComA_16.arc.ratio.aov) # good
@@ -789,7 +832,7 @@ plot(ComA_16.arc.ratio.is_norm, type = "qq", detrend = TRUE)
 # tidy anova table
 knitr::kable(nice(ComA_16.arc.ratio.aov))
 # Pairwise comparison:
-ComA_16.arc.ratio.emm <- emmeans(ComA_16.arc.ratio.aov, ~ irrigation | fertilization*sampling.date)
+ComA_16.arc.ratio.emm <- emmeans(t.comA, ~ irrigation | fertilization*sampling.date)
 ComA_16.arc.ratio.pair <- pairs(ComA_16.arc.ratio.emm)
 ComA_16.arc.ratio.pair.DF <- as.data.frame(summary(ComA_16.arc.ratio.pair))
 setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat')
@@ -849,6 +892,10 @@ ComB_16.arc.ratio.aov2.df <- get_anova_table(ComB_16.arc.ratio.aov2)
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/ComB_16_arc_ratio")
 table2csv(x=ComB_16.arc.ratio.aov2.df,file=filen, digits = 1, digitspvals = 3)
 
+t.comB=lmerTest::lmer(ComB_16.arc.ratio ~ irrigation*fertilization*sampling.date+
+                        (1|block:sampling.date), 
+                      data=qPCR.BS, na.action=na.omit)
+anova(t.comB)
 
 # test assumptions:
 check_homogeneity(ComB_16.arc.ratio.aov) # good
@@ -922,6 +969,12 @@ AOA_AOB.arc.ratio.aov2.df <- get_anova_table(AOA_AOB.arc.ratio.aov2)
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/AOA_AOB_arc_ratio")
 table2csv(x=AOA_AOB.arc.ratio.aov2.df,file=filen, digits = 1, digitspvals = 3)
 
+t.AOA_AOB <- lmerTest::lmer(AOA_AOB.arc.ratio ~ irrigation*fertilization*sampling.date+
+                          (1|block:sampling.date), 
+                        data=qPCR.BS, na.action=na.omit)
+anova(t.AOA_AOB)
+
+
 # test assumptions:
 check_homogeneity(AOA_AOB.arc.ratio.aov) # good
 check_sphericity(AOA_AOB.arc.ratio.aov) #Sphericity violated
@@ -965,8 +1018,15 @@ ComA_ComB.ratio.aov2.df <- get_anova_table(ComA_ComB.ratio.aov2)
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Bulk Soil/ComA_ComB_ratio")
 table2csv(x=ComA_ComB.ratio.aov2.df,file=filen, digits = 1, digitspvals = 3)
 
+
+t.ComA_ComB=lmerTest::lmer(ComA_ComB_ratio ~ irrigation*fertilization*sampling.date+
+                       (1|block:sampling.date), 
+                     data=qPCR.BS, na.action=na.omit)
+
+anova(t.ComA_ComB)
+
 # test assumptions:
-check_homogeneity(ComA_ComB.ratio.aov) # good
+check_homogeneity(t.ComA_ComB) # good
 check_sphericity(ComA_ComB.ratio.aov) #good
 ComA_ComB.ratio.is_norm <- check_normality(ComA_ComB.ratio.aov)
 ggqqplot(qPCR.BS, "ComA_ComB_ratio", ggtheme = theme_bw())
@@ -979,7 +1039,7 @@ shapiro_test(qPCR.BS$ComA_ComB_ratio) #good
 knitr::kable(nice(ComA_ComB.ratio.aov))
 t=nice(ComA_ComB.ratio.aov)
 # Pairwise comparison:
-ComA_ComB.ratio.emm <- emmeans(ComA_ComB.ratio.aov, ~ irrigation | fertilization*sampling.date)
+ComA_ComB.ratio.emm <- emmeans(t.ComA_ComB, ~ irrigation | fertilization*sampling.date)
 ComA_ComB.ratio.pair <- pairs(ComA_ComB.ratio.emm)
 ComA_ComB.ratio.pair.DF <- as.data.frame(summary(ComA_ComB.ratio.pair))
 setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Bulk Soil')
@@ -1008,6 +1068,13 @@ get_anova_table(ComA_ComB.arc.ratio.aov2)
 ComA_ComB.arc.ratio.aov2.df <- get_anova_table(ComA_ComB.arc.ratio.aov2)
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/ComA_ComB_arc_ratio")
 table2csv(x=ComA_ComB.arc.ratio.aov2.df,file=filen, digits = 1, digitspvals = 3)
+
+
+t.ComA_ComB2=lmerTest::lmer(ComA_ComB.arc.ratio ~ irrigation*fertilization*sampling.date+
+                             (1|block:sampling.date), 
+                           data=qPCR.BS, na.action=na.omit)
+
+anova(t.ComA_ComB2)
 
 # test assumptions:
 check_homogeneity(ComA_ComB.arc.ratio.aov) # good
@@ -1327,12 +1394,11 @@ comB.cop.pwc.plot
 tot.cop.pwc.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=Tot_nbc_per_g_DW_soil)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
-  ylim(0,3.2e+10)+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('control (D)', 'drought (D)', 'control (K)', 
                              'drought (K)', 'control (M)', 'drought (M)'))+
+  ylab(bquote('16S'~(copies~g^-1~dry~soil)))+
   #labs(fill='Farming system', alpha= 'Drought')+
-  ylab(bquote('16S rRNA gene'~(copies~g^-1~dry~soil)))+
   #ylab('16S')+
   #scale_fill_manual(values = c("#009E73","#FF618C","#E69F00"))+
   #scale_alpha_manual(values = c(1, 0.5),
@@ -1357,9 +1423,30 @@ tot.cop.pwc.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=Tot_nbc_per_g_DW_s
   guides(fill="none", alpha="none")+ggtitle("A. Bulk Soil")
 tot.cop.pwc.plot
 
+# adding xy position for the pairwise comparisons among treatments (emmeans results)
+tot.log.dws.emm.rstat <- qPCR.BS.ed %>%
+  group_by(sampling.date, fertilization) %>%
+  emmeans_test(Tot_nbc_per_g_DW_soil  ~ irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = t.16S)
+tot.log.dws.emm.rstat 
+# add x y position
+tot.log.dws.xy <- tot.log.dws.emm.rstat  %>% 
+  add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
+# plotting the pairwise comparisons among treatments (emmeans results)
+tot.cop.pwc.plot2 <- tot.cop.pwc.plot + 
+  stat_pvalue_manual(tot.log.dws.xy,
+                     #step.increase = 1,
+                     label = "p = {scales::pvalue(p.adj)}",size=3, 
+                     bracket.size = 0.6,#bracket.nudge.y = -0.05,
+                     bracket.shorten = 1, color = "black",
+                     tip.length = 0.005, hide.ns = TRUE)+
+  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
+tot.cop.pwc.plot3 <- tot.cop.pwc.plot2 +ylim(0,3.2e+10)
+
 setwd('D:/Fina/INRAE_Project/microservices_fig/qPCR')
 ggsave("16Scopies_BS.tiff",
-       tot.cop.pwc.plot, device = "tiff",
+       tot.cop.pwc.plot3, device = "tiff",
        width = 11, height =6, 
        units= "in", dpi = 600)
 
@@ -1374,7 +1461,6 @@ copiesdws.All
 AOA_16S.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOA_16S_ratio_percent)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
-  ylim(0,8.9)+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('control (D)', 'drought (D)', 'control (K)', 
                              'drought (K)', 'control (M)', 'drought (M)'))+
@@ -1399,10 +1485,31 @@ AOA_16S.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOA_16S_ratio_perc
         panel.grid.minor = element_blank())+
   guides(fill="none", alpha="none")+ggtitle("A. Bulk Soil")
 AOA_16S.rat.plot
-
+# adding xy position for the pairwise comparisons among treatments (emmeans results)
+AOA_16S.rat.emm.rstat <- qPCR.BS.ed %>%
+  group_by(sampling.date, fertilization) %>%
+  emmeans_test(AOA_16S_ratio_percent  ~ irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = t.aoa)
+AOA_16S.rat.emm.rstat 
+# add x y position
+AOA_16S.rat.emm.xy <- AOA_16S.rat.emm.rstat  %>% 
+  add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
+# plotting the pairwise comparisons among treatments (emmeans results)
+AOA_16S.rat.emm.pwc.plot2 <- AOA_16S.rat.plot + 
+  stat_pvalue_manual(AOA_16S.rat.emm.xy,
+                     #step.increase = 1,
+                     #label = "p.adj.signif",size=3.5,
+                     label = "p = {scales::pvalue(p.adj)}",size=3, 
+                     bracket.size = 0.6,#bracket.nudge.y = -0.05,
+                     bracket.shorten = 1, color = "black",
+                     tip.length = 0.005, hide.ns = TRUE)+
+  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
+AOA_16S.rat.plot3 <- AOA_16S.rat.emm.pwc.plot2 +   ylim(0,10)
+AOA_16S.rat.plot3 
 setwd('D:/Fina/INRAE_Project/microservices_fig/qPCR')
 ggsave("AOA_16S_ratio_BS.tiff",
-       AOA_16S.rat.plot, device = "tiff",
+       AOA_16S.rat.plot3, device = "tiff",
        width = 11, height =6, 
        units= "in", dpi = 600)
 
@@ -1431,66 +1538,263 @@ AOB_16S.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOB_16S_ratio_perc
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
+        panel.grid.minor = element_blank())+
+  guides(fill="none", alpha="none")+ggtitle("A. Bulk Soil")
 AOB_16S.rat.plot
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
 aob_16S_percent_rat_emm <- qPCR.BS.ed %>%
   group_by(sampling.date, fertilization) %>%
   emmeans_test(AOB_16S_ratio_percent ~ irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = t)
-aob_16S_percent_rat_emm
+               conf.level = 0.95, model = t.aob)
 aob_16S_percent.xy <- aob_16S_percent_rat_emm %>% 
   add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
-aob_16S_percent.xy
 # plotting the pairwise comparisons among treatments (emmeans results)
 AOB_16S.rat.plot2 <- AOB_16S.rat.plot + 
-  stat_pvalue_manual(aob_16S_percent.xy,label = "p.adj.signif", size=4, 
+  stat_pvalue_manual(aob_16S_percent.xy,label = "p = {scales::pvalue(p.adj)}",size=3, 
                      bracket.size = 0.6,#bracket.nudge.y = -0.05,
-                     bracket.shorten = 0, color = "blue",
-                     tip.length = 0.01, hide.ns = TRUE)+
+                     bracket.shorten = 1, color = "black",
+                     tip.length = 0.005, hide.ns = TRUE)+
  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
 AOB_16S.rat.plot2
+AOB_16S.rat.plot3 <- AOB_16S.rat.plot2 +   ylim(0,5)
+AOB_16S.rat.plot3 
+setwd('D:/Fina/INRAE_Project/microservices_fig/qPCR')
+ggsave("AOB_16S_ratio_BS.tiff",
+       AOB_16S.rat.plot3, device = "tiff",
+       width = 11, height =6, 
+       units= "in", dpi = 600)
 
 
+# 7. Bulk Soil - ComammoxA/16S RATIO
+
+comA_16S.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComA_16S_ratio_percent)) +
+  geom_boxplot(aes(group = var3, fill = x))+
+  theme_bw() +
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('control (D)', 'drought (D)', 'control (K)', 
+                             'drought (K)', 'control (M)', 'drought (M)'))+
+  #labs(fill='Farming system', alpha= 'Drought')+
+  #ylab(bquote('Comammox B'~italic(amoA)~'gene'~(copies~g^-1~dry~soil)))+
+  ylab('Comammox A/16S (%)')+
+  facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
+  theme(legend.title = element_blank(),
+        #strip.background = element_blank(),
+        #strip.text.x = element_blank(),
+        plot.title = element_text(size = 20, face='bold'),
+        legend.text = element_text(size=15),
+        strip.text = element_text(size=15),
+        axis.text.y = element_text(size = 14),
+        #axis.text.x = element_blank(),
+        #axis.ticks.x = element_blank(),
+        axis.text.x = element_text(size = 14,angle = 45, hjust = 1),
+        axis.title.y = element_text(size=15,face="bold"),
+        axis.title.x =element_blank(),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+  guides(fill="none", alpha="none")+ggtitle("A. Bulk Soil")
+comA_16S.rat.plot
+# adding xy position for the pairwise comparisons among treatments (emmeans results)
+comA_16S.rat.emm.rstat <- qPCR.BS.ed %>%
+  group_by(sampling.date, fertilization) %>%
+  emmeans_test(ComA_16S_ratio_percent  ~ irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = t.comA)
+comA_16S.rat.emm.rstat 
+# add x y position
+comA_16S.rat.emm.xy <- comA_16S.rat.emm.rstat  %>% 
+  add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
+# plotting the pairwise comparisons among treatments (emmeans results)
+comA_16S.rat.emm.pwc.plot2 <- comA_16S.rat.plot + 
+  stat_pvalue_manual(comA_16S.rat.emm.xy,
+                     #step.increase = 1,
+                     #label = "p.adj.signif",size=3.5,
+                     label = "p = {scales::pvalue(p.adj)}",size=3, 
+                     bracket.size = 0.6,#bracket.nudge.y = -0.05,
+                     bracket.shorten = 1, color = "black",
+                     tip.length = 0.005, hide.ns = TRUE)+
+  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
+comA_16S.rat.plot3 <- comA_16S.rat.emm.pwc.plot2 +   ylim(0,1.2)
+comA_16S.rat.plot3 
+setwd('D:/Fina/INRAE_Project/microservices_fig/qPCR')
+ggsave("comA_16S_ratio_BS.tiff",
+       comA_16S.rat.plot3, device = "tiff",
+       width = 11, height =6, 
+       units= "in", dpi = 600)
 
 
+# 8. Bulk Soil - ComammoxB/16S RATIO
 
+comB_16S.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComB_16S_ratio_percent)) +
+  geom_boxplot(aes(group = var3, fill = x))+
+  theme_bw() +
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('control (D)', 'drought (D)', 'control (K)', 
+                             'drought (K)', 'control (M)', 'drought (M)'))+
+  #labs(fill='Farming system', alpha= 'Drought')+
+  #ylab(bquote('Comammox B'~italic(amoA)~'gene'~(copies~g^-1~dry~soil)))+
+  ylab('Comammox B/16S (%)')+
+  facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
+  theme(legend.title = element_blank(),
+        #strip.background = element_blank(),
+        #strip.text.x = element_blank(),
+        plot.title = element_text(size = 20, face='bold'),
+        legend.text = element_text(size=15),
+        strip.text = element_text(size=15),
+        axis.text.y = element_text(size = 14),
+        #axis.text.x = element_blank(),
+        #axis.ticks.x = element_blank(),
+        axis.text.x = element_text(size = 14,angle = 45, hjust = 1),
+        axis.title.y = element_text(size=15,face="bold"),
+        axis.title.x =element_blank(),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+  guides(fill="none", alpha="none")+ggtitle("A. Bulk Soil")
+comB_16S.rat.plot
+# adding xy position for the pairwise comparisons among treatments (emmeans results)
+comB_16S.rat.emm.rstat <- qPCR.BS.ed %>%
+  group_by(sampling.date, fertilization) %>%
+  emmeans_test(ComB_16S_ratio_percent  ~ irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = t.comB)
+comB_16S.rat.emm.rstat 
+# add x y position
+comB_16S.rat.emm.xy <- comB_16S.rat.emm.rstat  %>% 
+  add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
+# plotting the pairwise comparisons among treatments (emmeans results)
+comB_16S.rat.emm.pwc.plot2 <- comB_16S.rat.plot + 
+  stat_pvalue_manual(comB_16S.rat.emm.xy,
+                     #step.increase = 1,
+                     #label = "p.adj.signif",size=3.5,
+                     label = "p = {scales::pvalue(p.adj)}",size=3, 
+                     bracket.size = 0.6,#bracket.nudge.y = -0.05,
+                     bracket.shorten = 1, color = "black",
+                     tip.length = 0.005, hide.ns = TRUE)+
+  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
+comB_16S.rat.plot3 <- comB_16S.rat.emm.pwc.plot2 +   ylim(0,0.25)
+comB_16S.rat.plot3 
+setwd('D:/Fina/INRAE_Project/microservices_fig/qPCR')
+ggsave("comB_16S_ratio_BS.tiff",
+       comB_16S.rat.plot3, device = "tiff",
+       width = 11, height =6, 
+       units= "in", dpi = 600)
 
+# 9. Bulk Soil - AOA/AOB RATIO
 
+AOA_AOB.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOA_AOB_ratio_percent)) +
+  geom_boxplot(aes(group = var3, fill = x))+
+  theme_bw() +
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('control (D)', 'drought (D)', 'control (K)', 
+                             'drought (K)', 'control (M)', 'drought (M)'))+
+  #labs(fill='Farming system', alpha= 'Drought')+
+  #ylab(bquote('Comammox B'~italic(amoA)~'gene'~(copies~g^-1~dry~soil)))+
+  ylab('AOA/AOB (%)')+
+  facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
+  theme(legend.title = element_blank(),
+        #strip.background = element_blank(),
+        #strip.text.x = element_blank(),
+        plot.title = element_text(size = 20, face='bold'),
+        legend.text = element_text(size=15),
+        strip.text = element_text(size=15),
+        axis.text.y = element_text(size = 14),
+        #axis.text.x = element_blank(),
+        #axis.ticks.x = element_blank(),
+        axis.text.x = element_text(size = 14,angle = 45, hjust = 1),
+        axis.title.y = element_text(size=15,face="bold"),
+        axis.title.x =element_blank(),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+  guides(fill="none", alpha="none")+ggtitle("A. Bulk Soil")
+AOA_AOB.rat.plot
+# adding xy position for the pairwise comparisons among treatments (emmeans results)
+AOA_AOB.rat.emm.rstat <- qPCR.BS.ed %>%
+  group_by(sampling.date, fertilization) %>%
+  emmeans_test(AOA_AOB_ratio_percent  ~ irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = t.AOA_AOB)
+AOA_AOB.rat.emm.rstat 
+# add x y position
+AOA_AOB.rat.emm.xy <- AOA_AOB.rat.emm.rstat  %>% 
+  add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
+# plotting the pairwise comparisons among treatments (emmeans results)
+AOA_AOB.rat.emm.pwc.plot2 <- AOA_AOB.rat.plot + 
+  stat_pvalue_manual(AOA_AOB.rat.emm.xy,
+                     #step.increase = 1,
+                     #label = "p.adj.signif",size=3.5,
+                     label = "p = {scales::pvalue(p.adj)}",size=3, 
+                     bracket.size = 0.6,#bracket.nudge.y = -0.05,
+                     bracket.shorten = 1, color = "black",
+                     tip.length = 0.005, hide.ns = TRUE)+
+  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
+AOA_AOB.rat.plot3 <- AOA_AOB.rat.emm.pwc.plot2 +   ylim(0,500)
+AOA_AOB.rat.plot3 
+setwd('D:/Fina/INRAE_Project/microservices_fig/qPCR')
+ggsave("AOA_AOB_ratio_BS.tiff",
+       AOA_AOB.rat.plot3, device = "tiff",
+       width = 11, height =6, 
+       units= "in", dpi = 600)
 
+# 9. Bulk Soil - comA/comB RATIO
 
-
-AOB_16.arc.ratio.pair.DF
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#__________________________________________________________________________________
+comA_comB.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComA_ComB_ratio_percent)) +
+  geom_boxplot(aes(group = var3, fill = x))+
+  theme_bw() +
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('control (D)', 'drought (D)', 'control (K)', 
+                             'drought (K)', 'control (M)', 'drought (M)'))+
+  #labs(fill='Farming system', alpha= 'Drought')+
+  #ylab(bquote('Comammox B'~italic(amoA)~'gene'~(copies~g^-1~dry~soil)))+
+  ylab('Coma A/Coma B (%)')+
+  facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
+  theme(legend.title = element_blank(),
+        #strip.background = element_blank(),
+        #strip.text.x = element_blank(),
+        plot.title = element_text(size = 20, face='bold'),
+        legend.text = element_text(size=15),
+        strip.text = element_text(size=15),
+        axis.text.y = element_text(size = 14),
+        #axis.text.x = element_blank(),
+        #axis.ticks.x = element_blank(),
+        axis.text.x = element_text(size = 14,angle = 45, hjust = 1),
+        axis.title.y = element_text(size=15,face="bold"),
+        axis.title.x =element_blank(),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+  guides(fill="none", alpha="none")+ggtitle("A. Bulk Soil")
+comA_comB.rat.plot
+# adding xy position for the pairwise comparisons among treatments (emmeans results)
+comA_comB.rat.emm.rstat <- qPCR.BS.ed %>%
+  group_by(sampling.date, fertilization) %>%
+  emmeans_test(ComA_ComB_ratio_percent  ~ irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = t.ComA_ComB)
+comA_comB.rat.emm.rstat 
+# add x y position
+comA_comB.rat.emm.xy <- comA_comB.rat.emm.rstat  %>% 
+  add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
+# plotting the pairwise comparisons among treatments (emmeans results)
+comA_comB.rat.emm.pwc.plot2 <- comA_comB.rat.plot + 
+  stat_pvalue_manual(comA_comB.rat.emm.xy,
+                     #step.increase = 1,
+                     #label = "p.adj.signif",size=3.5,
+                     label = "p = {scales::pvalue(p.adj)}",size=3, 
+                     bracket.size = 0.6,#bracket.nudge.y = -0.05,
+                     bracket.shorten = 1, color = "black",
+                     tip.length = 0.005, hide.ns = TRUE)+
+  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
+comA_comB.rat.plot3 <- comA_comB.rat.emm.pwc.plot2 +   ylim(0,1650)
+comA_comB.rat.plot3 
+setwd('D:/Fina/INRAE_Project/microservices_fig/qPCR')
+ggsave("comA_comB_ratio_BS.tiff",
+       comA_comB.rat.plot3, device = "tiff",
+       width = 11, height =6, 
+       units= "in", dpi = 600)
+#_________________________________________________________________________________
 # line chart AOA Copies per gram DWS Bulk Soil 
 
 qPCR.BS.ed
@@ -1592,8 +1896,9 @@ qPCR.RS$type <- as.factor(qPCR.RS$type)
 qPCR.RS$sampling.date <- as.factor(qPCR.RS$sampling.date)
 qPCR.RS$var3 <- as.factor(qPCR.RS$var3)
 qPCR.RS$x <- as.factor(qPCR.RS$x)
-qPCR.RS$sampling.date <- factor(qPCR.RS$sampling.date, levels = c("28/04/2022", "01/06/2022", "05/07/2022"),
-                                labels = c("04-28-22", "06-01-22", "07-05-22"))
+qPCR.RS$rep <- as.factor(qPCR.RS$rep)
+qPCR.RS$sampling.date <- factor(qPCR.RS$sampling.date, levels = c("28/04/2022", "1/6/22", "5/7/22"),
+                                labels = c("Apr 28th", "Jun 1st", "Jul 5th"))
 
 ##subset
 aoa.rh.M <- qPCR.RS[which(qPCR.RS$fertilization == "M"),]
@@ -1700,6 +2005,14 @@ aoa.ngDNA.aov2.df <- get_anova_table(aoa.ngDNA.aov2)
 #setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/AOA_ngDNA")
 table2csv(x=aoa.ngDNA.aov2.df,file=filen, digits = 1, digitspvals = 3)
+
+#another model
+t.aoa.rh=lmerTest::lmer(AOA_nbc_per_ngDNA ~ irrigation*fertilization*sampling.date+
+                       (1|block:sampling.date), 
+                     data=qPCR.RS, na.action=na.omit)
+
+anova(t.aoa.rh)
+
 
 # test assumptions:
 check_homogeneity(aoa.ngDNA.aov) # good
@@ -1956,6 +2269,14 @@ plot(Tot.ngDNA.is_norm, type = "qq")
 plot(Tot.ngDNA.is_norm, type = "qq", detrend = TRUE)
 ggqqplot(qPCR.RS, "Tot_nbc_per_ngDNA", ggtheme = theme_bw())
 
+
+#another model
+t.tot.rh=lmerTest::lmer(Tot_nbc_per_ngDNA ~ irrigation*fertilization*sampling.date+
+                          (1|block:sampling.date), 
+                        data=qPCR.RS, na.action=na.omit)
+
+anova(t.tot.rh)
+
 # tidy anova table
 knitr::kable(nice(Tot.ngDNA.aov))
 # Pairwise comparison:
@@ -1988,6 +2309,13 @@ AOA_16S.arc.rat.rh.aov2.df <- get_anova_table(AOA_16S.arc.rat.rh.aov2)
 #setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/AOA_16S_arc_ratio")
 table2csv(x=AOA_16S.arc.rat.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
+
+#another model
+t.aoa_16S.rh=lmerTest::lmer(AOA_16.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
+                          (1|block:sampling.date), 
+                        data=qPCR.RS, na.action=na.omit)
+
+anova(t.aoa_16S.rh)
 
 # test assumptions:
 check_homogeneity(AOA_16S.arc.rat.rh.aov) # good
@@ -2027,6 +2355,14 @@ AOA_16S.ratio.rh.aov2.df <- get_anova_table(AOA_16S.ratio.rh.aov2)
 #setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/AOA_16S_percent_ratio")
 table2csv(x=AOA_16S.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
+
+#another model
+t.aoa_16S_percent.rh=lmerTest::lmer(AOA_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
+                              (1|block:sampling.date), 
+                            data=qPCR.RS, na.action=na.omit)
+
+anova(t.aoa_16S_percent.rh)
+
 
 # test assumptions:
 check_homogeneity(AOA_16S.ratio.rh.aov) # good
@@ -2069,6 +2405,12 @@ AOB_16S.arc.rat.rh.aov2.df <- get_anova_table(AOB_16S.arc.rat.rh.aov2)
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/AOB_16S_arc_ratio")
 table2csv(x=AOB_16S.arc.rat.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
 
+t.aob_16S_arcs.rh=lmerTest::lmer(AOB_16.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
+                              (1|block:sampling.date), 
+                            data=qPCR.RS, na.action=na.omit)
+
+anova(t.aob_16S_arcs.rh)
+
 # test assumptions:
 check_homogeneity(AOB_16S.arc.rat.rh.aov) # good
 check_sphericity(AOB_16S.arc.rat.rh.aov) # good
@@ -2107,6 +2449,13 @@ AOB_16S.ratio.rh.aov2.df <- get_anova_table(AOB_16S.ratio.rh.aov2)
 #setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/AOB_16S_percent_ratio")
 table2csv(x=AOB_16S.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
+
+# another model
+t.aob_16S_percent.rh=lmerTest::lmer(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
+                                   (1|block:sampling.date), 
+                                 data=qPCR.RS, na.action=na.omit)
+
+anova(t.aob_16S_percent.rh)
 
 # test assumptions:
 check_homogeneity(AOB_16S.ratio.rh.aov) # good
@@ -2149,6 +2498,13 @@ ComA_16S.ratio.rh.aov2.df <- get_anova_table(ComA_16S.ratio.rh.aov2)
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/ComA_16S_percent_ratio")
 table2csv(x=ComA_16S.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
 
+# another model
+t.comA_16S_percent.rh=lmerTest::lmer(ComA_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
+                                      (1|block:sampling.date), 
+                                    data=qPCR.RS, na.action=na.omit)
+
+anova(t.comA_16S_percent.rh)
+
 # test assumptions:
 check_homogeneity(ComA_16S.ratio.rh.aov) # SLIGHTLY NOT HOMOGEN
 check_sphericity(ComA_16S.ratio.rh.aov) # good
@@ -2187,6 +2543,14 @@ ComA_16S.arc.rat.rh.aov2.df <- get_anova_table(ComA_16S.arc.rat.rh.aov2)
 #setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/ComA_16S_arc_ratio")
 table2csv(x=ComA_16S.arc.rat.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
+
+# another model
+t.comA_16S_arcs.rh=lmerTest::lmer(ComA_16.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
+                                       (1|block:sampling.date), 
+                                     data=qPCR.RS, na.action=na.omit)
+
+anova(t.comA_16S_arcs.rh)
+
 
 # test assumptions:
 check_homogeneity(ComA_16S.arc.rat.rh.aov) # good
@@ -2228,6 +2592,14 @@ ComB_16S.ratio.rh.aov2.df <- get_anova_table(ComB_16S.ratio.rh.aov2)
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/ComB_16S_percent_ratio")
 table2csv(x=ComB_16S.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
 
+
+# another model
+t.comB_16S_percent.rh=lmerTest::lmer(ComB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
+                                    (1|block:sampling.date), 
+                                  data=qPCR.RS, na.action=na.omit)
+
+anova(t.comB_16S_percent.rh)
+
 # test assumptions:
 check_homogeneity(ComB_16S.ratio.rh.aov) # good
 check_sphericity(ComB_16S.ratio.rh.aov) # good
@@ -2268,6 +2640,13 @@ AOA_AOB.ratio.rh.aov2.df <- get_anova_table(AOA_AOB.ratio.rh.aov2)
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/AOA_AOB_ratio")
 table2csv(x=AOA_AOB.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
 
+# another model
+t.AOA_AOB_percent.rh=lmerTest::lmer(AOA_AOB_ratio ~ irrigation*fertilization*sampling.date+
+                                      (1|block:sampling.date), 
+                                    data=qPCR.RS, na.action=na.omit)
+
+anova(t.AOA_AOB_percent.rh)
+
 # test assumptions:
 check_homogeneity(AOA_AOB.ratio.rh.aov) # good
 check_sphericity(AOA_AOB.ratio.rh.aov) # good
@@ -2307,6 +2686,13 @@ AOA_AOB.arcs.ratio.rh.aov2.df <- get_anova_table(AOA_AOB.arcs.ratio.rh.aov2)
 #setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/AOA_AOB_arc_ratio")
 table2csv(x=AOA_AOB.arcs.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
+
+# another model
+t.AOA_AOB_arcsin.rh=lmerTest::lmer(AOA_AOB.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
+                                      (1|block:sampling.date), 
+                                    data=qPCR.RS, na.action=na.omit)
+
+anova(t.AOA_AOB_arcsin.rh)
 
 # test assumptions:
 check_homogeneity(AOA_AOB.arcs.ratio.rh.aov) # good
@@ -2350,6 +2736,13 @@ ComA_ComB.ratio.rh.aov2.df <- get_anova_table(ComA_ComB.ratio.rh.aov2)
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/ComA_ComB_ratio")
 table2csv(x=ComA_ComB.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
 
+# another model
+t.ComA_ComB_percent.rh=lmerTest::lmer(ComA_ComB_ratio ~ irrigation*fertilization*sampling.date+
+                                     (1|block:sampling.date), 
+                                   data=qPCR.RS, na.action=na.omit)
+
+anova(t.ComA_ComB_percent.rh)
+
 # test assumptions:
 check_homogeneity(ComA_ComB.ratio.rh.aov) # good
 check_sphericity(ComA_ComB.ratio.rh.aov) # good
@@ -2389,6 +2782,13 @@ ComA_ComB.arcs.ratio.rh.aov2.df <- get_anova_table(ComA_ComB.arcs.ratio.rh.aov2)
 #setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/ComA_ComB_arc_ratio")
 table2csv(x=ComA_ComB.arcs.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
+
+# another model
+t.ComA_ComB_arcsin.rh=lmerTest::lmer(ComA_ComB.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
+                                        (1|block:sampling.date), 
+                                      data=qPCR.RS, na.action=na.omit)
+
+anova(t.ComA_ComB_arcsin.rh)
 
 # test assumptions:
 check_homogeneity(ComA_ComB.arcs.ratio.rh.aov) # good
