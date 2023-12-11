@@ -86,6 +86,7 @@ dim(aoa.tax) # 646
 setwd('D:/Fina/INRAE_Project/microservices/')
 meta_micro <- read.csv("meta_microservices.csv")
 # load phylogenetic tree (nwk file)
+#setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/AOA-rooted-tree/')
 setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/AOA-rooted-tree/')
 AOA_rooted_tree <- ape::read.tree("tree.nwk")
 AOA_rooted_tree
@@ -119,6 +120,7 @@ aoa.meta.physeq <- sample_data(meta_micro)# meta data
 sample_names(aoa.meta.physeq)
 
 # read the rooted tree
+#setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/AOA-rooted-tree/')
 setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/AOA-rooted-tree/')
 AOA_rooted_tree <- ape::read.tree("tree.nwk")
 

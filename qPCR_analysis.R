@@ -81,7 +81,7 @@ library(export)
 ###########################################################################
 
 #### 1a. Analyses of Bulk Soil - Copies per Gram Dry weight of Soil ####
-
+#setwd('/Users/arifinabintarti/Documents/France/microservices/')
 setwd('D:/Fina/INRAE_Project/microservices/')
 qPCR <- read.csv("qPCR_results_LP_stat.csv")
 qPCR.BS <- qPCR[1:120,]
@@ -95,7 +95,9 @@ qPCR.BS$type <- as.factor(qPCR.BS$type)
 qPCR.BS$sampling.date <- as.factor(qPCR.BS$sampling.date)
 qPCR.BS$var3 <- as.factor(qPCR.BS$var3)
 qPCR.BS$x <- as.factor(qPCR.BS$x)
-qPCR.BS$sampling.date <- factor(qPCR.BS$sampling.date, levels = c("28/04/2022", "01/06/2022", "05/07/2022", "20/07/2022", "13/09/2022"),
+qPCR.BS$rep <- as.factor(qPCR.BS$rep)
+
+qPCR.BS$sampling.date <- factor(qPCR.BS$sampling.date, levels = c("28/04/2022", "1/6/22", "5/7/22", "20/07/2022", "13/09/2022"),
                                 labels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"))
 str(qPCR.BS)
 
@@ -140,6 +142,7 @@ library(afex)
 library(performance)
 library(qqplotr)
 library(emmeans)
+library(reshape2)
 
 data(obk.long, package = "afex")
 
@@ -199,21 +202,29 @@ aoa.log.dws.aov2.df <- get_anova_table(aoa.log.dws.aov2)
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Bulk Soil/AOA_log_dws")
 table2csv(x=aoa.log.dws.aov2.df,file=filen, digits = 1, digitspvals = 3)
 
+
+# try another model
+set.seed(13)
+aoa.log.dws.lmer <- lmerTest::lmer(AOA_logDWS ~ irrigation * fertilization * sampling.date + 
+                                    (1|plot), data = qPCR.BS, na.action = na.omit)
+anova(aoa.log.dws.lmer)
+shapiro.test(resid(aoa.log.dws.lmer)) #normal
+library(DHARMa) 
+plot(simulateResiduals(aoa.log.dws.lmer))
+
 # test assumptions:
 check_homogeneity(aoa.log.dws.aov) # slightly not homogen, but anova is robust in balanced data anyway
 check_sphericity(aoa.log.dws.aov) # OK
 aoa.log.dws.is_norm <- check_normality(aoa.log.dws.aov)
 shapiro.test(qPCR.BS$AOA_logDWS) # NORMAL
-
 plot(aoa.log.dws.is_norm, type = "qq")
 plot(aoa.log.dws.is_norm, type = "qq", detrend = TRUE)
 ggqqplot(qPCR.BS, "AOA_logDWS", ggtheme = theme_bw())
-# tidy anova table
-knitr::kable(nice(aoa.log.dws.aov))
+
 # Pairwise comparison:
-aoa.log.dws.emm <- emmeans(aoa.log.dws.aov, ~ irrigation | fertilization*sampling.date)
+aoa.log.dws.emm <- emmeans(aoa.log.dws.lmer, ~ irrigation | fertilization*sampling.date)
 aoa.log.dws.pair <- pairs(aoa.log.dws.emm)
-aoa.log.dws.pair.DF <- as.data.frame(summary(aoa.log.dws.pair))
+aoa.log.dws.pair.DF <- as.data.frame(summary(aoa.log.dws.pair)) # nothing signif
 setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Bulk Soil')
 write.csv(aoa.log.dws.pair.DF, file = "AOA_log_dws_pair.csv")
 
@@ -253,10 +264,17 @@ hist(qPCR.BS$AOB_logDWS)
 shapiro.test(qPCR.BS$AOB_nbc_per_g_DW_soil) # not NORMAL
 shapiro.test(qPCR.BS$AOB_logDWS) # not NORMAL
 
-# tidy anova table
-knitr::kable(nice(aob.log.dws.aov))
+# try another model
+set.seed(13)
+aob.log.dws.lmer <- lmerTest::lmer(AOB_logDWS ~ irrigation * fertilization * sampling.date + 
+                                    (1|plot), data = qPCR.BS, na.action = na.omit)
+anova(aob.log.dws.lmer)
+shapiro.test(resid(aob.log.dws.lmer)) #normal
+library(DHARMa) 
+plot(simulateResiduals(aob.log.dws.lmer))
+
 # Pairwise comparison:
-aob.log.dws.emm <- emmeans(aob.log.dws.aov, ~ irrigation | fertilization*sampling.date)
+aob.log.dws.emm <- emmeans(aob.log.dws.lmer, ~ irrigation | fertilization*sampling.date)
 aob.log.dws.pair <- pairs(aob.log.dws.emm)
 aob.log.dws.pair
 aob.log.dws.pair.DF <- as.data.frame(summary(aob.log.dws.pair))
@@ -296,11 +314,18 @@ plot(aob.dws.is_norm, type = "qq", detrend = TRUE)
 ggqqplot(qPCR.BS, "AOB_nbc_per_g_DW_soil", ggtheme = theme_bw())
 hist(qPCR.BS$AOB_nbc_per_g_DW_soil)
 
+# try another model
+set.seed(13)
+aob.dws.lmer <- lmerTest::lmer(AOB_nbc_per_g_DW_soil ~ irrigation * fertilization * sampling.date + 
+                                    (1|plot), data = qPCR.BS, na.action = na.omit)
+anova(aob.dws.lmer)
+shapiro.test(resid(aob.dws.lmer)) #normal
+plot(simulateResiduals(aob.dws.lmer))
 
 # tidy anova table
 knitr::kable(nice(aob.dws.aov))
 # Pairwise comparison:
-aob.dws.emm <- emmeans(aob.dws.aov, ~ irrigation | fertilization*sampling.date)
+aob.dws.emm <- emmeans(aob.dws.lmer, ~ irrigation | fertilization*sampling.date)
 aob.dws.pair <- pairs(aob.dws.emm)
 aob.dws.pair
 aob.dws.pair.DF <- as.data.frame(summary(aob.dws.pair))
@@ -339,10 +364,19 @@ plot(comA.log.dws.is_norm, type = "qq", detrend = TRUE)
 ggqqplot(qPCR.BS, "ComA_nbc_per_g_DW_soil", ggtheme = theme_bw()) # violated
 ggqqplot(qPCR.BS, "ComA_logDWS", ggtheme = theme_bw()) #better
 
+# try another model
+set.seed(13)
+comA.log.dws.lmer <- lmerTest::lmer(ComA_logDWS ~ irrigation * fertilization * sampling.date + 
+                                    (1|plot), data = qPCR.BS, na.action = na.omit)
+anova(comA.log.dws.lmer)
+shapiro.test(resid(comA.log.dws.lmer)) #normal
+library(DHARMa) 
+plot(simulateResiduals(comA.log.dws.lmer))
+
 # tidy anova table
 knitr::kable(nice(comA.log.dws.aov))
 # Pairwise comparison:
-comA.log.dws.emm <- emmeans(comA.log.dws.aov, ~ irrigation | fertilization*sampling.date)
+comA.log.dws.emm <- emmeans(comA.log.dws.lmer, ~ irrigation | fertilization*sampling.date, lmer.df = "satterthwaite")
 comA.log.dws.pair <- pairs(comA.log.dws.emm)
 comA.log.dws.pair
 comA.log.dws.pair.DF <- as.data.frame(summary(comA.log.dws.pair))
@@ -388,10 +422,19 @@ qPCR.BS.ComB_logDWS.SW <- qPCR.BS %>%
   group_by(irrigation, fertilization, sampling.date) %>%
   shapiro_test(ComB_logDWS)
 
+
+# try another model
+set.seed(13)
+comB.log.dws.lmer <- lmerTest::lmer(ComB_logDWS ~ irrigation * fertilization * sampling.date + 
+                                    (1|plot), data = qPCR.BS, na.action = na.omit)
+anova(comB.log.dws.lmer)
+shapiro.test(resid(comB.log.dws.lmer)) #normal
+plot(simulateResiduals(comB.log.dws.lmer))
+
 # tidy anova table
 knitr::kable(nice(comB.log.dws.aov))
 # Pairwise comparison:
-comB.log.dws.emm <- emmeans(comB.log.dws.aov, ~ irrigation | fertilization*sampling.date)
+comB.log.dws.emm <- emmeans(comB.log.dws.lmer, ~ irrigation | fertilization*sampling.date,lmer.df = "satterthwaite")
 comB.log.dws.pair <- pairs(comB.log.dws.emm)
 comB.log.dws.pair.DF <- as.data.frame(summary(comB.log.dws.pair))
 setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat')
@@ -399,12 +442,8 @@ write.csv(comB.log.dws.pair.DF, file = "ComB_log_dws_pair.csv")
 
 # 5. 16S
 
-qPCR.BS.noNA <- qPCR.BS[-c(61,62,73,74),]
-str(qPCR.BS.noNA)
-qPCR.BS.noNA$plot
-
 # anova test for transformed The Total microbial per DWS
-tot.log.dws.aov <- aov_ez("plot", "Tot_logDWS", qPCR.BS.noNA, 
+tot.log.dws.aov <- aov_ez("plot", "Tot_logDWS", qPCR.BS, 
                            within = "sampling.date",
                            between = c("fertilization","irrigation"),
                            type = 2,
@@ -413,16 +452,45 @@ tot.log.dws.aov <- aov_ez("plot", "Tot_logDWS", qPCR.BS.noNA,
 tot.log.dws.aov
 
 # Three-Way Mixed (Split-Plot) ANOVA 
-tot.log.dws.aov2 <- anova_test(data = qPCR.BS.noNA, 
+tot.log.dws.aov2 <- anova_test(data = qPCR.BS, 
                                 dv = Tot_logDWS, 
                                 wid = plot, 
                                 type = 2,
-                                within = sampling.date, 
-                                between = c(irrigation, fertilization))
+                                within = c(sampling.date, fertilization),
+                                between = irrigation)
 get_anova_table(tot.log.dws.aov2)
+
+pwc <- qPCR.BS %>%
+  group_by(sampling.date, fertilization) %>%
+  pairwise_t_test(
+    Tot_logDWS ~ irrigation, paired = TRUE, 
+    p.adjust.method = "fdr")
+pwc
+pwc <- pwc %>% add_xy_position(x = "sampling.date")
+
 tot.log.dws.aov2.df <- get_anova_table(tot.log.dws.aov2)
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/16S_log_dws")
 table2csv(x=tot.log.dws.aov2.df,file=filen, digits = 1, digitspvals = 3)
+
+# try another model
+#tot.log.dws.lme <- lme(Tot_logDWS ~ irrigation*fertilization*sampling.date, random=~1|rep/fertilization/irrigation, data=qPCR.BS,na.action = na.omit, method = "REML")
+#anova(tot.log.dws.lme)
+#tot.log.dws.lmer <- lmerTest::lmer(Tot_logDWS ~ irrigation*fertilization*sampling.date+(1|plot), data=qPCR.BS,na.action = na.omit, REML=F)
+#anova(tot.log.dws.lmer)
+#tot.log.dws.lmer2 <- lmerTest::lmer(Tot_logDWS ~ irrigation*fertilization*sampling.date+(1|block), data=qPCR.BS,na.action = na.omit, REML=F)
+#anova(tot.log.dws.lmer2)
+tot.log.dws.lmer <- lmerTest::lmer(Tot_logDWS ~ irrigation*fertilization*sampling.date+
+                                    (sampling.date|rep), data=qPCR.BS, na.action=na.omit)
+
+tot.log.dws.lmer <- lmerTest::lmer(Tot_logDWS ~ irrigation*fertilization*sampling.date+
+                                    (1|block/plot), data=qPCR.BS, na.action=na.omit)
+
+#t=afex::mixed(Tot_logDWS ~ irrigation*fertilization*sampling.date+
+                                    #(1|plot), data=qPCR.BS, na.action=na.omit)
+
+anova(tot.log.dws.lmer)
+shapiro.test(resid(tot.log.dws.lmer)) #normal
+plot(simulateResiduals(tot.log.dws.lmer))
 
 # test assumptions:
 check_homogeneity(tot.log.dws.aov) # good
@@ -439,11 +507,10 @@ qPCR.BS.Tot_logDWS.SW <- qPCR.BS %>%
   group_by(irrigation, fertilization, sampling.date) %>%
   shapiro_test(Tot_logDWS)
 
-
 # tidy anova table
 knitr::kable(nice(tot.log.dws.aov))
 # Pairwise comparison:
-tot.log.dws.emm <- emmeans(tot.log.dws.aov, ~ irrigation | fertilization*sampling.date)
+tot.log.dws.emm <- emmeans(t, ~ irrigation | fertilization*sampling.date,mode = "satterthwaite")
 tot.log.dws.pair <- pairs(tot.log.dws.emm)
 tot.log.dws.pair.DF <- as.data.frame(summary(tot.log.dws.pair))
 setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat')
@@ -460,7 +527,7 @@ AOA_16.percent.ratio.aov <- aov_ez("plot", "AOA_16S_ratio_percent", qPCR.BS,
                           correction_aov = "GG",
                           return = afex_options("return_aov"),
                           anova_table = list())
-
+AOA_16.percent.ratio.aov 
 # test assumptions:
 check_homogeneity(AOA_16.percent.ratio.aov) # good
 check_sphericity(AOA_16.percent.ratio.aov) #Sphericity violated
@@ -474,10 +541,19 @@ hist(qPCR.BS$AOA_16S_ratio_percent)
   #group_by(irrigation, fertilization, sampling.date) %>%
 shapiro_test(qPCR.BS$AOA_16S_ratio_percent)
 
+# try another model
+AOA_16.percent.ratio.lme <- lme(AOA_16S_ratio_percent~ irrigation*fertilization*sampling.date, random=~1|rep/sampling.date/fertilization/irrigation, data=qPCR.BS,method="REML",na.action = na.omit)
+anova(AOA_16.percent.ratio.lme)
+
+AOA_16.percent.ratio.lmer <- lmerTest::lmer(AOA_16S_ratio_percent ~ irrigation*fertilization*sampling.date+(1|plot), data=qPCR.BS,na.action = na.omit)
+anova(AOA_16.percent.ratio.lmer)
+
+
+
 # tidy anova table
 knitr::kable(nice(AOA_16.percent.ratio.aov))
 # Pairwise comparison:
-AOA_16.percent.ratio.emm <- emmeans(AOA_16.percent.ratio.aov, ~ irrigation | fertilization*sampling.date,emmeans_model = "multivariate")
+AOA_16.percent.ratio.emm <- emmeans(AOA_16.percent.ratio.lmer, ~ irrigation | fertilization*sampling.date,model="multivariate")
 AOA_16.percent.ratio.pair <- pairs(AOA_16.percent.ratio.emm)
 AOA_16.percent.ratio.pair.DF <- as.data.frame(AOA_16.percent.ratio.pair)
 
@@ -525,7 +601,7 @@ write.csv(AOA_16.arc.ratio.pair.DF, file = "AOA_16_arc_ratio_pair.csv")
 
 ### anova test for AOB/16S Ratio Percentage
 
-AOB_16.percent.ratio.aov <- aov_ez("plot", "AOB_16S_ratio_percent", qPCR.BS.noNA, 
+AOB_16.percent.ratio.aov <- aov_ez("plot", "AOB_16S_ratio_percent", qPCR.BS, 
                                    within = "sampling.date",
                                    between = c("fertilization","irrigation"),
                                    type = 2,
@@ -582,36 +658,57 @@ AOB_16.arc.ratio.aov <- aov_ez("plot", "AOB_16.arc.ratio", qPCR.BS,
                                anova_table = list())
 AOB_16.arc.ratio.aov
 
-# Three-Way Mixed (Split-Plot) ANOVA 
+
+
+qPCR.BS$ferblo <- factor(qPCR.BS$fertilization:qPCR.BS$block)
+qPCR.BS$irriblo <- factor(qPCR.BS$irrigation:qPCR.BS$block)
+#Three-Way Mixed (Split-Plot) ANOVA 
 AOB_16.arc.ratio.aov2 <- anova_test(data = qPCR.BS, 
                                     dv = AOB_16.arc.ratio, 
                                     wid = plot, 
                                     type = 3,
                                     within = sampling.date, 
                                     between = c(irrigation, fertilization))
-
-AOB_16.arc.ratio.aov3 <- lmerTest::lmer(qPCR.BS$AOB_16.arc.ratio ~ irrigation*fertilization*sampling.date +(1|plot), data=qPCR.BS)
-anova(AOB_16.arc.ratio.aov3)
-
-s=aov_car(AOB_16S_ratio_percent ~ irrigation * fertilization + Error(plot/sampling.date),
-        data = qPCR.BS)
-summary(s)
-
-lmer(AOB_16S_ratio_percent ~ irrigation * fertilization + (1|plot/sampling.date), data = qPCR.BS)
-
-library(lmerTest)
-t <- lme4::lmer(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date +(1|plot), data = qPCR.BS, na.action = na.omit)
-summary(t)
-m <- mixed(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date +(1|plot), data = qPCR.BS, na.action = na.omit)
-anova(m)
-
-me=lme(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date, random=~1|plot,data=qPCR.BS,na.action = na.omit)
-anova(me)
-
 get_anova_table(AOB_16.arc.ratio.aov2)
 AOB_16.arc.ratio.aov2.df <- get_anova_table(AOB_16.arc.ratio.aov2)
 filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/AOB_16_arc_ratio")
 table2csv(x=AOB_16.arc.ratio.aov2.df,file=filen, digits = 1, digitspvals = 3)
+
+# try another model
+me=lme(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date, random=~1|rep/sampling.date/fertilization/irrigation, data=qPCR.BS,na.action = na.omit)
+anova(me)
+
+
+#_________________________________________________________________________________________________________________________________________________________________
+AOB_16.arc.ratio.aov3 <- lmerTest::lmer(qPCR.BS$AOB_16.arc.ratio ~ irrigation*fertilization*sampling.date+(1|plot), data=qPCR.BS,
+                                        na.action = na.omit)
+anova(AOB_16.arc.ratio.aov3)
+shapiro.test(resid(AOB_16.arc.ratio.aov3)) #ok
+# Lavene test
+AOB_16.arc.ratio.Lave <- qPCR.BS %>%
+  group_by(sampling.date,fertilization) %>%
+  levene_test(AOB_16.arc.ratio ~ irrigation)
+
+
+t1=lmerTest::lmer(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+(1|rep:sampling.date), 
+                  data = qPCR.BS,na.action = na.omit)
+anova(t1)
+AIC(t1)
+library(lmerTest)
+t <- lmerTest::lmer(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+(1|plot), data = qPCR.BS, 
+                    na.action = na.omit, REML=F)
+anova(t)
+AIC(t)
+
+t2=lmerTest::lmer(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+(1|block:sampling.date), data = qPCR.BS, 
+                    na.action = na.omit)
+#______________________________________________________________________________________________________________________
+
+
+
+
+
+
 
 # test assumptions:
 check_homogeneity(AOB_16.arc.ratio.aov) # good

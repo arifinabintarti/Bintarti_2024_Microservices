@@ -45,16 +45,21 @@ aob.bulk.rich.aov <- anova_test(
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aob.bulk.rich.aov)
 # Test Method 3 
-#model3 <- lme(Richness ~ Irrigation*Treatment*Date, random=~1 | PlotID, method="REML", data=aob.meta.bulk)
-#anova(model3)
+model3 <- lme(Richness ~ Irrigation*Treatment*Date, random=~1 | PlotID, data=aob.meta.bulk, na.action = na.omit)
+anova(model3) ### lme() IS SIMILAR to lme4 lmer() ###
 #model1 <- aov(aob.meta.bulk$Richness ~ Irrigation*Treatment*Date + Error(PlotID/Irrigation*Treatment) , data=aob.meta.bulk)
 #summary(model1)
 
 ############################################################################################################
 # Model Fit
 set.seed(13)
-rich.bulk.mod <- lmerTest::lmer(aob.meta.bulk$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.bulk)
-anova(rich.bulk.mod, type = 2)
+rich.bulk.mod <- lmerTest::lmer(aob.meta.bulk$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.bulk, na.action = na.omit)
+anova(rich.bulk.mod,  type="II")
+library(lme4)
+library(afex)
+rich.bulk.mod2 <- lme4::lmer(aob.meta.bulk$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.bulk, na.action = na.omit)
+anova(rich.bulk.mod2)
+anova(model1)
 # Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
 # 1. between fertilization treatment:

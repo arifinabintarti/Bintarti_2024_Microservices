@@ -91,6 +91,7 @@ meta_micro <- read.csv("meta_microservices.csv")
 # remove the bad sample (sample # 26) from the metadata
 meta_micro_sub <- meta_micro[-26,]
 # load phylogenetic tree (nwk file)
+#setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/COM-rooted-tree/')
 setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/COM-rooted-tree/')
 COM_rooted_tree <- ape::read.tree("tree.nwk")
 
@@ -123,6 +124,7 @@ com.meta.physeq <- sample_data(meta_micro_sub)# meta data
 sample_names(com.meta.physeq)
 
 # read the rooted tree
+#setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/COM-rooted-tree/')
 setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/COM-rooted-tree/')
 COM_rooted_tree <- ape::read.tree("tree.nwk")
 
