@@ -69,25 +69,25 @@ library(devtools)
 library(phyloseq)
 
 # SET THE WORKING DIRECTORY
-#setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/AOA.ASV-analysis')
-setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/AOA.ASV-analysis')
+setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/AOA.ASV-analysis')
+#setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/AOA.ASV-analysis')
 wd <- print(getwd())
 # load the asv table
 aoa.asv <- read.table('annotated.AOA.ASVs.counts.tsv', sep='\t', header=T, row.names = 1, check.names = FALSE)
 dim(aoa.asv) # 646  192
 sort(rowSums(aoa.asv, na.rm = FALSE, dims = 1), decreasing = F) # there are no asv that does not exist in at least one sample.
 # load the taxonomy table
-#setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/')
-setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/')
+#setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/')
 aoa.tax <- read.table("besthit.diamond.output.curateddb.AOA.ASVs.edited.csv", sep = ';', header=T)
 dim(aoa.tax) # 646
 # load the metadata
-#setwd('/Users/arifinabintarti/Documents/France/microservices/')
-setwd('D:/Fina/INRAE_Project/microservices/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/')
+#setwd('D:/Fina/INRAE_Project/microservices/')
 meta_micro <- read.csv("meta_microservices.csv")
 # load phylogenetic tree (nwk file)
-#setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/AOA-rooted-tree/')
-setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/AOA-rooted-tree/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/AOA-rooted-tree/')
+#setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/AOA-rooted-tree/')
 AOA_rooted_tree <- ape::read.tree("tree.nwk")
 AOA_rooted_tree
 
@@ -114,14 +114,14 @@ aoa.tax.physeq = tax_table(as.matrix(aoa.tax)) # taxonomy table
  
 # phyloseq object of the metadata
 meta_micro$Date <- factor(meta_micro$Date, levels = c("4/28/22", "06/01/2022", "07/05/2022", "7/20/22", "9/13/22"),
-                          labels = c("04-28-22", "06-01-22", "07-05-22", "07-20-22", "09-13-22"))
+                          labels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"))
 rownames(meta_micro) <- sample_names(aoa.asv.physeq)
 aoa.meta.physeq <- sample_data(meta_micro)# meta data
 sample_names(aoa.meta.physeq)
 
 # read the rooted tree
-#setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/AOA-rooted-tree/')
-setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/AOA-rooted-tree/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/AOA-rooted-tree/')
+#setwd('D:/Fina/INRAE_Project/microservices/030423_AOA_out/AOA-rooted-tree/')
 AOA_rooted_tree <- ape::read.tree("tree.nwk")
 
 # make phyloseq object
@@ -253,10 +253,19 @@ str(aoa.meta.df)
 aoa.meta.df$Type <- factor(aoa.meta.df$Type, levels = c("BS", "RS"),
                                labels = c("Bulk Soil", "Rhizosphere"))
 aoa.meta.df$Treatment <- factor(aoa.meta.df$Treatment, levels = c("D", "K", "M"),
-                                    labels = c("Biodynamic", "Conventional", "Mineral fertilized"))
+                                    labels = c("BIODYN", "CONFYM", "CONMIN"))
 aoa.meta.df$SampleID<-as.factor(aoa.meta.df$SampleID)
 aoa.meta.df$PlotID<-as.factor(aoa.meta.df$PlotID)
 aoa.meta.df$Irrigation<-as.factor(aoa.meta.df$Irrigation)
+aoa.meta.df$Block<-as.factor(aoa.meta.df$Block)
+aoa.meta.df$x<-as.factor(aoa.meta.df$x)
+aoa.meta.df$var<-as.factor(aoa.meta.df$var)
+aoa.meta.df$var2<-as.factor(aoa.meta.df$var2)
+aoa.meta.df$var3<-as.factor(aoa.meta.df$var3)
+aoa.meta.df[sapply(aoa.meta.df, is.character)] <- 
+ lapply(aoa.meta.df[sapply(aoa.meta.df, is.character)], as.numeric)
+aoa.meta.df[sapply(aoa.meta.df, is.integer)] <- 
+ lapply(aoa.meta.df[sapply(aoa.meta.df, is.integer)], as.numeric)
 # tidy up the data frame
 aoa.meta.df.tidy <- aoa.meta.df %>%
   group_by(Irrigation, Treatment, Date, Type, var2,var3) %>%
@@ -399,6 +408,13 @@ library(rstatix)
 library(sf)
 library(ggpattern)
 
+aoa.meta.df$x
+aoa.meta.df.ed <- aoa.meta.df %>%
+  mutate(x = factor(x,levels = c("cont.D","rain.D","cont.K","rain.K","cont.M","rain.M")))
+label <- c(`D` ="BIODYN (D)", 
+           `K` ="CONFYM (K)", 
+           `M` ="CONMIN (M)")
+
 # Richness: plotting the pairwise comparisons across treatment 
 aoa.rich.pwc.plot <- ggplot(aoa.meta.df, aes(x=Irrigation, y=Richness)) +
   geom_boxplot(aes(fill=Treatment))+
@@ -431,13 +447,16 @@ ggsave("AOA_rich_mean_boxplot.tiff",
        units= "in", dpi = 600)
 
 # richness between irrigations
-aoa.rich.pwc.irri.plot <- ggplot(aoa.meta.df, aes(x=Date, y=Richness)) +
-  geom_boxplot(aes(group = var3, fill = Irrigation))+
+aoa.rich.pwc.irri.plot <- ggplot(aoa.meta.df.ed, aes(x=Date, y=Richness)) +
+  geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
-  labs(y="AOA Richness")+
-  scale_fill_manual(values = c("#996035","#F2DACD"))+
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('control (D)', 'drought (D)', 'control (K)', 
+                             'drought (K)', 'control (M)', 'drought (M)'))+
+  ylab("AOA Richness")+
   facet_grid(Type~ Treatment,scales="free_x")+
-  theme(legend.title = element_text(size=15, face='bold'),
+  theme(legend.position = "none",
+        legend.title = element_text(size=15, face='bold'),
         legend.text = element_text(size=15),
         strip.text = element_text(size=18),
         axis.text.y = element_text(size = 18),
@@ -450,8 +469,8 @@ aoa.rich.pwc.irri.plot <- ggplot(aoa.meta.df, aes(x=Date, y=Richness)) +
 aoa.rich.pwc.irri.plot
 
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_rich_irri_boxplot.eps",
-       aoa.rich.pwc.irri.plot, device = "eps",
+ggsave("AOA_rich_irri_boxplot.tiff",
+       aoa.rich.pwc.irri.plot, device = "tiff",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
 setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
@@ -510,13 +529,16 @@ ggsave("AOA_sha_boxplot.tiff",
 
 # shannon between irrigations
 
-aoa.sha.pwc.irri.plot <- ggplot(aoa.meta.df, aes(x=Date, y=Shannon)) +
-  geom_boxplot(aes(group = var3, fill = Irrigation))+
+aoa.sha.pwc.irri.plot <- ggplot(aoa.meta.df.ed, aes(x=Date, y=Shannon)) +
+   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('control (D)', 'drought (D)', 'control (K)', 
+                             'drought (K)', 'control (M)', 'drought (M)'))+
   labs(y="AOA Shannon")+
-  scale_fill_manual(values = c("#996035","#F2DACD"))+
   facet_grid(Type~ Treatment,scales="free_x")+
-  theme(legend.title = element_text(size=15, face='bold'),
+  theme(legend.position = "none",
+        legend.title = element_text(size=15, face='bold'),
         legend.text = element_text(size=15),
         strip.text = element_text(size=18),
         axis.text.y = element_text(size = 18),
@@ -528,8 +550,8 @@ aoa.sha.pwc.irri.plot <- ggplot(aoa.meta.df, aes(x=Date, y=Shannon)) +
         panel.grid.minor = element_blank())
 aoa.sha.pwc.irri.plot
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_sha_irri_boxplot.eps",
-       aoa.sha.pwc.irri.plot, device = "eps",
+ggsave("AOA_sha_irri_boxplot.tiff",
+       aoa.sha.pwc.irri.plot, device = "tiff",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
 setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')

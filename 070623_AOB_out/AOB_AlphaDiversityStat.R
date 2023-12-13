@@ -60,6 +60,10 @@ library(afex)
 rich.bulk.mod2 <- lme4::lmer(aob.meta.bulk$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.bulk, na.action = na.omit)
 anova(rich.bulk.mod2)
 anova(model1)
+
+aob.rich.bulk.mod2 <- lmerTest::lmer(aob.meta.bulk$Richness ~ Irrigation*Treatment*Date+(1|Block:Date), data=aob.meta.bulk, na.action=na.omit)
+anova(aob.rich.bulk.mod2)
+
 # Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
 # 1. between fertilization treatment:
@@ -163,6 +167,10 @@ get_anova_table(aob.rh.rich.aov)
 # Model Fit
 set.seed(13)
 rich.rhizo.mod <- lmerTest::lmer(aob.meta.rh$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.rh)
+
+aob.rich.rhizo.mod2 <- lmerTest::lmer(aob.meta.rh$Richness ~ Irrigation*Treatment*Date +(1|Block:Date), data=aob.meta.rh)
+anova(aob.rich.rhizo.mod2)
+
 #library(pbkrtest)
 #anova(rich.rhizo.mod, type = 2, ddf= "Kenward-Roger") # similar with below
 anova(rich.rhizo.mod, type = 2)
@@ -216,6 +224,10 @@ get_anova_table(aob.bulk.sha.aov)
 set.seed(13)
 sha.bulk.mod <- lmerTest::lmer(aob.meta.bulk$Shannon ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.bulk)
 anova(sha.bulk.mod, type = 2)
+
+aob.sha.bulk.mod2 <- lmerTest::lmer(aob.meta.bulk$Shannon ~ Irrigation*Treatment*Date +(1|Block:Date), data=aob.meta.bulk)
+anova(aob.sha.bulk.mod2)
+
 # Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
 # 1. between fertilization treatment:
@@ -268,6 +280,10 @@ get_anova_table(aob.rh.sha.aov)
 set.seed(13)
 sha.rh.mod <- lmerTest::lmer(aob.meta.rh$Shannon ~ Irrigation*Treatment*Date +(1|PlotID), data=aob.meta.rh)
 anova(sha.rh.mod, type = 2)
+
+aob.sha.rh.mod2 <- lmerTest::lmer(aob.meta.rh$Shannon ~ Irrigation*Treatment*Date +(1|Block:Date), data=aob.meta.rh)
+anova(aob.sha.rh.mod2)
+
 # Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
 # 1. between fertilization treatment:

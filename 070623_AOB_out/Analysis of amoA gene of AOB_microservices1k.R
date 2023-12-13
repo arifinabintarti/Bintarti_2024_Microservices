@@ -70,8 +70,8 @@ library(ape)
 library(phyloseq)
 
 # SET THE WORKING DIRECTORY
-#setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB.ASV-analysis')
-setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB.ASV-analysis')
+setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB.ASV-analysis')
+#setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB.ASV-analysis')
 wd <- print(getwd())
 # load the asv table
 aob.asv <- read.table('annotated.AOB.ASVs.counts.tsv', sep='\t', header=T, row.names = 1, check.names = FALSE)
@@ -82,17 +82,17 @@ aob.asv
 dim(aob.asv)# 1338  192
 sort(colSums(aob.asv, na.rm = FALSE, dims = 1), decreasing = F) # there are no asv that does not exist in at least one sample.
 # load the taxonomy table
-#setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/')
-setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out')
+setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/')
+#setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out')
 aob.tax <- read.csv("besthit.diamond.output.curateddb.AOB.ASVs.csv")
 dim(aob.tax) # 1338
 # load the metadata
-#setwd('/Users/arifinabintarti/Documents/France/microservices/')
-setwd('D:/Fina/INRAE_Project/microservices')
+setwd('/Users/arifinabintarti/Documents/France/microservices/')
+#setwd('D:/Fina/INRAE_Project/microservices')
 meta_micro <- read.csv("meta_microservices.csv")
 # load phylogenetic tree (nwk file)
-#setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB.Phylogenetic-analysis/')
-setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB.Phylogenetic-analysis')
+setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB.Phylogenetic-analysis/')
+#setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB.Phylogenetic-analysis')
 aob.tre <- ape::read.tree("tree.AOB.nwk")
 
 ############################################################################
@@ -120,14 +120,14 @@ aob.tax.physeq = tax_table(as.matrix(aob.tax)) # taxonomy table
 # phyloseq object of the metadata
 str(meta_micro)
 meta_micro$Date <- factor(meta_micro$Date, levels = c("4/28/22", "06/01/2022", "07/05/2022", "7/20/22", "9/13/22"),
-                          labels = c("04-28-22", "06-01-22", "07-05-22", "07-20-22", "09-13-22"))
+                          labels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"))
 rownames(meta_micro) <- sample_names(aob.asv.physeq)
 aob.meta.physeq <- sample_data(meta_micro)# meta data
 sample_names(aob.meta.physeq)
 
 # read the rooted tree
-#setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB-rooted-tree/')
-setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB-rooted-tree/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB-rooted-tree/')
+#setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/AOB-rooted-tree/')
 AOB_rooted_tree <- ape::read.tree("tree.nwk")
 AOB_rooted_tree
 # tree visualization
@@ -241,10 +241,19 @@ str(aob.meta.df.sub)
 aob.meta.df.sub$Type <- factor(aob.meta.df.sub$Type, levels = c("BS", "RS"),
                                labels = c("Bulk Soil", "Rhizosphere"))
 aob.meta.df.sub$Treatment <- factor(aob.meta.df.sub$Treatment, levels = c("D", "K", "M"),
-                                    labels = c("Biodynamic", "Conventional", "Mineral fertilized"))
+                                    labels = c("BIODYN", "CONFYM", "CONMIN"))
 aob.meta.df.sub$SampleID<-as.factor(aob.meta.df.sub$SampleID)
 aob.meta.df.sub$PlotID<-as.factor(aob.meta.df.sub$PlotID)
 aob.meta.df.sub$Irrigation<-as.factor(aob.meta.df.sub$Irrigation)
+aob.meta.df.sub$Block<-as.factor(aob.meta.df.sub$Block)
+aob.meta.df.sub$x<-as.factor(aob.meta.df.sub$x)
+aob.meta.df.sub$var<-as.factor(aob.meta.df.sub$var)
+aob.meta.df.sub$var2<-as.factor(aob.meta.df.sub$var2)
+aob.meta.df.sub$var3<-as.factor(aob.meta.df.sub$var3)
+aob.meta.df.sub[sapply(aob.meta.df.sub, is.character)] <- 
+ lapply(aob.meta.df.sub[sapply(aob.meta.df.sub, is.character)], as.numeric)
+aob.meta.df.sub[sapply(aob.meta.df.sub, is.integer)] <- 
+ lapply(aob.meta.df.sub[sapply(aob.meta.df.sub, is.integer)], as.numeric)
 # tidy up the data frame
 aob.meta.df.tidy <- aob.meta.df.sub %>%
   group_by(Irrigation, Treatment, Date,  Type, var2,var3) %>%
@@ -389,6 +398,13 @@ library(rstatix)
 library(sf)
 library(ggpattern)
 
+aob.meta.df.sub$x
+aob.meta.df.sub.ed <- aob.meta.df.sub %>%
+  mutate(x = factor(x,levels = c("cont.D","rain.D","cont.K","rain.K","cont.M","rain.M")))
+label <- c(`D` ="BIODYN (D)", 
+           `K` ="CONFYM (K)", 
+           `M` ="CONMIN (M)")
+
 # Richness: plotting the pairwise comparisons across treatment 
 aob.rich.pwc.plot <- ggplot(aob.meta.df.sub, aes(x=Irrigation, y=Richness)) +
   geom_boxplot(aes(fill=Treatment))+
@@ -436,13 +452,16 @@ ggsave("AOB_rich_mean_boxplot.tiff",
        units= "in", dpi = 600)
 
 # richness between irrigations
-aob.rich.pwc.irri.plot <- ggplot(aob.meta.df.sub, aes(x=Date, y=Richness)) +
-  geom_boxplot(aes(group = var3, fill = Irrigation))+
+aob.rich.pwc.irri.plot <- ggplot(aob.meta.df.sub.ed, aes(x=Date, y=Richness)) +
+  geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('control (D)', 'drought (D)', 'control (K)', 
+                             'drought (K)', 'control (M)', 'drought (M)'))+
   labs(y="AOB Richness")+
-  scale_fill_manual(values = c("#996035","#F2DACD"))+
   facet_grid(Type~ Treatment,scales="free_x")+
-  theme(legend.title = element_text(size=15, face='bold'),
+  theme(legend.position = "none",
+        legend.title = element_text(size=15, face='bold'),
         legend.text = element_text(size=15),
         strip.text = element_text(size=18),
         axis.text.y = element_text(size = 18),
@@ -454,8 +473,8 @@ aob.rich.pwc.irri.plot <- ggplot(aob.meta.df.sub, aes(x=Date, y=Richness)) +
         panel.grid.minor = element_blank())
 aob.rich.pwc.irri.plot
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
-ggsave("AOB_rich_irri_boxplot.eps",
-       aob.rich.pwc.irri.plot, device = "eps",
+ggsave("AOB_rich_irri_boxplot.tiff",
+       aob.rich.pwc.irri.plot, device = "tiff",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
 setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
@@ -514,13 +533,16 @@ ggsave("AOB_sha_boxplot.tiff",
 
 # shannon between irrigations
 
-aob.sha.pwc.irri.plot <- ggplot(aob.meta.df.sub, aes(x=Date, y=Shannon)) +
-  geom_boxplot(aes(group = var3, fill = Irrigation))+
+aob.sha.pwc.irri.plot <- ggplot(aob.meta.df.sub.ed, aes(x=Date, y=Shannon)) +
+  geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('control (D)', 'drought (D)', 'control (K)', 
+                             'drought (K)', 'control (M)', 'drought (M)'))+
   labs(y="AOB Shannon")+
-  scale_fill_manual(values = c("#996035","#F2DACD"))+
   facet_grid(Type~ Treatment,scales="free_x")+
-  theme(legend.title = element_text(size=15, face='bold'),
+  theme(legend.position = "none",
+        legend.title = element_text(size=15, face='bold'),
         legend.text = element_text(size=15),
         strip.text = element_text(size=18),
         axis.text.y = element_text(size = 18),
@@ -532,8 +554,8 @@ aob.sha.pwc.irri.plot <- ggplot(aob.meta.df.sub, aes(x=Date, y=Shannon)) +
         panel.grid.minor = element_blank())
 aob.sha.pwc.irri.plot
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
-ggsave("AOB_sha_irri_boxplot.eps",
-       aob.sha.pwc.irri.plot, device = "eps",
+ggsave("AOB_sha_irri_boxplot.tiff",
+       aob.sha.pwc.irri.plot, device = "tiff",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
 setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')

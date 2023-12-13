@@ -8,6 +8,7 @@ library(datarium)
 library(rstatix)
 
 # set working directory
+setwd('/Users/arifinabintarti/Documents/France/microservices/')
 setwd('D:/Fina/INRAE_Project/microservices/')
 wd <- print(getwd())
 # load the metadata

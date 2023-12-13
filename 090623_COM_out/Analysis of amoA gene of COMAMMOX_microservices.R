@@ -69,8 +69,8 @@ library(devtools)
 library(phyloseq)
 
 # SET THE WORKING DIRECTORY
-#setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/COM.ASV-analysis')
-setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/COM.ASV-analysis')
+setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/COM.ASV-analysis')
+#setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/COM.ASV-analysis')
 wd <- print(getwd())
 # load the asv table
 com.asv <- read.table('annotated.COM.ASVs.counts.tsv', sep='\t', header=T, row.names = 1, check.names = FALSE)
@@ -80,19 +80,19 @@ com.asv.sub <- com.asv[, -which(names(com.asv) == "26" )]
 sort(rowSums(com.asv.sub, na.rm = FALSE, dims = 1), decreasing = FALSE)
 dim(com.asv.sub)
 # load the taxonomy table
-#setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/')
-setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/')
+#setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/')
 com.tax <- read.table("besthit.diamond.output.curateddb.COM.ASVs.edited.csv", sep = ';', header=T)
 dim(com.tax) # 680 
 # load the metadata
-#setwd('/Users/arifinabintarti/Documents/France/microservices/')
-setwd('D:/Fina/INRAE_Project/microservices/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/')
+#setwd('D:/Fina/INRAE_Project/microservices/')
 meta_micro <- read.csv("meta_microservices.csv")
 # remove the bad sample (sample # 26) from the metadata
 meta_micro_sub <- meta_micro[-26,]
 # load phylogenetic tree (nwk file)
-#setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/COM-rooted-tree/')
-setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/COM-rooted-tree/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/COM-rooted-tree/')
+#setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/COM-rooted-tree/')
 COM_rooted_tree <- ape::read.tree("tree.nwk")
 
 ############################################################################
@@ -118,14 +118,14 @@ com.tax.physeq = tax_table(as.matrix(com.tax)) # taxonomy table
 
 # phyloseq object of the metadata
 meta_micro_sub$Date <- factor(meta_micro_sub$Date, levels = c("4/28/22", "06/01/2022", "07/05/2022", "7/20/22", "9/13/22"),
-                          labels = c("04-28-22", "06-01-22", "07-05-22", "07-20-22", "09-13-22"))
+                          labels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"))
 rownames(meta_micro_sub) <- sample_names(com.asv.physeq)
 com.meta.physeq <- sample_data(meta_micro_sub)# meta data
 sample_names(com.meta.physeq)
 
 # read the rooted tree
-#setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/COM-rooted-tree/')
-setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/COM-rooted-tree/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/090623_COM_out/COM-rooted-tree/')
+#setwd('D:/Fina/INRAE_Project/microservices/090623_COM_out/COM-rooted-tree/')
 COM_rooted_tree <- ape::read.tree("tree.nwk")
 
 # make phyloseq object
@@ -257,10 +257,21 @@ str(com.meta.df)
 com.meta.df$Type <- factor(com.meta.df$Type, levels = c("BS", "RS"),
                            labels = c("Bulk Soil", "Rhizosphere"))
 com.meta.df$Treatment <- factor(com.meta.df$Treatment, levels = c("D", "K", "M"),
-                                labels = c("Biodynamic", "Conventional", "Mineral fertilized"))
+                                labels = c("BIODYN", "CONFYM", "CONMIN"))
 com.meta.df$SampleID<-as.factor(com.meta.df$SampleID)
 com.meta.df$PlotID<-as.factor(com.meta.df$PlotID)
 com.meta.df$Irrigation<-as.factor(com.meta.df$Irrigation)
+com.meta.df$Block<-as.factor(com.meta.df$Block)
+com.meta.df$x<-as.factor(com.meta.df$x)
+com.meta.df$var<-as.factor(com.meta.df$var)
+com.meta.df$var2<-as.factor(com.meta.df$var2)
+com.meta.df$var3<-as.factor(com.meta.df$var3)
+com.meta.df[sapply(com.meta.df, is.character)] <- 
+ lapply(com.meta.df[sapply(com.meta.df, is.character)], as.numeric)
+com.meta.df[sapply(com.meta.df, is.integer)] <- 
+ lapply(com.meta.df[sapply(com.meta.df, is.integer)], as.numeric)
+
+
 # tidy up the data frame
 com.meta.df.tidy <- com.meta.df %>%
   group_by(Irrigation, Treatment, Date, Type, var2,var3) %>%
@@ -403,6 +414,13 @@ library(rstatix)
 library(sf)
 library(ggpattern)
 
+com.meta.df$x
+com.meta.df.ed <- com.meta.df %>%
+  mutate(x = factor(x,levels = c("cont.D","rain.D","cont.K","rain.K","cont.M","rain.M")))
+label <- c(`D` ="BIODYN (D)", 
+           `K` ="CONFYM (K)", 
+           `M` ="CONMIN (M)")
+
 # Richness: plotting the pairwise comparisons across treatment 
 com.rich.pwc.plot <- ggplot(com.meta.df, aes(x=Irrigation, y=Richness)) +
   geom_boxplot(aes(fill=Treatment))+
@@ -450,13 +468,16 @@ ggsave("COM_rich_mean_boxplot.tiff",
        units= "in", dpi = 600)
 
 # richness between irrigations
-com.rich.pwc.irri.plot <- ggplot(com.meta.df, aes(x=Date, y=Richness)) +
-  geom_boxplot(aes(group = var3, fill = Irrigation))+
+com.rich.pwc.irri.plot <- ggplot(com.meta.df.ed, aes(x=Date, y=Richness)) +
+  geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('control (D)', 'drought (D)', 'control (K)', 
+                             'drought (K)', 'control (M)', 'drought (M)'))+
   labs(y="Comammox Richness")+
-  scale_fill_manual(values = c("#996035","#F2DACD"))+
   facet_grid(Type~ Treatment,scales="free_x")+
-  theme(legend.title = element_text(size=15, face='bold'),
+  theme(legend.position = "none",
+        legend.title = element_text(size=15, face='bold'),
         legend.text = element_text(size=15),
         strip.text = element_text(size=18),
         axis.text.y = element_text(size = 18),
@@ -469,8 +490,8 @@ com.rich.pwc.irri.plot <- ggplot(com.meta.df, aes(x=Date, y=Richness)) +
 com.rich.pwc.irri.plot
 
 setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
-ggsave("COM_rich_irri_boxplot.eps",
-       com.rich.pwc.irri.plot, device = "eps",
+ggsave("COM_rich_irri_boxplot.tiff",
+       com.rich.pwc.irri.plot, device = "tiff",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
 setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
@@ -529,13 +550,16 @@ ggsave("COM_sha_boxplot.tiff",
 
 # shannon between irrigations
 
-com.sha.pwc.irri.plot <- ggplot(com.meta.df, aes(x=Date, y=Shannon)) +
-  geom_boxplot(aes(group = var3, fill = Irrigation))+
+com.sha.pwc.irri.plot <- ggplot(com.meta.df.ed, aes(x=Date, y=Shannon)) +
+  geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('control (D)', 'drought (D)', 'control (K)', 
+                             'drought (K)', 'control (M)', 'drought (M)'))+
   labs(y="Comammox Shannon")+
-  scale_fill_manual(values = c("#996035","#F2DACD"))+
   facet_grid(Type~ Treatment,scales="free_x")+
-  theme(legend.title = element_text(size=15, face='bold'),
+  theme(legend.position = "none",
+        legend.title = element_text(size=15, face='bold'),
         legend.text = element_text(size=15),
         strip.text = element_text(size=18),
         axis.text.y = element_text(size = 18),
@@ -547,8 +571,8 @@ com.sha.pwc.irri.plot <- ggplot(com.meta.df, aes(x=Date, y=Shannon)) +
         panel.grid.minor = element_blank())
 com.sha.pwc.irri.plot
 setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
-ggsave("COM_sha_irri_boxplot.eps",
-       com.sha.pwc.irri.plot, device = "eps",
+ggsave("COM_sha_irri_boxplot.tiff",
+       com.sha.pwc.irri.plot, device = "tiff",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
 setwd('D:/Fina/INRAE_Project/microservices_fig/COM')

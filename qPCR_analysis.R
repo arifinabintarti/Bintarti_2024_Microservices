@@ -205,8 +205,8 @@ table2csv(x=aoa.log.dws.aov2.df,file=filen, digits = 1, digitspvals = 3)
 
 # try another model
 set.seed(13)
-aoa.log.dws.lmer <- lmerTest::lmer(AOA_logDWS ~ irrigation * fertilization * sampling.date + 
-                                    (1|plot), data = qPCR.BS, na.action = na.omit)
+#aoa.log.dws.lmer <- lmerTest::lmer(AOA_logDWS ~ irrigation * fertilization * sampling.date + 
+                                    #(1|plot), data = qPCR.BS, na.action = na.omit)
 anova(aoa.log.dws.lmer)
 shapiro.test(resid(aoa.log.dws.lmer)) #normal
 library(DHARMa) 
@@ -266,8 +266,8 @@ shapiro.test(qPCR.BS$AOB_logDWS) # not NORMAL
 
 # try another model
 set.seed(13)
-aob.log.dws.lmer <- lmerTest::lmer(AOB_logDWS ~ irrigation * fertilization * sampling.date + 
-                                    (1|plot), data = qPCR.BS, na.action = na.omit)
+#aob.log.dws.lmer <- lmerTest::lmer(AOB_logDWS ~ irrigation * fertilization * sampling.date + 
+                                    #(1|plot), data = qPCR.BS, na.action = na.omit)
 anova(aob.log.dws.lmer)
 shapiro.test(resid(aob.log.dws.lmer)) #normal
 library(DHARMa) 
@@ -316,8 +316,8 @@ hist(qPCR.BS$AOB_nbc_per_g_DW_soil)
 
 # try another model
 set.seed(13)
-aob.dws.lmer <- lmerTest::lmer(AOB_nbc_per_g_DW_soil ~ irrigation * fertilization * sampling.date + 
-                                    (1|plot), data = qPCR.BS, na.action = na.omit)
+#aob.dws.lmer <- lmerTest::lmer(AOB_nbc_per_g_DW_soil ~ irrigation * fertilization * sampling.date + 
+                                    #(1|plot), data = qPCR.BS, na.action = na.omit)
 anova(aob.dws.lmer)
 shapiro.test(resid(aob.dws.lmer)) #normal
 plot(simulateResiduals(aob.dws.lmer))
@@ -366,8 +366,8 @@ ggqqplot(qPCR.BS, "ComA_logDWS", ggtheme = theme_bw()) #better
 
 # try another model
 set.seed(13)
-comA.log.dws.lmer <- lmerTest::lmer(ComA_logDWS ~ irrigation * fertilization * sampling.date + 
-                                    (1|plot), data = qPCR.BS, na.action = na.omit)
+#comA.log.dws.lmer <- lmerTest::lmer(ComA_logDWS ~ irrigation * fertilization * sampling.date + 
+                                    #(1|plot), data = qPCR.BS, na.action = na.omit)
 anova(comA.log.dws.lmer)
 shapiro.test(resid(comA.log.dws.lmer)) #normal
 library(DHARMa) 
@@ -425,8 +425,8 @@ qPCR.BS.ComB_logDWS.SW <- qPCR.BS %>%
 
 # try another model
 set.seed(13)
-comB.log.dws.lmer <- lmerTest::lmer(ComB_logDWS ~ irrigation * fertilization * sampling.date + 
-                                    (1|plot), data = qPCR.BS, na.action = na.omit)
+#comB.log.dws.lmer <- lmerTest::lmer(ComB_logDWS ~ irrigation * fertilization * sampling.date + 
+                                    #(1|plot), data = qPCR.BS, na.action = na.omit)
 anova(comB.log.dws.lmer)
 shapiro.test(resid(comB.log.dws.lmer)) #normal
 plot(simulateResiduals(comB.log.dws.lmer))
@@ -482,13 +482,13 @@ table2csv(x=tot.log.dws.aov2.df,file=filen, digits = 1, digitspvals = 3)
 #tot.log.dws.lmer <- lmerTest::lmer(Tot_logDWS ~ irrigation*fertilization+sampling.date+
                                     #(sampling.date|rep), data=qPCR.BS, na.action=na.omit)
 
-tot.log.dws.lmer <- lmerTest::lmer(Tot_logDWS ~ irrigation*fertilization*sampling.date+
-                                    (1|block/plot), data=qPCR.BS, na.action=na.omit)
+#tot.log.dws.lmer <- lmerTest::lmer(Tot_logDWS ~ irrigation*fertilization*sampling.date+
+                                    #(1|block/plot), data=qPCR.BS, na.action=na.omit)
 #t=afex::mixed(Tot_logDWS ~ irrigation*fertilization*sampling.date+
                                     #(1|plot), data=qPCR.BS, na.action=na.omit)
 
-tot.dws.lmer2 <- lmerTest::lmer(Tot_nbc_per_g_DW_soil ~ irrigation*fertilization*sampling.date+
-                                     (1|block/plot), data=qPCR.BS, na.action=na.omit)
+#tot.dws.lmer2 <- lmerTest::lmer(Tot_nbc_per_g_DW_soil ~ irrigation*fertilization*sampling.date+
+                                     #(1|block/plot), data=qPCR.BS, na.action=na.omit)
 
 t.16S=lmerTest::lmer(Tot_logDWS ~ irrigation*fertilization*sampling.date+
                        (1|block:sampling.date), 

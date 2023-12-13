@@ -13,7 +13,7 @@ library(rstatix)
 # 1. Response variable: Richness
 ###########################################################################
 # 1a. Analyses of Bulk Soil
-com.meta.bulk <- com.meta.df[1:118,]
+com.meta.bulk <- com.meta.df.ed[1:118,]
 str(com.meta.bulk)
 com.meta.bulk.sum.rich <- com.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
@@ -56,6 +56,10 @@ get_anova_table(com.bulk.rich.aov)
 set.seed(13)
 com.rich.bulk.mod <- lmerTest::lmer(com.meta.bulk$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=com.meta.bulk)
 anova(com.rich.bulk.mod, type = 2)
+
+com.rich.bulk.mod2 <- lmerTest::lmer(com.meta.bulk$Richness ~ Irrigation*Treatment*Date+(1|Block:Date), data=com.meta.bulk, na.action=na.omit)
+anova(com.rich.bulk.mod2)
+
 # Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
 # 1. between fertilization treatment:
@@ -69,12 +73,12 @@ com.emm.rich.irri.bulk <- com.meta.bulk %>%
   group_by(Date, Treatment) %>%
   emmeans_test(Richness ~ Irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = com.rich.bulk.mod)
-
+               conf.level = 0.95, model = com.rich.bulk.mod2)
+com.emm.rich.irri.bulk
 ######################################################################
 # 1b. Analyses of rhizosphere Soil
 
-com.meta.rh <- com.meta.df[119:190,]
+com.meta.rh <- com.meta.df.ed[119:190,]
 str(com.meta.rh)
 com.meta.rh.sum.rich <- com.meta.rh %>%
   group_by(Irrigation, Treatment, Date) %>%
@@ -115,6 +119,10 @@ get_anova_table(com.rh.rich.aov)
 set.seed(13)
 com.rich.rhizo.mod <- lmerTest::lmer(com.meta.rh$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=com.meta.rh)
 anova(com.rich.rhizo.mod, type = 2)
+
+com.rich.rhizo.mod2 <- lmerTest::lmer(com.meta.rh$Richness ~ Irrigation*Treatment*Date+(1|Block:Date), data=com.meta.rh, na.action=na.omit)
+anova(com.rich.rhizo.mod2)
+
 # pairwise comparisons
 # 1. between fertilization treatment:
 com.emm.rich.rh <- com.meta.rh %>%
@@ -127,8 +135,8 @@ com.emm.rich.irri.rh <- com.meta.rh %>%
   group_by(Date, Treatment) %>%
   emmeans_test(Richness ~ Irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = com.rich.rhizo.mod)
-
+               conf.level = 0.95, model = com.rich.rhizo.mod2)
+com.emm.rich.irri.rh 
 
 ###########################################################################
 # 2. Response variable: Shannon
@@ -167,6 +175,10 @@ get_anova_table(com.bulk.sha.aov)
 set.seed(13)
 com.sha.bulk.mod <- lmerTest::lmer(com.meta.bulk$Shannon ~ Irrigation*Treatment*Date +(1|PlotID), data=com.meta.bulk)
 anova(com.sha.bulk.mod, type = 3)
+
+com.sha.bulk.mod2 <- lmerTest::lmer(com.meta.bulk$Shannon ~ Irrigation*Treatment*Date+(1|Block:Date), data=com.meta.bulk, na.action=na.omit)
+anova(com.sha.bulk.mod2)
+
 # Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
 # 1. between fertilization treatment:
@@ -180,7 +192,8 @@ com.emm.sha.irri.bulk <- com.meta.bulk %>%
   group_by(Date, Treatment) %>%
   emmeans_test(Shannon ~ Irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = com.sha.bulk.mod)
+               conf.level = 0.95, model = com.sha.bulk.mod2)
+com.emm.sha.irri.bulk
 #############################################################################################################
 
 ##################################################################
@@ -219,6 +232,10 @@ get_anova_table(com.rh.sha.aov)
 set.seed(13)
 com.sha.rh.mod <- lmerTest::lmer(com.meta.rh$Shannon ~ Irrigation*Treatment*Date +(1|PlotID), data=com.meta.rh)
 anova(com.sha.rh.mod, type = 2)
+
+com.sha.rh.mod2 <- lmerTest::lmer(com.meta.rh$Shannon ~ Irrigation*Treatment*Date+(1|Block:Date), data=com.meta.rh, na.action=na.omit)
+anova(com.sha.rh.mod2)
+
 # Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
 # 1. between fertilization treatment:
@@ -226,13 +243,15 @@ com.emm.sha.rh <- com.meta.rh %>%
   group_by(Date, Irrigation) %>%
   emmeans_test(Shannon ~ Treatment, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = com.sha.rh.mod)
+               conf.level = 0.95, model = com.sha.rh.mod2)
 # 2. between irrigation:
 com.emm.sha.irri.rh <- com.meta.rh %>%
   group_by(Date, Treatment) %>%
   emmeans_test(Shannon ~ Irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = com.sha.rh.mod)
+               conf.level = 0.95, model = com.sha.rh.mod2)
+com.emm.sha.irri.rh
+
 #############################################################################################################
 
 ###########################################################################

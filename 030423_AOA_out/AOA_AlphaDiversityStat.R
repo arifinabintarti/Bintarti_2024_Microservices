@@ -9,6 +9,7 @@
 #install.packages("rstatix")
 library(datarium)
 library(rstatix)
+library(DHARMa)
 ###########################################################################
 # 1. Response variable: Richness
 ###########################################################################
@@ -56,6 +57,11 @@ get_anova_table(aoa.bulk.rich.aov)
 set.seed(13)
 aoa.rich.bulk.mod <- lmerTest::lmer(aoa.meta.bulk$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aoa.meta.bulk)
 anova(aoa.rich.bulk.mod, type = 2)
+
+aoa.rich.bulk.mod2 <- lmerTest::lmer(aoa.meta.bulk$Richness ~ Irrigation*Treatment*Date+(1|Block:Date), data=aoa.meta.bulk, na.action=na.omit)
+anova(aoa.rich.bulk.mod2)
+
+plot(simulateResiduals(aoa.rich.bulk.mod2))
 # Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
 # 1. between fertilization treatment:
@@ -69,8 +75,8 @@ aoa.emm.rich.irri.bulk <- aoa.meta.bulk %>%
   group_by(Date, Treatment) %>%
   emmeans_test(Richness ~ Irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = aoa.rich.bulk.mod)
-
+               conf.level = 0.95, model = aoa.rich.bulk.mod2)
+aoa.emm.rich.irri.bulk
 ######################################################################
 # 1b. Analyses of rhizosphere Soil
 
@@ -115,6 +121,11 @@ get_anova_table(aoa.rh.rich.aov)
 set.seed(13)
 aoa.rich.rhizo.mod <- lmerTest::lmer(aoa.meta.rh$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aoa.meta.rh)
 anova(aoa.rich.rhizo.mod, type = 2)
+
+aoa.rich.rhizo.mod2 <- lmerTest::lmer(aoa.meta.rh$Richness ~ Irrigation*Treatment*Date +(1|Block:Date), data=aoa.meta.rh)
+anova(aoa.rich.rhizo.mod2)
+
+
 # pairwise comparisons
 # 1. between fertilization treatment:
 aoa.emm.rich.rh <- aoa.meta.rh %>%
@@ -127,8 +138,8 @@ aoa.emm.rich.irri.rh <- aoa.meta.rh %>%
   group_by(Date, Treatment) %>%
   emmeans_test(Richness ~ Irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = aoa.rich.rhizo.mod)
-
+               conf.level = 0.95, model = aoa.rich.rhizo.mod2)
+aoa.emm.rich.irri.rh
 
 ###########################################################################
 # 2. Response variable: Shannon
@@ -167,6 +178,10 @@ get_anova_table(aoa.bulk.sha.aov)
 set.seed(13)
 aoa.sha.bulk.mod <- lmerTest::lmer(aoa.meta.bulk$Shannon ~ Irrigation*Treatment*Date +(1|PlotID), data=aoa.meta.bulk)
 anova(aoa.sha.bulk.mod, type = 2)
+
+aoa.sha.bulk.mod2 <- lmerTest::lmer(aoa.meta.bulk$Shannon ~ Irrigation*Treatment*Date +(1|Block:Date), data=aoa.meta.bulk)
+anova(aoa.sha.bulk.mod2)
+
 # Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
 # 1. between fertilization treatment:
@@ -180,7 +195,9 @@ aoa.emm.sha.irri.bulk <- aoa.meta.bulk %>%
   group_by(Date, Treatment) %>%
   emmeans_test(Shannon ~ Irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = aoa.sha.bulk.mod)
+               conf.level = 0.95, model = aoa.sha.bulk.mod2)
+aoa.emm.sha.irri.bulk
+
 #############################################################################################################
 
 ##################################################################
@@ -219,6 +236,9 @@ get_anova_table(aoa.rh.sha.aov)
 set.seed(13)
 aoa.sha.rh.mod <- lmerTest::lmer(aoa.meta.rh$Shannon ~ Irrigation*Treatment*Date +(1|PlotID), data=aoa.meta.rh)
 anova(aoa.sha.rh.mod, type = 2)
+
+aoa.sha.rhizo.mod2 <- lmerTest::lmer(aoa.meta.rh$Shannon ~ Irrigation*Treatment*Date +(1|Block:Date), data=aoa.meta.rh)
+anova(aoa.sha.rhizo.mod2)
 # Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
 # 1. between fertilization treatment:
