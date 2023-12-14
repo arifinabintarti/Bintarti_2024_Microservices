@@ -2963,7 +2963,7 @@ dist_matrix.aoa
 item_groups <- sample_data(aoa.physeq_bulk1)
 item_groups <- item_groups$x
 #calculate dist between groups
-d.calcul <- dist_groups(dist_matrix.aoa, item_groups)
+d.calcul <- dist_groups(test, item_groups)
 #Control
 tab.distance = as_tibble(d.calcul) 
 tab.distance.C <- subset(tab.distance, Label%in% c("Between cont.M and rain.M","Between cont.D and rain.D","Between cont.K and rain.K"))
