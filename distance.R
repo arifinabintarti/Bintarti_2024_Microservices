@@ -2963,9 +2963,10 @@ dist_matrix.aoa
 item_groups <- sample_data(aoa.physeq_bulk1)
 item_groups <- item_groups$x
 #calculate dist between groups
-d.calcul <- dist_groups(test, item_groups)
+d.calcul <- dist_groups(dist_matrix.aoa, item_groups)
 #Control
 tab.distance = as_tibble(d.calcul) 
+#tab.distance.C <- subset(tab.distance, Label%in% c("Between cont.M and rain.M","Between cont.D and rain.D","Between cont.K and rain.K","Within cont.D","Within cont.M","Within cont.K", "Within rain.D","Within rain.M","Within rain.K"))
 tab.distance.C <- subset(tab.distance, Label%in% c("Between cont.M and rain.M","Between cont.D and rain.D","Between cont.K and rain.K"))
 tab.distance.C$Label <- factor(tab.distance.C$Label)
 tab.distance.C$Label
@@ -3074,6 +3075,7 @@ item_groups <- item_groups$x
 d.calcul <- dist_groups(dist_matrix.aoa.rh, item_groups)
 #Control
 tab.distance = as_tibble(d.calcul) 
+#tab.distance.C <- subset(tab.distance, Label%in% c("Between cont.M and rain.M","Between cont.D and rain.D","Between cont.K and rain.K","Within cont.D","Within cont.M","Within cont.K", "Within rain.D","Within rain.M","Within rain.K"))
 tab.distance.C <- subset(tab.distance, Label%in% c("Between cont.M and rain.M","Between cont.D and rain.D","Between cont.K and rain.K"))
 tab.distance.C$Label <- factor(tab.distance.C$Label)
 tab.distance.C$Label
