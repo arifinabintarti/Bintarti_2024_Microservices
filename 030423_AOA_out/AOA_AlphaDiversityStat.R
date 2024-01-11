@@ -54,11 +54,13 @@ get_anova_table(aoa.bulk.rich.aov)
 
 ############################################################################################################
 # Model Fit
+library(lmerTest)
 set.seed(13)
 aoa.rich.bulk.mod <- lmerTest::lmer(aoa.meta.bulk$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aoa.meta.bulk)
 anova(aoa.rich.bulk.mod, type = 2)
 
-aoa.rich.bulk.mod2 <- lmerTest::lmer(aoa.meta.bulk$Richness ~ Irrigation*Treatment*Date+(1|Block:Date), data=aoa.meta.bulk, na.action=na.omit)
+aoa.rich.bulk.mod2 <- lmerTest::lmer(aoa.meta.bulk$Richness ~ Irrigation*Treatment*Date+(1|Block:Date),
+                                     data=aoa.meta.bulk, na.action=na.omit)
 anova(aoa.rich.bulk.mod2)
 
 plot(simulateResiduals(aoa.rich.bulk.mod2))
@@ -176,10 +178,10 @@ get_anova_table(aoa.bulk.sha.aov)
 ############################################################################################################
 # Model Fit
 set.seed(13)
-aoa.sha.bulk.mod <- lmerTest::lmer(aoa.meta.bulk$Shannon ~ Irrigation*Treatment*Date +(1|PlotID), data=aoa.meta.bulk)
-anova(aoa.sha.bulk.mod, type = 2)
+#aoa.sha.bulk.mod <- lmerTest::lmer(aoa.meta.bulk$Shannon ~ Irrigation*Treatment*Date +(1|PlotID), data=aoa.meta.bulk)
+#anova(aoa.sha.bulk.mod)
 
-aoa.sha.bulk.mod2 <- lmerTest::lmer(aoa.meta.bulk$Shannon ~ Irrigation*Treatment*Date +(1|Block:Date), data=aoa.meta.bulk)
+aoa.sha.bulk.mod2 <- lmerTest::lmer(aoa.meta.bulk$Shannon ~ Irrigation*Treatment*Date +(1|Date:Block), data=aoa.meta.bulk)
 anova(aoa.sha.bulk.mod2)
 
 # Fit pairwise comparisons
