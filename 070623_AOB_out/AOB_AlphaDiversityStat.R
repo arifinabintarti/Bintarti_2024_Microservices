@@ -63,6 +63,10 @@ anova(model1)
 
 aob.rich.bulk.mod2 <- lmerTest::lmer(aob.meta.bulk$Richness ~ Irrigation*Treatment*Date+(1|Block:Date), data=aob.meta.bulk, na.action=na.omit)
 anova(aob.rich.bulk.mod2)
+install.packages("MuMIn")
+library(MuMIn)
+r.squaredGLMM(aob.rich.bulk.mod2)
+
 
 # Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
@@ -284,7 +288,7 @@ anova(sha.rh.mod, type = 2)
 aob.sha.rh.mod2 <- lmerTest::lmer(aob.meta.rh$Shannon ~ Irrigation*Treatment*Date +(1|Block:Date), data=aob.meta.rh)
 anova(aob.sha.rh.mod2)
 
-# Fit pairwise comparisons
+0# Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
 # 1. between fertilization treatment:
 emm.sha.rh <- aob.meta.rh %>%

@@ -45,13 +45,6 @@ aoa.cap.bulk$x
 dist_matrix.aoa <- dist(aoa.cap.bulk$x)
 dist_matrix.aoa
 
-x <- as.data.frame(aoa.cap.bulk$x)
-str(x)
-x1 <- x[,c(1,2,3,4)]
-x1
-test <- dist(x1)
-test
-
 
 success <- cbind(data.frame(aoa.cap.bulk$group), data.frame(aoa.cap.bulk$CV))
 colnames(success) <- c("source", "classified")
@@ -100,10 +93,17 @@ aoa.cap.plot <- ggplot(as.data.frame(aoa.cap.bulk$x), aes(x = aoa.cap.bulk$x[,1]
   theme(legend.position = "none",
         legend.title = element_text(size=13),
         legend.text = element_text(size=13)) +
+  annotate("text",x=-9.5,y=-1,label= "90%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-7.5,y=3,label= "95%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-1.7,y=-7,label= "100%", hjust = 0, size = 4, color="#FF618C")+
+  annotate("text",x=-1.7,y=-1.5,label= "100%", hjust = 0, size = 4,color="#FF618C")+
+  annotate("text",x=2,y=6,label= "95%", hjust = 0, size = 4, color="#E69F00")+
+  annotate("text",x=6.5,y=0.4,label= "85%", hjust = 0, size = 4,color="#E69F00")+
   annotate("text",x=-14,y=-10,label= "Overall reclassification rate: 94.2%", hjust = 0, size = 4) +
   annotate("text", x=-14, y=-11.5, label= "Pillai's test=4.1***", hjust = 0, size = 4)
 aoa.cap.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("AOA_CAP_bulk_bray.tiff",
        aoa.cap.plot, device = "tiff",
        width = 4, height =3, 
@@ -186,10 +186,17 @@ aoa.cap.rh.plot <- ggplot(as.data.frame(aoa.cap.rh$x), aes(x = aoa.cap.rh$x[,1],
   theme(legend.position = "none",
         legend.title = element_text(size=13),
         legend.text = element_text(size=13)) +
+ annotate("text",x=-14,y=-1,label= "100%", hjust = 0, size = 4,color="#009E73") +
+ annotate("text",x=-14,y=3,label= "83.3%", hjust = 0, size = 4,color="#009E73") +
+ annotate("text",x=-3,y=-7,label= "91.7%", hjust = 0, size = 4, color="#FF618C")+
+ annotate("text",x=1,y=-2,label= "75%", hjust = 0, size = 4,color="#FF618C")+
+ annotate("text",x=3,y=6,label= "100%", hjust = 0, size = 4, color="#E69F00")+
+ annotate("text",x=6,y=1,label= "91.7%", hjust = 0, size = 4,color="#E69F00")+
 annotate("text",x=-17,y=-9,label= "Overall reclassification rate: 90.3%", hjust = 0, size = 4) +
 annotate("text", x=-17, y=-10.5, label= "Pillai's test=4.4***", hjust = 0, size = 4)
 aoa.cap.rh.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("AOA_CAP_rhizo_bray.tiff",
        aoa.cap.rh.plot, device = "tiff",
        width = 4, height =3, 
@@ -279,10 +286,17 @@ com.cap.plot <- ggplot(as.data.frame(com.cap.bulk$x), aes(x = com.cap.bulk$x[,1]
   theme(legend.position = "none",
         legend.title = element_text(size=13),
         legend.text = element_text(size=13)) +
+  annotate("text",x=-9,y=2.5,label= "90%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-15,y=3,label= "89.5%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=1,y=-2,label= "85%", hjust = 0, size = 4, color="#FF618C")+
+  annotate("text",x=6,y=-7,label= "65%", hjust = 0, size = 4,color="#FF618C")+
+  annotate("text",x=6,y=5,label= "80%", hjust = 0, size = 4, color="#E69F00")+
+  annotate("text",x=-2.5,y=5,label= "63.2%", hjust = 0, size = 4,color="#E69F00")+
   annotate("text",x=-17,y=-7,label= "Overall reclassification rate: 78.8%", hjust = 0, size = 4) +
   annotate("text", x=-17, y=-8.5, label= "Pillai's test=3.7***", hjust = 0, size = 4)
 com.cap.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("COM_CAP_bulk_bray.tiff",
        com.cap.plot, device = "tiff",
        width = 4, height =3, 
@@ -363,13 +377,20 @@ com.cap.rh.plot <- ggplot(as.data.frame(com.cap.rh$x), aes(x = com.cap.rh$x[,1],
         axis.text.y = element_text(color = "grey20", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"),
         axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
         axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")) +
-  theme(legend.position = "right",
+  theme(legend.position = "none",
         legend.title = element_text(size=13),
         legend.text = element_text(size=13))+
+  annotate("text",x=-16,y=-2.5,label= "100%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-16,y=3,label= "91.7%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=0.5,y=-2,label= "75%", hjust = 0, size = 4, color="#FF618C")+
+  annotate("text",x=4.4,y=-8.3,label= "83.3%", hjust = 0, size = 4,color="#FF618C")+
+  annotate("text",x=0,y=7,label= "75%", hjust = 0, size = 4, color="#E69F00")+
+  annotate("text",x=-2,y=3,label= "75%", hjust = 0, size = 4,color="#E69F00")+
   annotate("text",x=-17,y=-7,label= "Overall reclassification rate: 83.3%", hjust = 0, size = 4) +
   annotate("text", x=-17, y=-8.5, label= "Pillai's test=3.4***", hjust = 0, size = 4)
 com.cap.rh.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("COM_CAP_rhizo_legend.tiff",
        com.cap.rh.plot, device = "tiff",
        width = 4, height =3, 
@@ -459,10 +480,17 @@ aob.cap.plot <- ggplot(as.data.frame(aob.cap.bulk$x), aes(x = aob.cap.bulk$x[,1]
   theme(legend.position = "none",
         legend.title = element_text(size=13),
         legend.text = element_text(size=13)) +
+  annotate("text",x=-3,y=1.6,label= "57.9%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-5.5,y=3.5,label= "80%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-2.2,y=-2.2,label= "45%", hjust = 0, size = 4, color="#FF618C")+
+  annotate("text",x=3.5,y=-2.6,label= "55%", hjust = 0, size = 4,color="#FF618C")+
+  annotate("text",x=3.6,y=5,label= "70%", hjust = 0, size = 4, color="#E69F00")+
+  annotate("text",x=-1,y=3,label= "55%", hjust = 0, size = 4,color="#E69F00")+
   annotate("text",x=-6,y=-5.5,label= "Overall reclassification rate: 60.5%", hjust = 0, size = 4) +
   annotate("text", x=-6, y=-6.5, label= "Pillai's test=2.7***", hjust = 0, size = 4)
 aob.cap.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("AOB_CAP_bulk_bray.tiff",
        aob.cap.plot, device = "tiff",
        width = 4, height =3, 
@@ -548,10 +576,17 @@ aob.cap.rh.plot <- ggplot(as.data.frame(aob.cap.rh$x), aes(x = aob.cap.rh$x[,1],
   theme(legend.position = "none",
         legend.title = element_text(size=13),
         legend.text = element_text(size=13))+
+  annotate("text",x=-5,y=2,label= "66.7%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-5.5,y=-3,label= "58.3%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-2.7,y=3,label= "66.7%", hjust = 0, size = 4, color="#FF618C")+
+  annotate("text",x=2.5,y=5,label= "50%", hjust = 0, size = 4,color="#FF618C")+
+  annotate("text",x=3.3,y=-3.5,label= "41.7%", hjust = 0, size = 4, color="#E69F00")+
+  annotate("text",x=-1.3,y=-2,label= "41.7%", hjust = 0, size = 4,color="#E69F00")+
   annotate("text",x=-6,y=-5.5,label= "Overall reclassification rate: 54.2%", hjust = 0, size = 4) +
   annotate("text", x=-6, y=-6.5, label= "Pillai's test=2.6***", hjust = 0, size = 4)
 aob.cap.rh.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("AOB_CAP_rhizo_bray.tiff",
        aob.cap.rh.plot, device = "tiff",
        width = 4, height =3, 

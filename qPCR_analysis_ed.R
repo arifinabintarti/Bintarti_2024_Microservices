@@ -89,7 +89,7 @@ library(reshape2)
 ###########################################################################
 
 #### 1a. Analyses of Bulk Soil - Copies per Gram Dry weight of Soil ####
-setwd('/Users/arifinabintarti/Documents/France/microservices.v2/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/')
 #setwd('D:/Fina/INRAE_Project/microservices/')
 qPCR <- read.csv("qPCR_results_LP_stat.csv")
 qPCR.BS <- qPCR[1:120,]
@@ -291,7 +291,7 @@ AOA_16.arc.ratio.pair.DF <- as.data.frame(summary(AOA_16.arc.ratio.pair))
 t.aob.16.rat.percent <- lmerTest::lmer(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
                    (1|block:sampling.date), data=qPCR.BS, na.action=na.omit)
 anova(t.aob.16.rat.percent)
-# test assumptions:
+0# test assumptions:
 shapiro.test(resid(t.aob.16.rat.percent)) # normal
 plot(simulateResiduals(t.aob.16.rat.percent)) # okay
 # ** Transformation is not needed
@@ -967,15 +967,18 @@ qPCR.BS.ed
 qPCR.BS.sum <- qPCR.BS.ed %>%
   group_by(irrigation, fertilization,x, sampling.date,var3) %>%
   summarize(AOA_nbc_per_g_DW_soil=mean(AOA_nbc_per_g_DW_soil),
-            sd.aoa.DWS=sd(AOA_nbc_per_g_DW_soil, na.rm = TRUE),
+            #sd.aoa.DWS=sd(AOA_nbc_per_g_DW_soil, na.rm = TRUE),
             AOA_nbc_per_ngDNA=mean(AOA_nbc_per_ngDNA),
-            sd.aoa.ngDNA=sd(AOA_nbc_per_ngDNA, na.rm = TRUE),
+            #sd.aoa.ngDNA=sd(AOA_nbc_per_ngDNA, na.rm = TRUE),
             AOB_nbc_per_g_DW_soil=mean(AOB_nbc_per_g_DW_soil),
-            sd.aob.DWS=sd(AOB_nbc_per_g_DW_soil, na.rm = TRUE),
-            AOB_nbc_per_ngDNA=mean(AOB_nbc_per_ngDNA),
-            sd.aob.ngDNA=sd(AOB_nbc_per_ngDNA, na.rm = TRUE))
+            #sd.aob.DWS=sd(AOB_nbc_per_g_DW_soil, na.rm = TRUE),
+            AOB_nbc_per_ngDNA=mean(AOB_nbc_per_ngDNA))
+            #sd.aob.ngDNA=sd(AOB_nbc_per_ngDNA, na.rm = TRUE))
 qPCR.BS.sum
 str(qPCR.BS.sum)
+sd.aoa.DWS <- sd(qPCR.BS.ed$AOA_nbc_per_g_DW_soil)
+
+
 
 qPCR.BS.ed$lm_pred_val <- predict(aoa.BS.copies.mod,newdata = qPCR.BS.ed,
                               interval =  "confidence"
@@ -987,13 +990,18 @@ ggplot(qPCR.BS.ed, aes(x = sampling.date, y = AOA_nbc_per_g_DW_soil, linetype=ir
                color = "darkgray") + 
   geom_line(linewidth=1.15,aes(group = x,col=fertilization), data = qPCR.BS.sum) +
   scale_color_manual(values = c("#009E73","#FF618C","#E69F00"))+
-  geom_errorbar(aes(ymin = AOA_nbc_per_g_DW_soil-sd.aoa.DWS, ymax = AOA_nbc_per_g_DW_soil+sd.aoa.DWS),
-                data = qPCR.BS.sum, width = 0.2) +
+  #geom_errorbar(aes(ymin = AOA_nbc_per_g_DW_soil-sd.aoa.DWS, ymax = AOA_nbc_per_g_DW_soil+sd.aoa.DWS),
+                #position = position_dodge(.5),
+                #data = qPCR.BS.sum, width = 0.1) +
   geom_point(data = qPCR.BS.sum, size = 2)+
-  #geom_ribbon(aes(ymin = AOA_nbc_per_g_DW_soil+lm_pred_val$lwr, ymax = AOA_nbc_per_g_DW_soil-lm_pred_val$upr), alpha = 0.1)+
+  geom_ribbon(aes(ymin = AOA_nbc_per_g_DW_soil - sd.aoa.DWS, ymax = AOA_nbc_per_g_DW_soil + sd.aoa.DWS,
+                  group = x, fill=fertilization),data = qPCR.BS.sum,
+              linetype=0, alpha=0.07) +
+  scale_fill_manual(values = c("#009E73","#FF618C","#E69F00"))+
   ylab(bquote(~italic(amoA)~'gene'~(copies~g^-1~dry~soil)))+
   theme_bw() +
-  theme(legend.title = element_blank(),
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
         plot.title = element_text(size = 20, face='bold'),
         legend.text = element_text(size=15),
         strip.text = element_text(size=15),
@@ -1048,7 +1056,7 @@ aoa.copies.bulk.plot
 #### 1a. Analyses of Rhizosphere - Copies per ng of DNA ####
 
 #setwd('D:/Fina/INRAE_Project/microservices/')
-setwd('/Users/arifinabintarti/Documents/France/microservices.v2/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/')
 qPCR <- read.csv("qPCR_results_LP_stat.csv")
 qPCR.RS <- qPCR[121:192,]
 str(qPCR.RS)
@@ -1402,585 +1410,193 @@ setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
 write.csv(ComB.ngDNA.pair.DF, file = "ComB_ngDNA_pair.csv")
 
 
-##### 5. 16S in Rhizosphere
+#### 5. 16S in Rhizosphere ####
 
-# Anova test for non transformed 16S nbc per ngDNA 
-
-Tot.ngDNA.aov <- aov_ez("plot", "Tot_nbc_per_ngDNA", qPCR.RS, 
-                         within = "sampling.date",
-                         between = c("irrigation","fertilization"),
-                         #correction_aov = "GG",
-                         type = 2,
-                         return = afex_options("return_aov"),
-                         anova_table = list(correction="none"))
-Tot.ngDNA.aov
-
-# Three-Way Mixed (Split-Plot) ANOVA 
-Tot.ngDNA.aov2 <- anova_test(
-  data = qPCR.RS, dv = Tot_nbc_per_ngDNA, wid = plot, type = 2,
-  within = sampling.date, between = c(irrigation, fertilization))
-get_anova_table(Tot.ngDNA.aov2)
-Tot.ngDNA.aov2.df <- get_anova_table(Tot.ngDNA.aov2)
-#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
-filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/16S_ngDNA")
-table2csv(x=Tot.ngDNA.aov2.df,file=filen, digits = 1, digitspvals = 3)
-
-# test assumptions:
-check_homogeneity(Tot.ngDNA.aov) # good
-check_sphericity(Tot.ngDNA.aov) # good
-Tot.ngDNA.is_norm <- check_normality(Tot.ngDNA.aov)
-shapiro.test(qPCR.RS$Tot_nbc_per_ngDNA) # NORMAL
-plot(Tot.ngDNA.is_norm, type = "qq")
-plot(Tot.ngDNA.is_norm, type = "qq", detrend = TRUE)
-ggqqplot(qPCR.RS, "Tot_nbc_per_ngDNA", ggtheme = theme_bw())
-
-
-#another model
-t.tot.rh1=lmerTest::lmer(Tot_nbc_per_ngDNA ~ irrigation*fertilization*sampling.date+
-                          (1|block/plot), 
-                        data=qPCR.RS, na.action=na.omit, REML=F)
-
-plot(t.tot.rh)
-
-t.tot.rh2=lmerTest::lmer(Tot_nbc_per_ngDNA ~ irrigation*fertilization*sampling.date+
-                          (sampling.date|block), 
-                        data=qPCR.RS, na.action=na.omit, REML=F)
-
-anova(t.tot.rh2,t.tot.rh1)
-
-
-
-# tidy anova table
-knitr::kable(nice(Tot.ngDNA.aov))
+# linear mixed model for non transformed 16S nbc per ngDNA 
+#t.tot.rh1=lmerTest::lmer(Tot_nbc_per_ngDNA ~ irrigation*fertilization*sampling.date+
+                          #(1|block/plot),data=qPCR.RS, na.action=na.omit, REML=F)
+t.tot.rh2 <- lmerTest::lmer(Tot_nbc_per_ngDNA ~ irrigation*fertilization*sampling.date+
+                          (sampling.date|block), data=qPCR.RS, na.action=na.omit)
+anova(t.tot.rh2)
+# test assumption
+shapiro.test(resid(t.tot.rh2)) # normal
+plot(simulateResiduals(t.tot.rh2)) # very good
+# ** Transformation is not needed
 # Pairwise comparison:
-Tot.ngDNA.emm <- emmeans(Tot.ngDNA.aov, ~ irrigation | fertilization*sampling.date)
+Tot.ngDNA.emm <- emmeans(t.tot.rh2, ~ irrigation | fertilization*sampling.date)
 Tot.ngDNA.pair <- pairs(Tot.ngDNA.emm)
 Tot.ngDNA.pair.DF <- as.data.frame(summary(Tot.ngDNA.pair))
-setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
-write.csv(Tot.ngDNA.pair.DF, file = "16S_ngDNA_pair.csv")
+#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
+#write.csv(Tot.ngDNA.pair.DF, file = "16S_ngDNA_pair.csv")
 
 
-##### 6. AOA/16S Ratio in Rhizosphere
+#### 6. AOA/16S Ratio in Rhizosphere ####
 
-# Anova test for arcsin square root transformed AOA/16S Ratio
 
-AOA_16S.arc.rat.rh.aov <- aov_ez("plot", "AOA_16.arc.ratio.rh", qPCR.RS, 
-                        within = "sampling.date",
-                        between = c("irrigation","fertilization"),
-                        #correction_aov = "GG",
-                        type = 2,
-                        return = afex_options("return_aov"),
-                        anova_table = list())
-AOA_16S.arc.rat.rh.aov
-
-# Three-Way Mixed (Split-Plot) ANOVA 
-AOA_16S.arc.rat.rh.aov2 <- anova_test(
-  data = qPCR.RS, dv = AOA_16.arc.ratio.rh, wid = plot, type = 2,
-  within = sampling.date, between = c(irrigation, fertilization))
-get_anova_table(AOA_16S.arc.rat.rh.aov2)
-AOA_16S.arc.rat.rh.aov2.df <- get_anova_table(AOA_16S.arc.rat.rh.aov2)
-#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
-filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/AOA_16S_arc_ratio")
-table2csv(x=AOA_16S.arc.rat.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
-
-#another model
-t.aoa_16S.rh=lmerTest::lmer(AOA_16.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
-                          (1|block:sampling.date), 
-                        data=qPCR.RS, na.action=na.omit)
-
-anova(t.aoa_16S.rh)
-
-# test assumptions:
-check_homogeneity(AOA_16S.arc.rat.rh.aov) # good
-check_sphericity(AOA_16S.arc.rat.rh.aov) # good
-AOA_16S.arc.rat.rh.is_norm <- check_normality(AOA_16S.arc.rat.rh.aov)
-shapiro.test(qPCR.RS$AOA_16.arc.ratio.rh) # NORMAL
-plot(AOA_16S.arc.rat.rh.is_norm, type = "qq")
-plot(AOA_16S.arc.rat.rh.is_norm, type = "qq", detrend = TRUE)
-ggqqplot(qPCR.RS, "AOA_16.arc.ratio.rh", ggtheme = theme_bw())
-
-# tidy anova table
-knitr::kable(nice(AOA_16S.arc.rat.rh.aov))
-# Pairwise comparison:
-AOA_16S.arc.rat.rh.emm <- emmeans(AOA_16S.arc.rat.rh.aov, ~ irrigation | fertilization*sampling.date)
-AOA_16S.arc.rat.rh.pair <- pairs(AOA_16S.arc.rat.rh.emm)
-AOA_16S.arc.rat.rh.DF <- as.data.frame(summary(AOA_16S.arc.rat.rh.pair))
-setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
-write.csv(AOA_16S.arc.rat.rh.DF, file = "AOA_16S.arc.rat.pair.rh.csv")
-
-# Anova test for AOA/16S Ratio in percent
-
-AOA_16S.ratio.rh.aov <- aov_ez("plot", "AOA_16S_ratio_percent", qPCR.RS, 
-                                 within = "sampling.date",
-                                 between = c("irrigation","fertilization"),
-                                 #correction_aov = "GG",
-                                 type = 2,
-                                 return = afex_options("return_aov"),
-                                 anova_table = list(correction="none"))
-AOA_16S.ratio.rh.aov
-
-# Three-Way Mixed (Split-Plot) ANOVA 
-AOA_16S.ratio.rh.aov2 <- anova_test(
-  data = qPCR.RS, dv = AOA_16S_ratio_percent, wid = plot, type = 2,
-  within = sampling.date, between = c(irrigation, fertilization))
-get_anova_table(AOA_16S.ratio.rh.aov2)
-AOA_16S.ratio.rh.aov2.df <- get_anova_table(AOA_16S.ratio.rh.aov2)
-#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
-filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/AOA_16S_percent_ratio")
-table2csv(x=AOA_16S.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
-
-#another model
-t.aoa_16S_percent.rh=lmerTest::lmer(AOA_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
-                              (1|block:sampling.date), 
-                            data=qPCR.RS, na.action=na.omit)
+# linear mixed model test for AOA/16S Percent Ratio
+t.aoa_16S_percent.rh <- lmerTest::lmer(AOA_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
+                        (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
 
 anova(t.aoa_16S_percent.rh)
-
-
-# test assumptions:
-check_homogeneity(AOA_16S.ratio.rh.aov) # good
-check_sphericity(AOA_16S.ratio.rh.aov) # good
-AOA_16S.ratio.rh.is_norm <- check_normality(AOA_16S.ratio.rh.aov)
-shapiro.test(qPCR.RS$AOA_16S_ratio_percent) # NORMAL
-plot(AOA_16S.ratio.rh.is_norm, type = "qq")
-plot(AOA_16S.ratio.rh.is_norm, type = "qq", detrend = TRUE)
-ggqqplot(qPCR.RS, "AOA_16S_ratio_percent", ggtheme = theme_bw())
-
-# tidy anova table
-knitr::kable(nice(AOA_16S.ratio.rh.aov))
+# test assumption
+shapiro.test(resid(t.aoa_16S_percent.rh)) # normal
+plot(simulateResiduals(t.aoa_16S_percent.rh)) # okay
+#*** No need to do transformation
 # Pairwise comparison:
-AOA_16S.ratio.rh.emm <- emmeans(AOA_16S.ratio.rh.aov, ~ irrigation | fertilization*sampling.date)
-AOA_16S.ratio.rh.pair <- pairs(AOA_16S.ratio.rh.emm)
-AOA_16S.ratio.rh.DF <- as.data.frame(summary(AOA_16S.ratio.rh.pair))
-setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
-write.csv(AOA_16S.ratio.rh.DF, file = "AOA_16S_percent_ratio.pair.rh.csv")
+AOA_16S.percent.rat.rh.emm <- emmeans(t.aoa_16S_percent.rh, ~ irrigation | fertilization*sampling.date)
+AOA_16S.percent.rat.rh.pair <- pairs(AOA_16S.percent.rat.rh.emm)
+AOA_16S.percent.rat.rh.DF <- as.data.frame(summary(AOA_16S.percent.rat.rh.pair))
+#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
+#write.csv(AOA_16S.percent.rat.rh.DF, file = "AOA_16S.percent.rat.pair.rh.csv")
+#Just checking
+# linear mixed model test for AOA/16S Arcsin 
+t.aoa_16S.rh <- lmerTest::lmer(AOA_16.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
+                (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
+
+anova(t.aoa_16S.rh)
+# test assumption
+shapiro.test(resid(t.aoa_16S.rh)) # normal
+plot(simulateResiduals(t.aoa_16S.rh)) # okay
 
 
 ##### 7. AOB/16S Ratio in Rhizosphere
 
-# Anova test for arcsin square root transformed AOB/16S Ratio
 
-AOB_16S.arc.rat.rh.aov <- aov_ez("plot", "AOB_16.arc.ratio.rh", qPCR.RS, 
-                                 within = "sampling.date",
-                                 between = c("irrigation","fertilization"),
-                                 type = 3,
-                                 return = afex_options("return_aov"),
-                                 anova_table = list(correction="none"))
-AOB_16S.arc.rat.rh.aov
-
-str# Three-Way Mixed (Split-Plot) ANOVA 
-AOB_16S.arc.rat.rh.aov2 <- anova_test(
-  data = qPCR.RS, dv = AOB_16.arc.ratio.rh, wid = plot, type = 3,
-  within = sampling.date, between = c(irrigation, fertilization))
-get_anova_table(AOB_16S.arc.rat.rh.aov2)
-AOB_16S.arc.rat.rh.aov2.df <- get_anova_table(AOB_16S.arc.rat.rh.aov2)
-#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
-filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/AOB_16S_arc_ratio")
-table2csv(x=AOB_16S.arc.rat.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
-
-t.aob_16S_arcs.rh=lmerTest::lmer(AOB_16.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
-                              (1|block:sampling.date), 
-                            data=qPCR.RS, na.action=na.omit)
-
-anova(t.aob_16S_arcs.rh)
-
-# test assumptions:
-check_homogeneity(AOB_16S.arc.rat.rh.aov) # good
-check_sphericity(AOB_16S.arc.rat.rh.aov) # good
-AOB_16S.arc.rat.rh.is_norm <- check_normality(AOB_16S.arc.rat.rh.aov)
-shapiro.test(qPCR.RS$AOB_16.arc.ratio.rh) # NORMAL
-plot(AOB_16S.arc.rat.rh.is_norm, type = "qq")
-plot(AOB_16S.arc.rat.rh.is_norm, type = "qq", detrend = TRUE)
-ggqqplot(qPCR.RS, "AOB_16.arc.ratio.rh", ggtheme = theme_bw())
-
-# tidy anova table
-knitr::kable(nice(AOB_16S.arc.rat.rh.aov))
-# Pairwise comparison:
-AOB_16S.arc.rat.rh.emm <- emmeans(AOB_16S.arc.rat.rh.aov, ~ irrigation | fertilization*sampling.date)
-AOB_16S.arc.rat.rh.pair <- pairs(AOB_16S.arc.rat.rh.emm)
-AOB_16S.arc.rat.rh.DF <- as.data.frame(summary(AOB_16S.arc.rat.rh.pair))
-setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
-write.csv(AOB_16S.arc.rat.rh.DF, file = "AOB_16S.arc.rat.pair.rh.csv")
-
-
-# Anova test for AOB/16S Ratio in percent
-
-AOB_16S.ratio.rh.aov <- aov_ez("plot", "AOB_16S_ratio_percent", qPCR.RS, 
-                               within = "sampling.date",
-                               between = c("irrigation","fertilization"),
-                               type = 3,
-                               return = afex_options("return_aov"),
-                               anova_table = list())
-AOB_16S.ratio.rh.aov
-
-# Three-Way Mixed (Split-Plot) ANOVA 
-AOB_16S.ratio.rh.aov2 <- anova_test(
-  data = qPCR.RS, dv = AOB_16S_ratio_percent, wid = plot, type = 3,
-  within = sampling.date, between = c(irrigation, fertilization))
-get_anova_table(AOB_16S.ratio.rh.aov2)
-AOB_16S.ratio.rh.aov2.df <- get_anova_table(AOB_16S.ratio.rh.aov2)
-#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
-filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/AOB_16S_percent_ratio")
-table2csv(x=AOB_16S.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
-
-# another model
-t.aob_16S_percent.rh=lmerTest::lmer(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
-                                   (1|block:sampling.date), 
-                                 data=qPCR.RS, na.action=na.omit)
-
+# linear mixed model test for AOB/16S Percent Ratio
+t.aob_16S_percent.rh <- lmerTest::lmer(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
+                        (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
 anova(t.aob_16S_percent.rh)
-
-# test assumptions:
-check_homogeneity(AOB_16S.ratio.rh.aov) # good
-check_sphericity(AOB_16S.ratio.rh.aov) # not good
-AOB_16S.ratio.rh.is_norm <- check_normality(AOB_16S.ratio.rh.aov)
-shapiro.test(qPCR.RS$AOB_16S_ratio_percent) # NORMAL
-plot(AOB_16S.ratio.rh.is_norm, type = "qq")
-plot(AOB_16S.ratio.rh.is_norm, type = "qq", detrend = TRUE)
-ggqqplot(qPCR.RS, "AOB_16S_ratio_percent", ggtheme = theme_bw())
-
-# tidy anova table
-knitr::kable(nice(AOB_16S.ratio.rh.aov))
+# test assumption
+shapiro.test(resid(t.aob_16S_percent.rh)) # normal
+plot(simulateResiduals(t.aob_16S_percent.rh)) # good
+#*** No need to do transformation
 # Pairwise comparison:
-AOB_16S.ratio.rh.emm <- emmeans(AOB_16S.ratio.rh.aov, ~ irrigation | fertilization*sampling.date)
-AOB_16S.ratio.rh.pair <- pairs(AOB_16S.ratio.rh.emm)
-AOB_16S.ratio.rh.DF <- as.data.frame(summary(AOB_16S.ratio.rh.pair))
-setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
-write.csv(AOB_16S.ratio.rh.DF, file = "AOB_16S_percent_ratio.pair.rh.csv")
+AOB_16S.percent.rat.rh.emm <- emmeans(t.aob_16S_percent.rh, ~ irrigation | fertilization*sampling.date)
+AOB_16S.percent.rat.rh.pair <- pairs(AOB_16S.percent.rat.rh.emm)
+AOB_16S.percent.rat.rh.DF <- as.data.frame(summary(AOB_16S.percent.rat.rh.pair))
+#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
+#write.csv(AOB_16S.percent.rat.rh.DF, file = "AOB_16S.percent.rat.pair.rh.csv")
+# Just Checking
+# linear mixed model test for AOB/16S Arcsin 
+t.aob_16S_arcs.rh <- lmerTest::lmer(AOB_16.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
+                     (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
+anova(t.aob_16S_arcs.rh)
+# test assumption
+shapiro.test(resid(t.aob_16S_arcs.rh)) # normal
+plot(simulateResiduals(t.aob_16S_arcs.rh)) # good
 
 
-##### 7. ComA/16S Ratio in Rhizosphere
+#### 7. ComA/16S Ratio in Rhizosphere ####
 
-# Anova test for ComA/16S Ratio in percent
 
-ComA_16S.ratio.rh.aov <- aov_ez("plot", "ComA_16S_ratio_percent", qPCR.RS, 
-                               within = "sampling.date",
-                               between = c("irrigation","fertilization"),
-                               type = 2,
-                               return = afex_options("return_aov"),
-                               anova_table = list(correction="none"))
-ComA_16S.ratio.rh.aov
-
-# Three-Way Mixed (Split-Plot) ANOVA 
-ComA_16S.ratio.rh.aov2 <- anova_test(
-  data = qPCR.RS, dv = ComA_16S_ratio_percent, wid = plot, type = 2,
-  within = sampling.date, between = c(irrigation, fertilization))
-get_anova_table(ComA_16S.ratio.rh.aov2)
-ComA_16S.ratio.rh.aov2.df <- get_anova_table(ComA_16S.ratio.rh.aov2)
-#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
-filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/ComA_16S_percent_ratio")
-table2csv(x=ComA_16S.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
-
-# another model
-t.comA_16S_percent.rh=lmerTest::lmer(ComA_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
-                                      (1|block:sampling.date), 
-                                    data=qPCR.RS, na.action=na.omit)
-
+# Linear mixed model for ComA/16S Ratio in percent
+t.comA_16S_percent.rh <- lmerTest::lmer(ComA_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
+                         (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
 anova(t.comA_16S_percent.rh)
-
-# test assumptions:
-check_homogeneity(ComA_16S.ratio.rh.aov) # SLIGHTLY NOT HOMOGEN
-check_sphericity(ComA_16S.ratio.rh.aov) # good
-ComA_16S.ratio.rh.is_norm <- check_normality(ComA_16S.ratio.rh.aov)
-shapiro.test(qPCR.RS$ComA_16S_ratio_percent) # NOT NORMAL
-plot(ComA_16S.ratio.rh.is_norm, type = "density")
-plot(ComA_16S.ratio.rh.is_norm, type = "qq", detrend = TRUE)
-ggqqplot(qPCR.RS, "ComA_16S_ratio_percent", ggtheme = theme_bw())
-
-# tidy anova table
-knitr::kable(nice(ComA_16S.ratio.rh.aov))
+0# test assumption
+shapiro.test(resid(t.comA_16S_percent.rh)) # normal
+plot(simulateResiduals(t.comA_16S_percent.rh)) # good
+#*** No need to do transformation
 # Pairwise comparison:
-ComA_16S.ratio.rh.emm <- emmeans(ComA_16S.ratio.rh.aov, ~ irrigation | fertilization*sampling.date)
+ComA_16S.ratio.rh.emm <- emmeans(t.comA_16S_percent.rh, ~ irrigation | fertilization*sampling.date)
 ComA_16S.ratio.rh.pair <- pairs(ComA_16S.ratio.rh.emm)
 ComA_16S.ratio.rh.DF <- as.data.frame(summary(ComA_16S.ratio.rh.pair))
-setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
-write.csv(ComA_16S.ratio.rh.DF, file = "ComA_16S_percent_ratio.pair.rh.csv")
-
-
-# Anova test for arcsin square root transformed ComA16S Ratio
-
-ComA_16S.arc.rat.rh.aov <- aov_ez("plot", "ComA_16.arc.ratio.rh", qPCR.RS, 
-                                 within = "sampling.date",
-                                 between = c("irrigation","fertilization"),
-                                 type = 2,
-                                 return = afex_options("return_aov"),
-                                 anova_table = list(correction="none"))
-ComA_16S.arc.rat.rh.aov
-
-# Three-Way Mixed (Split-Plot) ANOVA 
-ComA_16S.arc.rat.rh.aov2 <- anova_test(
-  data = qPCR.RS, dv = ComA_16.arc.ratio.rh, wid = plot, type = 2,
-  within = sampling.date, between = c(irrigation, fertilization))
-get_anova_table(ComA_16S.arc.rat.rh.aov2)
-ComA_16S.arc.rat.rh.aov2.df <- get_anova_table(ComA_16S.arc.rat.rh.aov2)
-#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
-filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/ComA_16S_arc_ratio")
-table2csv(x=ComA_16S.arc.rat.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
-
-# another model
-t.comA_16S_arcs.rh=lmerTest::lmer(ComA_16.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
-                                       (1|block:sampling.date), 
-                                     data=qPCR.RS, na.action=na.omit)
+#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
+#write.csv(ComA_16S.ratio.rh.DF, file = "ComA_16S_percent_ratio.pair.rh.csv")
+# Just Checking
+# linear mixed model for arcsin square root transformed ComA/16S Ratio
+t.comA_16S_arcs.rh <- lmerTest::lmer(ComA_16.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
+                      (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
 
 anova(t.comA_16S_arcs.rh)
+# test assumption
+shapiro.test(resid(t.comA_16S_arcs.rh)) # normal
+plot(simulateResiduals(t.comA_16S_arcs.rh)) # good
 
 
-# test assumptions:
-check_homogeneity(ComA_16S.arc.rat.rh.aov) # good
-check_sphericity(ComA_16S.arc.rat.rh.aov) # good
-ComA_16S.arc.rat.rh.is_norm <- check_normality(ComA_16S.arc.rat.rh.aov)
-shapiro.test(qPCR.RS$ComA_16.arc.ratio.rh) # NORMAL
-plot(ComA_16S.arc.rat.rh.is_norm, type = "density")
-plot(ComA_16S.arc.rat.rh.is_norm, type = "qq", detrend = TRUE)
-ggqqplot(qPCR.RS, "ComA_16.arc.ratio.rh", ggtheme = theme_bw())
+#### 8. ComB/16S Ratio in Rhizosphere ####
 
-# tidy anova table
-knitr::kable(nice(ComA_16S.arc.rat.rh.aov))
-# Pairwise comparison:
-ComA_16S.arc.rat.rh.emm <- emmeans(ComA_16S.arc.rat.rh.aov, ~ irrigation | fertilization*sampling.date)
-ComA_16S.arc.rat.rh.pair <- pairs(ComA_16S.arc.rat.rh.emm)
-ComA_16S.arc.rat.rh.DF <- as.data.frame(summary(ComA_16S.arc.rat.rh.pair))
-setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
-write.csv(ComA_16S.arc.rat.rh.DF, file = "ComA_16S.arc.rat.pair.rh.csv")
-
-##### 8. ComB/16S Ratio in Rhizosphere
-
-# Anova test for ComB/16S Ratio in percent
-
-ComB_16S.ratio.rh.aov <- aov_ez("plot", "ComB_16S_ratio_percent", qPCR.RS, 
-                                within = "sampling.date",
-                                between = c("irrigation","fertilization"),
-                                type = 2,
-                                return = afex_options("return_aov"),
-                                anova_table = list(correction="none"))
-ComB_16S.ratio.rh.aov
-
-# Three-Way Mixed (Split-Plot) ANOVA 
-ComB_16S.ratio.rh.aov2 <- anova_test(
-  data = qPCR.RS, dv = ComB_16S_ratio_percent, wid = plot, type = 2,
-  within = sampling.date, between = c(irrigation, fertilization))
-get_anova_table(ComB_16S.ratio.rh.aov2)
-ComB_16S.ratio.rh.aov2.df <- get_anova_table(ComB_16S.ratio.rh.aov2)
-#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
-filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/ComB_16S_percent_ratio")
-table2csv(x=ComB_16S.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
-
-
-# another model
-t.comB_16S_percent.rh=lmerTest::lmer(ComB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
-                                    (1|block:sampling.date), 
-                                  data=qPCR.RS, na.action=na.omit)
-
+# Linear mixed model test for ComB/16S Ratio in percent
+t.comB_16S_percent.rh <- lmerTest::lmer(ComB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
+                         (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
 anova(t.comB_16S_percent.rh)
-
-# test assumptions:
-check_homogeneity(ComB_16S.ratio.rh.aov) # good
-check_sphericity(ComB_16S.ratio.rh.aov) # good
-ComB_16S.ratio.rh.is_norm <- check_normality(ComB_16S.ratio.rh.aov)
-shapiro.test(qPCR.RS$ComB_16S_ratio_percent) # NORMAL
-plot(ComB_16S.ratio.rh.is_norm, type = "density")
-plot(ComB_16S.ratio.rh.is_norm, type = "qq", detrend = TRUE)
-ggqqplot(qPCR.RS, "ComB_16S_ratio_percent", ggtheme = theme_bw())
-
-# tidy anova table
-knitr::kable(nice(ComB_16S.ratio.rh.aov))
+# test assumption
+shapiro.test(resid(t.comB_16S_percent.rh)) # normal
+plot(simulateResiduals(t.comB_16S_percent.rh)) # good
+#*** No need to do data transformation
 # Pairwise comparison:
-ComB_16S.ratio.rh.emm <- emmeans(ComB_16S.ratio.rh.aov, ~ irrigation | fertilization*sampling.date)
+ComB_16S.ratio.rh.emm <- emmeans(t.comB_16S_percent.rh, ~ irrigation | fertilization*sampling.date)
 ComB_16S.ratio.rh.pair <- pairs(ComB_16S.ratio.rh.emm)
 ComB_16S.ratio.rh.DF <- as.data.frame(summary(ComB_16S.ratio.rh.pair))
-setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
-write.csv(ComB_16S.ratio.rh.DF, file = "ComB_16S_percent_ratio.pair.rh.csv")
+#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
+#write.csv(ComB_16S.ratio.rh.DF, file = "ComB_16S_percent_ratio.pair.rh.csv")
+# Just Checking
+# Linear mixed model test for ComB/16S Arcsin Ratio 
+t.comB_16S_arc.rh <- lmerTest::lmer(ComB_16.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
+                         (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
 
-##### 9. AOA/AOB Ratio in Rhizosphere
+anova(t.comB_16S_arc.rh)
+# test assumption
+shapiro.test(resid(t.comB_16S_arc.rh)) # normal
+plot(simulateResiduals(t.comB_16S_arc.rh)) # good
 
-# Anova test for AOA/AOB Ratio on non transformed data
 
-AOA_AOB.ratio.rh.aov <- aov_ez("plot", "AOA_AOB_ratio", qPCR.RS, 
-                                within = "sampling.date",
-                                between = c("irrigation","fertilization"),
-                                type = 2,
-                                return = afex_options("return_aov"),
-                                anova_table = list(correction="none"))
-AOA_AOB.ratio.rh.aov
+#### 9. AOA/AOB Ratio in Rhizosphere ####
 
-# Three-Way Mixed (Split-Plot) ANOVA 
-AOA_AOB.ratio.rh.aov2 <- anova_test(
-  data = qPCR.RS, dv = AOA_AOB_ratio_percent, wid = plot, type = 2,
-  within = sampling.date, between = c(irrigation, fertilization))
-get_anova_table(AOA_AOB.ratio.rh.aov2)
-AOA_AOB.ratio.rh.aov2.df <- get_anova_table(AOA_AOB.ratio.rh.aov2)
-#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
-filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/AOA_AOB_ratio")
-table2csv(x=AOA_AOB.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
-
-# another model
-t.AOA_AOB_percent.rh=lmerTest::lmer(AOA_AOB_ratio ~ irrigation*fertilization*sampling.date+
-                                      (1|block:sampling.date), 
-                                    data=qPCR.RS, na.action=na.omit)
+# Linear mixed model test for AOA/AOB Ratio on non transformed data
+t.AOA_AOB_percent.rh <- lmerTest::lmer(AOA_AOB_ratio ~ irrigation*fertilization*sampling.date+
+                        (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
 
 anova(t.AOA_AOB_percent.rh)
-
-# test assumptions:
-check_homogeneity(AOA_AOB.ratio.rh.aov) # good
-check_sphericity(AOA_AOB.ratio.rh.aov) # good
-AOA_AOB.ratio.rh.is_norm <- check_normality(AOA_AOB.ratio.rh.aov)
-shapiro.test(qPCR.RS$AOA_AOB_ratio_percent) # NOT NORMAL
-plot(AOA_AOB.ratio.rh.is_norm, type = "density")
-plot(AOA_AOB.ratio.rh.is_norm, type = "qq", detrend = TRUE)
-ggqqplot(qPCR.RS, "AOA_AOB_ratio_percent", ggtheme = theme_bw())
-
-# tidy anova table
-knitr::kable(nice(AOA_AOB.ratio.rh.aov))
+# test assumption
+shapiro.test(resid(t.AOA_AOB_percent.rh)) # normal
+plot(simulateResiduals(t.AOA_AOB_percent.rh)) # okay
+#***No need data transformation
 # Pairwise comparison:
-AOA_AOB.ratio.rh.emm <- emmeans(AOA_AOB.ratio.rh.aov, ~ irrigation | fertilization*sampling.date)
+AOA_AOB.ratio.rh.emm <- emmeans(t.AOA_AOB_percent.rh, ~ irrigation | fertilization*sampling.date)
 AOA_AOB.ratio.rh.pair <- pairs(AOA_AOB.ratio.rh.emm)
 AOA_AOB.ratio.rh.DF <- as.data.frame(summary(AOA_AOB.ratio.rh.pair))
 AOA_AOB.ratio.rh.DF
-setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
-write.csv(AOA_AOB.ratio.rh.DF, file = "AOA_AOB_ratio.pair.rh.csv")
-
-
-# Anova test for AOA/AOB Ratio on arcsin square root transformed data
-
-AOA_AOB.arcs.ratio.rh.aov <- aov_ez("plot", "AOA_AOB.arc.ratio.rh", qPCR.RS, 
-                               within = "sampling.date",
-                               between = c("irrigation","fertilization"),
-                               type = 2,
-                               return = afex_options("return_aov"),
-                               anova_table = list(correction="none"))
-AOA_AOB.arcs.ratio.rh.aov
-
-# Three-Way Mixed (Split-Plot) ANOVA 
-AOA_AOB.arcs.ratio.rh.aov2 <- anova_test(
-  data = qPCR.RS, dv = AOA_AOB.arc.ratio.rh, wid = plot, type = 2,
-  within = sampling.date, between = c(irrigation, fertilization))
-get_anova_table(AOA_AOB.arcs.ratio.rh.aov2)
-AOA_AOB.arcs.ratio.rh.aov2.df <- get_anova_table(AOA_AOB.arcs.ratio.rh.aov2)
-#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
-filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/AOA_AOB_arc_ratio")
-table2csv(x=AOA_AOB.arcs.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
-
-# another model
-t.AOA_AOB_arcsin.rh=lmerTest::lmer(AOA_AOB.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
-                                      (1|block:sampling.date), 
-                                    data=qPCR.RS, na.action=na.omit)
-
+#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
+#write.csv(AOA_AOB.ratio.rh.DF, file = "AOA_AOB_ratio.pair.rh.csv")
+# Just Checking
+# Linear mixed model test for AOA/AOB Ratio on arcsin square root transformed data
+t.AOA_AOB_arcsin.rh <- lmerTest::lmer(AOA_AOB.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
+                       (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
 anova(t.AOA_AOB_arcsin.rh)
-
-# test assumptions:
-check_homogeneity(AOA_AOB.arcs.ratio.rh.aov) # good
-check_sphericity(AOA_AOB.arcs.ratio.rh.aov) # good
-AOA_AOB.arcs.ratio.rh.is_norm <- check_normality(AOA_AOB.arcs.ratio.rh.aov)
-shapiro.test(qPCR.RS$AOA_AOB.arc.ratio.rh) # NORMAL
-plot(AOA_AOB.arcs.ratio.rh.is_norm, type = "density")
-plot(AOA_AOB.arcs.ratio.rh.is_norm, type = "qq", detrend = TRUE)
-ggqqplot(qPCR.RS, "AOA_AOB.arc.ratio.rh", ggtheme = theme_bw())
-
-# tidy anova table
-knitr::kable(nice(AOA_AOB.arcs.ratio.rh.aov))
-# Pairwise comparison:
-AOA_AOB.arcs.ratio.rh.emm <- emmeans(AOA_AOB.arcs.ratio.rh.aov, ~ irrigation | fertilization*sampling.date)
-AOA_AOB.arcs.ratio.rh.pair <- pairs(AOA_AOB.arcs.ratio.rh.emm)
-AOA_AOB.arcs.ratio.rh.DF <- as.data.frame(summary(AOA_AOB.arcs.ratio.rh.pair))
-AOA_AOB.arcs.ratio.rh.DF
-setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
-write.csv(AOA_AOB.arcs.ratio.rh.DF, file = "AOA_AOB.arcs.ratio.pair.rh.csv")
+# test assumption
+shapiro.test(resid(t.AOA_AOB_arcsin.rh)) # normal
+plot(simulateResiduals(t.AOA_AOB_arcsin.rh)) # okay
 
 
-##### 9. ComA/ComB Ratio in Rhizosphere
+#### 9. ComA/ComB Ratio in Rhizosphere ####
 
-# Anova test for ComA/ComB Ratio on non transformed data
 
-ComA_ComB.ratio.rh.aov <- aov_ez("plot", "ComA_ComB_ratio", qPCR.RS, 
-                               within = "sampling.date",
-                               between = c("irrigation","fertilization"),
-                               type = 3,
-                               return = afex_options("return_aov"),
-                               anova_table = list(correction="none"))
-ComA_ComB.ratio.rh.aov
-
-# Three-Way Mixed (Split-Plot) ANOVA 
-ComA_ComB.ratio.rh.aov2 <- anova_test(
-  data = qPCR.RS, dv = ComA_ComB_ratio_percent, wid = plot, type = 3,
-  within = sampling.date, between = c(irrigation, fertilization))
-get_anova_table(ComA_ComB.ratio.rh.aov2)
-ComA_ComB.ratio.rh.aov2.df <- get_anova_table(ComA_ComB.ratio.rh.aov2)
-#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
-filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/ComA_ComB_ratio")
-table2csv(x=ComA_ComB.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
-
-# another model
-t.ComA_ComB_percent.rh=lmerTest::lmer(ComA_ComB_ratio ~ irrigation*fertilization*sampling.date+
-                                     (1|block:sampling.date), 
-                                   data=qPCR.RS, na.action=na.omit)
-
+# Linear mixed model test for ComA/ComB Ratio on non transformed data
+t.ComA_ComB_percent.rh <- lmerTest::lmer(ComA_ComB_ratio ~ irrigation*fertilization*sampling.date+
+                          (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
 anova(t.ComA_ComB_percent.rh)
-
-# test assumptions:
-check_homogeneity(ComA_ComB.ratio.rh.aov) # good
-check_sphericity(ComA_ComB.ratio.rh.aov) # good
-ComA_ComB.ratio.rh.is_norm <- check_normality(ComA_ComB.ratio.rh.aov)
-shapiro.test(qPCR.RS$ComA_ComB_ratio_percent) # NORMAL
-plot(ComA_ComB.ratio.rh.is_norm, type = "density")
-plot(ComA_ComB.ratio.rh.is_norm, type = "qq", detrend = TRUE)
-ggqqplot(qPCR.RS, "ComA_ComB_ratio_percent", ggtheme = theme_bw())
-
-# tidy anova table
-knitr::kable(nice(ComA_ComB.ratio.rh.aov))
+# test assumption
+shapiro.test(resid(t.ComA_ComB_percent.rh)) # not normal
+plot(simulateResiduals(t.ComA_ComB_percent.rh)) # looks good actually
+#*** No need to do data transsformation
 # Pairwise comparison:
-ComA_ComB.ratio.rh.emm <- emmeans(ComA_ComB.ratio.rh.aov, ~ irrigation | fertilization*sampling.date)
+ComA_ComB.ratio.rh.emm <- emmeans(t.ComA_ComB_percent.rh, ~ irrigation | fertilization*sampling.date)
 ComA_ComB.ratio.rh.pair <- pairs(ComA_ComB.ratio.rh.emm)
 ComA_ComB.ratio.rh.DF <- as.data.frame(summary(ComA_ComB.ratio.rh.pair))
-ComA_ComB.ratio.rh.DF
-setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
-write.csv(ComA_ComB.ratio.rh.DF, file = "ComA_ComB_ratio.pair.rh.csv")
-
-
-# Anova test for ComA_ComB Ratio on arcsin square root transformed data
-
-ComA_ComB.arcs.ratio.rh.aov <- aov_ez("plot", "ComA_ComB.arc.ratio.rh", qPCR.RS, 
-                                    within = "sampling.date",
-                                    between = c("irrigation","fertilization"),
-                                    type = 3,
-                                    return = afex_options("return_aov"),
-                                    anova_table = list(correction="none"))
-ComA_ComB.arcs.ratio.rh.aov
-
-# Three-Way Mixed (Split-Plot) ANOVA 
-ComA_ComB.arcs.ratio.rh.aov2 <- anova_test(
-  data = qPCR.RS, dv = ComA_ComB.arc.ratio.rh, wid = plot, type = 3,
-  within = sampling.date, between = c(irrigation, fertilization))
-get_anova_table(ComA_ComB.arcs.ratio.rh.aov2)
-ComA_ComB.arcs.ratio.rh.aov2.df <- get_anova_table(ComA_ComB.arcs.ratio.rh.aov2)
-#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/')
-filen <- paste("D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere/ComA_ComB_arc_ratio")
-table2csv(x=ComA_ComB.arcs.ratio.rh.aov2.df,file=filen, digits = 1, digitspvals = 3)
-
-# another model
-t.ComA_ComB_arcsin.rh=lmerTest::lmer(ComA_ComB.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
-                                        (1|block:sampling.date), 
-                                      data=qPCR.RS, na.action=na.omit)
-
+#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
+#write.csv(ComA_ComB.ratio.rh.DF, file = "ComA_ComB_ratio.pair.rh.csv")
+# Just checking
+# linear mixed model test for ComA_ComB Ratio on arcsin square root transformed data
+t.ComA_ComB_arcsin.rh <- lmerTest::lmer(ComA_ComB.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
+                         (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
 anova(t.ComA_ComB_arcsin.rh)
+# test assumption
+shapiro.test(resid(t.ComA_ComB_arcsin.rh)) # still not normal
+plot(simulateResiduals(t.ComA_ComB_arcsin.rh)) # looks good 
 
-# test assumptions:
-check_homogeneity(ComA_ComB.arcs.ratio.rh.aov) # good
-check_sphericity(ComA_ComB.arcs.ratio.rh.aov) # good
-ComA_ComB.arcs.ratio.rh.is_norm <- check_normality(ComA_ComB.arcs.ratio.rh.aov)
-shapiro.test(qPCR.RS$ComA_ComB.arc.ratio.rh) # NORMAL
-plot(ComA_ComB.arcs.ratio.rh.is_norm, type = "density")
-plot(ComA_ComB.arcs.ratio.rh.is_norm, type = "qq", detrend = TRUE)
-ggqqplot(qPCR.RS, "ComA_ComB.arc.ratio.rh", ggtheme = theme_bw())
 
-# tidy anova table
-knitr::kable(nice(ComA_ComB.arcs.ratio.rh.aov))
-# Pairwise comparison:
-ComA_ComB.arcs.ratio.rh.emm <- emmeans(ComA_ComB.arcs.ratio.rh.aov, ~ irrigation | fertilization*sampling.date)
-ComA_ComB.arcs.ratio.rh.pair <- pairs(ComA_ComB.arcs.ratio.rh.emm)
-ComA_ComB.arcs.ratio.rh.DF <- as.data.frame(summary(ComA_ComB.arcs.ratio.rh.pair))
-ComA_ComB.arcs.ratio.rh.DF
-setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
-write.csv(ComA_ComB.arcs.ratio.rh.DF, file = "ComA_ComB.arcs.ratio.pair.rh.csv")
+
 
 
 #########################################################################################################################################
