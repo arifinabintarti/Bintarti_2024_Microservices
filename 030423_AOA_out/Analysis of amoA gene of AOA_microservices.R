@@ -33,6 +33,7 @@ install.packages("car")
 install.packages("multcomp")
 install.packages("ape")
 install.packages("devtools", dependencies = TRUE)
+library(devtools)
 library(multcomp)
 library(car)
 library(BiocManager)
@@ -65,8 +66,8 @@ library(fitdistrplus)
 library(lme4)
 library(nlme)
 library(ape)
-library(devtools)
-library(phyloseq)
+
+
 
 # SET THE WORKING DIRECTORY
 setwd('/Users/arifinabintarti/Documents/France/microservices/030423_AOA_out/AOA.ASV-analysis')
@@ -96,13 +97,13 @@ AOA_rooted_tree
 set.seed(13)
 rarecurve(t(aoa.asv), step=50, cex=0.5, lwd=2, ylab="ASV", label=F)
 #BiocManager::install("phyloseq")
-
+library(phyloseq)
 ## make a phyloseq object of the asv table, taxonomy table, metadata
 
 # re-order the rownames of the asv table to match the colnames of the metadata.
 re_order <- match(rownames(meta_micro), colnames(aoa.asv))
 aoa.asv.ord  <- aoa.asv[ ,re_order]
-aoa.asv.physeq = otu_table(aoa.asv.ord, taxa_are_rows = TRUE) # asv table
+aoa.asv.physeq <- otu_table(aoa.asv.ord, taxa_are_rows = TRUE) # asv table
 sample_names(aoa.asv.physeq)
 # adding "S" for sample names to avoid possible problem later on
 sample_names(aoa.asv.physeq) <- paste0("S", sample_names(aoa.asv.physeq))
@@ -110,7 +111,7 @@ sample_names(aoa.asv.physeq) <- paste0("S", sample_names(aoa.asv.physeq))
 # phyloseq object of the taxonomy table
 aoa.tax <- column_to_rownames(aoa.tax, var = "ASVid")
 #row.names(aoa.tax) <- aoa.tax$ASVid
-aoa.tax.physeq = tax_table(as.matrix(aoa.tax)) # taxonomy table
+aoa.tax.physeq <- tax_table(as.matrix(aoa.tax)) # taxonomy table
  
 # phyloseq object of the metadata
 meta_micro$Date <- factor(meta_micro$Date, levels = c("4/28/22", "06/01/2022", "07/05/2022", "7/20/22", "9/13/22"),
@@ -786,6 +787,8 @@ ax2.scores.uwUF.rh <- aoa.rh_pcoa.uwUF$points[,2]
 
 # 5. calculate percent variance explained, then add to plot
 aoa.meta.rh <- aoa.meta.df[121:192,]
+str(aoa.meta.rh)
+aoa.meta.rh$Date <- factor(aoa.meta.rh$Date)
 # Bray-curtis - Rhizosphere :
 ax1.rh <- aoa.rh_pcoa_bc$eig[1]/sum(aoa.rh_pcoa_bc$eig)
 ax2.rh <- aoa.rh_pcoa_bc$eig[2]/sum(aoa.rh_pcoa_bc$eig)
@@ -822,38 +825,66 @@ env.scores4.bc <- subset(env.scores3.bc,pvals.bc<0.05)
 set.seed(33)
 mult <-.53
 
-aoa.pcoa_bulk.plot <- ggplot(data = aoa.map.pcoa.bulk, aes(x=ax1.scores.bulk, y=ax2.scores.bulk, colour=Treatment))+
+
+library(ggforce)
+
+aoa.pcoa_bulk.plot <- ggplot(data = aoa.map.pcoa.bulk, aes(x=ax1.scores.bulk, y=ax2.scores.bulk))+
   theme_bw()+
-  geom_point(data = aoa.map.pcoa.bulk,aes(x = ax1.scores.bulk, y = ax2.scores.bulk))+
-  #geom_point(data = aoa.map.pcoa.bulk, aes(x = ax1.scores.bulk, y = ax2.scores.bulk, shape=Irrigation),size=5, alpha= 0.6)+
-  scale_color_viridis(discrete = T) +
-  geom_label(show.legend  = F,aes(label = PlotID))+
+  geom_point(aes(color = aoa.map.pcoa.bulk$Treatment, shape = aoa.map.pcoa.bulk$Irrigation), size = 2) +
+  scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
+                     name = "Cropping system",
+                     labels = c("BIODYN", "CONFYM", "CONMIN")) +
+  scale_shape_manual(values = c(8, 1),
+                     name = "Irrigation treatment",
+                     labels = c("control", "drought")) + theme_classic() +
+  #scale_fill_manual(values = c("#E69F00","#E69F00","#009E73","#009E73","#FF618C","#FF618C","#FF618C","#FF618C",
+                            #"#E69F00","#E69F00","#009E73","#009E73","#009E73","#009E73","#E69F00","#E69F00",
+                            #"#FF618C","#FF618C","#FF618C","#FF618C","#009E73","#009E73","#E69F00","#E69F00")) +
+  scale_fill_manual(values = c("#E69F00","#009E73","#FF618C","#FF618C",
+                             "#E69F00","#009E73","#009E73","#E69F00",
+                             "#FF618C","#FF618C","#009E73","#E69F00")) +
+  #geom_label(show.legend  = F,aes(label = Block))+
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.bulk,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.bulk,3)*100,"% var. explained", sep=""))+
-  #geom_segment(data=env.scores4.bc,
-               #aes(x=0, xend=mult*Dim1, y=0, yend=mult*Dim2), 
-               #arrow = arrow(length = unit(0.3, "cm")),
-               #colour = "grey",inherit.aes = FALSE)+
-  #geom_text_repel(data = env.scores4.bc,
-                  #aes(x = mult*Dim1, y = mult*Dim2, label = Variable),
-                  #size = 5,fontface="bold",
-                  #position=position_jitter(width=0.03,height=0.001), inherit.aes = FALSE)+
-  labs(colour = "Treatment",  title = "A. Bulk Soil")+
-  theme(legend.position="right",
-        legend.title = element_text(size=15, face='bold'),
+  labs(title = "A. Bulk Soil")+
+  theme(legend.position="none",
+        #legend.title = element_blank(),
+        #legend.text=element_text(size=12),
+        #legend.spacing.x = unit(0.05, 'cm'),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         plot.title = element_text(size = 20, face="bold"),
-        axis.text=element_text(size=16), 
-        axis.title=element_text(size=17,face="bold"),
-        legend.text=element_text(size=15),
-        legend.spacing.x = unit(0.05, 'cm'))+
+        axis.text=element_text(size=13), 
+        axis.title=element_text(size=14,face="bold"))+
   guides(colour=guide_legend(override.aes = list(size=4)))+
-stat_ellipse()
-  #stat_ellipse()
+  geom_mark_ellipse(aes(fill = aoa.map.pcoa.bulk$Block), 
+                    expand = 0, linewidth = NA, show.legend = FALSE)
+  #annotate("text",x=-0.27,y=0.16,label= "12", hjust = 0, size = 4,color="#E69F00")+
+  #annotate("text",x=0.08,y=0.26,label= "12", hjust = 0, size = 4,color="#E69F00")+
+  #annotate("text",x=-0.2,y=0.28,label= "11", hjust = 0, size = 4,color="#009E73")+
+  #annotate("text",x=-0.32,y=0.24,label= "11", hjust = 0, size = 4,color="#009E73")+
+  #annotate("text",x=-0.36,y=-0.2,label= "1", hjust = 0, size = 4,color="#E69F00")+
+  #annotate("text",x=0,y=0.05,label= "1", hjust = 0, size = 4,color="#E69F00")+
+  #annotate("text",x=-0.4,y=-0.09,label= "2", hjust = 0, size = 4,color="#009E73")+
+  #annotate("text",x=-0.32,y=-0.04,label= "2", hjust = 0, size = 4,color="#009E73")+
+  #annotate("text",x=0.25,y=0.06,label= "3", hjust = 0, size = 4,color="#FF618C")+
+  #annotate("text",x=0.15,y=0.1,label= "3", hjust = 0, size = 4,color="#FF618C")+
+  #annotate("text",x=0.17,y=0.01,label= "4", hjust = 0, size = 4,color="#FF618C")+
+  #annotate("text",x=0.25,y=-0.03,label= "4", hjust = 0, size = 4,color="#FF618C")+
+  #annotate("text",x=0.28,y=-0.07,label= "5", hjust = 0, size = 4,color="#E69F00")+
+  #annotate("text",x=0.32,y=-0.1,label= "5", hjust = 0, size = 4,color="#E69F00")+
+ 
 aoa.pcoa_bulk.plot
+
 setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
+
+ggsave("aoa.bray.plotid_block.tiff",
+      aoa.pcoa_bulk.plot, device = "tiff",
+       width = 6, height =5, 
+       units= "in", dpi = 600)
+
 ggsave("aoa.bray.plotid.tiff",
        aoa.pcoa_bulk.plot, device = "tiff",
        width = 12, height = 8, 
@@ -862,23 +893,43 @@ ggsave("aoa.bray.plotid.tiff",
 # B. Bray-Curtis - Rhizosphere :
 aoa.pcoa_rh.plot <- ggplot(data = aoa.map.pcoa.rh, aes(x=ax1.scores.rh, y=ax2.scores.rh, colour=Treatment))+
   theme_bw()+
-  geom_point(data = aoa.map.pcoa.rh, aes(x = ax1.scores.rh, y = ax2.scores.rh, shape=Irrigation),size=5, alpha= 0.6)+
-  scale_color_viridis(discrete = T) +
+  #geom_point(data = aoa.map.pcoa.rh, aes(x = ax1.scores.rh, y = ax2.scores.rh, shape=Irrigation),size=5, alpha= 0.6)+
+  geom_point(aes(color = aoa.map.pcoa.rh$Treatment, shape = aoa.map.pcoa.rh$Irrigation), size = 2) +
+  scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
+                     name = "Cropping system",
+                     labels = c("BIODYN", "CONFYM", "CONMIN")) +
+  scale_shape_manual(values = c(8, 1),
+                     name = "Irrigation treatment",
+                     labels = c("control", "drought")) + theme_classic() +
+  #scale_fill_manual(values = c("#E69F00","#E69F00","#009E73","#009E73","#FF618C","#FF618C","#FF618C","#FF618C",
+                            #"#E69F00","#E69F00","#009E73","#009E73","#009E73","#009E73","#E69F00","#E69F00",
+                            #"#FF618C","#FF618C","#FF618C","#FF618C","#009E73","#009E73","#E69F00","#E69F00")) +
+  scale_fill_manual(values = c("#E69F00","#009E73","#FF618C","#FF618C",
+                             "#E69F00","#009E73","#009E73","#E69F00",
+                             "#FF618C","#FF618C","#009E73","#E69F00")) +
+  #geom_label(show.legend  = F,aes(label = Block))+
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.rh,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.rh,3)*100,"% var. explained", sep=""))+
-  labs(colour = "Treatment",  title = "B. Rhizosphere")+
-  theme(legend.position="right",
-        legend.title = element_text(size=15, face='bold'),
+  labs(title = "B. Rhizosphere")+
+  theme(legend.position="none",
+        #legend.title = element_blank(),
+        #legend.text=element_text(size=12),
+        #legend.spacing.x = unit(0.05, 'cm'),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         plot.title = element_text(size = 20, face="bold"),
-        axis.text=element_text(size=16), 
-        axis.title=element_text(size=17,face="bold"),
-        legend.text=element_text(size=15),
-        legend.spacing.x = unit(0.05, 'cm'))+
-  stat_ellipse()
+        axis.text=element_text(size=13), 
+        axis.title=element_text(size=14,face="bold"))+
+  guides(colour=guide_legend(override.aes = list(size=4)))+
+  geom_mark_ellipse(aes(fill = aoa.map.pcoa.rh$Block), 
+                    expand = 0, linewidth = NA, show.legend = FALSE)
 aoa.pcoa_rh.plot
+
+ggsave("aoa.bray.plotid.rh_block.tiff",
+      aoa.pcoa_rh.plot, device = "tiff",
+       width = 6, height =5, 
+       units= "in", dpi = 600)
 
 #install.packages("patchwork")
 library(patchwork)
@@ -1150,10 +1201,15 @@ hsd.aoa.bs.x <- TukeyHSD(aoa.x.mod) #which groups differ in relation to their va
 hsd.aoa.bs.x
 
 # 1. Using adonis2 package with defined perm to restrict the permutation 
-set.seed(13)
-aoa.adonis.bulk.bc <- adonis2(aoa.bulk_dist_bc ~ Irrigation, strata=block, data=aoa.meta.bulk.ed, 
+set.seed(589)
+aoa.adonis.bulk.bc <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment, strata=aoa.meta.bulk$Block, data=aoa.meta.bulk, 
                                  permutations = 999) # significant
 aoa.adonis.bulk.bc
+
+set.seed(13)
+aoa.adonis.bulk.bc2 <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment*Date, data=aoa.meta.bulk, 
+                                 permutations = 999) # significant
+aoa.adonis.bulk.bc2
 
 # similar with below:
 perm1 = how(within = Within(type="free"), 
@@ -1162,7 +1218,7 @@ perm1 = how(within = Within(type="free"),
             nperm = 999,
             observed = TRUE)
 set.seed(13)
-aoa.adonis.bulk.bc.perm1 <- adonis2(aoa.bulk_dist_bc ~ Irrigation, data=aoa.meta.bulk.ed, 
+aoa.adonis.bulk.bc.perm1 <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment, data=aoa.meta.bulk, 
                                     permutations = perm1)
 aoa.adonis.bulk.bc.perm1
 
@@ -1183,24 +1239,30 @@ CTRL.t2 <- how(within = Within(type = "free"),
               observed = TRUE)
 #they specify that plots are to be freely permuted within blocks but that blocks are not allowed to permute
 set.seed(13)
-aoa.adonis.bulk.bc.CTRL.t2 <- adonis2(aoa.bulk_dist_uwUF ~ Irrigation, data=aoa.meta.bulk.ed, 
+aoa.adonis.bulk.bc.CTRL.t2 <- adonis2(aoa.bulk_dist_bc ~ Irrigation, data=aoa.meta.bulk, 
                              permutations = CTRL.t2)
 aoa.adonis.bulk.bc.CTRL.t2
 
 # 2. Using ANOSIM package and define the strata
 set.seed(13)
-aoa.bc.anosim <- anosim(aoa.bulk_dist_wUF,
+aoa.bc.anosim <- anosim(aoa.bulk_dist_bc,
        grouping = irri, permutations = 999, strata = block)
 summary(aoa.bc.anosim) # SIGNIFICANT
 
 set.seed(13)
-aoa.adonis.bulk <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment*Date, data=aoa.meta.bulk, 
+aoa.adonis.bulk.wUF <- adonis2(aoa.bulk_dist_wUF ~ Irrigation*Treatment*Date, data=aoa.meta.bulk, 
                            permutation=999) # only treatment is significant
-aoa.adonis.bulk
+aoa.adonis.bulk.wUF
 
+set.seed(13)
+aoa.adonis.bulk.BC <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment*Date, data=aoa.meta.bulk, 
+                           permutation=999) # only treatment is significant
+aoa.adonis.bulk.BC
 
-
-
+set.seed(37) #132 #19
+aoa.adonis.bulk.1 <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment*Date+block, data=aoa.meta.bulk, 
+                           permutation=999) # only treatment is significant
+aoa.adonis.bulk.1
 
 ################################################################################
 # B. Bray-Curtis - Rhizosphere : 
@@ -1270,8 +1332,9 @@ CTRL.t2.rh <- how(within = Within(type = "free"),
                nperm = 999,
                observed = TRUE)
 #they specify that plots are to be freely permuted within blocks but that blocks are not allowed to permute
+#split-plot analysis not whole plot analysis
 set.seed(1333)
-aoa.adonis.rh.bc.CTRL.t2 <- adonis2(aoa.rh_dist_bc ~ Irrigation, data=aoa.meta.rh, 
+aoa.adonis.rh.bc.CTRL.t2 <- adonis2(aoa.rh_dist_bc ~ block.rh+Irrigation, data=aoa.meta.rh, 
                                       permutations = CTRL.t2.rh)
 aoa.adonis.rh.bc.CTRL.t2
 
@@ -1282,16 +1345,21 @@ aoa.bc.anosim.rh <- anosim(aoa.rh_dist_wUF,
 summary(aoa.bc.anosim.rh) # SIGNIFICANT
 
 set.seed(13)
-aoa.adonis.rh <- adonis2(aoa.rh_dist_uwUF ~ Irrigation*Treatment*Date, data=aoa.meta.rh, 
+aoa.adonis.rh.bc <- adonis2(aoa.rh_dist_bc ~ Irrigation*Treatment*Date, data=aoa.meta.rh, 
                            permutation=999,
                            method="bray", 
                            strata = NULL) # only treatment is significant
-aoa.adonis.rh
+aoa.adonis.rh.bc
+
+set.seed(13)
+aoa.adonis.rh.wUF <- adonis2(aoa.rh_dist_wUF ~ Irrigation*Treatment*Date, data=aoa.meta.rh, 
+                           permutation=999,
+                           method="bray", 
+                           strata = NULL) # only treatment is significant
+aoa.adonis.rh.wUF
 
 
-
-
-########################################################################################
+0000000########################################################################################
 # Pairwise comparison analyses across treatments and between irrigation within date
 ########################################################################################
 #devtools::install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")

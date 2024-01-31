@@ -839,59 +839,93 @@ mult <-.65
 
 com.pcoa_bulk.plot <- ggplot(data = com.map.pcoa.bulk, aes(x=ax1.scores.bulk, y=ax2.scores.bulk, colour=Treatment))+
   theme_bw()+
-  geom_point(data = com.map.pcoa.bulk, aes(x = ax1.scores.bulk, y = ax2.scores.bulk))+
-  #geom_point(data = com.map.pcoa.bulk, aes(x = ax1.scores.bulk, y = ax2.scores.bulk),size=5, alpha= 0.6)+
-  geom_label(show.legend  = F,aes(label = PlotID))+
-  scale_color_viridis(discrete = T) +
+  geom_point(aes(color = com.map.pcoa.bulk$Treatment, shape = com.map.pcoa.bulk$Irrigation), size = 2) +
+  scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
+                     name = "Cropping system",
+                     labels = c("BIODYN", "CONFYM", "CONMIN")) +
+  scale_shape_manual(values = c(8, 1),
+                     name = "Irrigation treatment",
+                     labels = c("control", "drought")) + theme_classic() +
+  scale_fill_manual(values = c("#E69F00","#E69F00","#009E73","#009E73","#FF618C","#FF618C","#FF618C","#FF618C",
+                            "#E69F00","#E69F00","#009E73","#009E73","#009E73","#009E73","#E69F00","#E69F00",
+                            "#FF618C","#FF618C","#FF618C","#FF618C","#009E73","#009E73","#E69F00","#E69F00")) +
+ #scale_fill_manual(values = c("#E69F00","#009E73","#FF618C","#FF618C",
+                             #"#E69F00","#009E73","#009E73","#E69F00",
+                             #"#FF618C","#FF618C","#009E73","#E69F00")) +
+  #geom_label(show.legend  = F,aes(label = Block))+
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.bulk,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.bulk,3)*100,"% var. explained", sep=""))+
-  labs(colour = "Treatment",  title = "A. Bulk Soil")+
-  #geom_segment(data=env.scores4.bc,
-               #aes(x=0, xend=mult*Dim1, y=0, yend=mult*Dim2), 
-               #arrow = arrow(length = unit(0.3, "cm")),
-               #colour = "grey",inherit.aes = FALSE)+
-  #geom_text_repel(data = env.scores4.bc,
-                  #aes(x = mult*Dim1, y = mult*Dim2, label = Variable),
-                  #size = 5,fontface="bold",
-                  #position=position_jitter(width=0.03,height=0.001), inherit.aes = FALSE)+
-  theme(legend.position="right",
-        legend.title = element_text(size=15, face='bold'),
+  labs(title = "A. Bulk Soil")+
+  theme(legend.position="none",
+        #legend.title = element_blank(),
+        #legend.text=element_text(size=12),
+        #legend.spacing.x = unit(0.05, 'cm'),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         plot.title = element_text(size = 20, face="bold"),
-        axis.text=element_text(size=16), 
-        axis.title=element_text(size=17,face="bold"),
-        legend.text=element_text(size=15),
-        legend.spacing.x = unit(0.05, 'cm'))+
+        axis.text=element_text(size=13), 
+        axis.title=element_text(size=14,face="bold"))+
   guides(colour=guide_legend(override.aes = list(size=4)))+
-  stat_ellipse()
+  geom_mark_ellipse(aes(fill = com.map.pcoa.bulk$PlotID), 
+                    expand = 0, linewidth = NA, show.legend = FALSE)
 com.pcoa_bulk.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
 ggsave("com.bray.plotid.tiff",
        com.pcoa_bulk.plot, device = "tiff",
        width = 12, height = 8, 
        units= "in", dpi = 600)
+
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
+ggsave("com.bray.plotid.tiff",
+     com.pcoa_bulk.plot, device = "tiff",
+       width = 6, height =5, 
+       units= "in", dpi = 600)
+
+
+
 # B. Bray-Curtis - Rhizosphere :
 com.pcoa_rh.plot <- ggplot(data = com.map.pcoa.rh, aes(x=ax1.scores.rh, y=ax2.scores.rh, colour=Treatment))+
   theme_bw()+
-  geom_point(data = com.map.pcoa.rh, aes(x = ax1.scores.rh, y = ax2.scores.rh, shape=Irrigation),size=5, alpha= 0.6)+
-  scale_color_viridis(discrete = T) +
+  geom_point(aes(color = com.map.pcoa.rh$Treatment, shape = com.map.pcoa.rh$Irrigation), size = 2) +
+  scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
+                     name = "Cropping system",
+                     labels = c("BIODYN", "CONFYM", "CONMIN")) +
+  scale_shape_manual(values = c(8, 1),
+                     name = "Irrigation treatment",
+                     labels = c("control", "drought")) + theme_classic() +
+  scale_fill_manual(values = c("#E69F00","#E69F00","#009E73","#009E73","#FF618C","#FF618C","#FF618C","#FF618C",
+                            "#E69F00","#E69F00","#009E73","#009E73","#009E73","#009E73","#E69F00","#E69F00",
+                            "#FF618C","#FF618C","#FF618C","#FF618C","#009E73","#009E73","#E69F00","#E69F00")) +
+ #scale_fill_manual(values = c("#E69F00","#009E73","#FF618C","#FF618C",
+                             #"#E69F00","#009E73","#009E73","#E69F00",
+                             #"#FF618C","#FF618C","#009E73","#E69F00")) +
+  #geom_label(show.legend  = F,aes(label = Block))+
   scale_x_continuous(name=paste("PCoA1:\n",round(ax1.rh,3)*100,"% var. explained", sep=""))+
   scale_y_continuous(name=paste("PCoA2:\n",round(ax2.rh,3)*100,"% var. explained", sep=""))+
-  labs(colour = "Treatment",  title = "B. Rhizosphere")+
-  theme(legend.position="right",
-        legend.title = element_text(size=15, face='bold'),
+  labs(title = "B. Rhizosphere")+
+  theme(legend.position="none",
+        #legend.title = element_blank(),
+        #legend.text=element_text(size=12),
+        #legend.spacing.x = unit(0.05, 'cm'),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         plot.title = element_text(size = 20, face="bold"),
-        axis.text=element_text(size=16), 
-        axis.title=element_text(size=17,face="bold"),
-        legend.text=element_text(size=15),
-        legend.spacing.x = unit(0.05, 'cm'))+
-  stat_ellipse()
+        axis.text=element_text(size=13), 
+        axis.title=element_text(size=14,face="bold"))+
+  guides(colour=guide_legend(override.aes = list(size=4)))+
+  geom_mark_ellipse(aes(fill = com.map.pcoa.rh$PlotID), 
+                    expand = 0, linewidth = NA, show.legend = FALSE)
 com.pcoa_rh.plot
+
+
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
+ggsave("com.bray.plotid.rh.tiff",
+     com.pcoa_rh.plot, device = "tiff",
+       width = 6, height =5, 
+       units= "in", dpi = 600)
+
 
 #install.packages("patchwork")
 library(patchwork)
@@ -1165,21 +1199,21 @@ CTRL.t2.com <- how(within = Within(type = "free"),
                    nperm = 999,
                    observed = TRUE)
 #they specify that plots are to be freely permuted within blocks but that blocks are not allowed to permute
-set.seed(133)
-com.adonis.bulk.bc.CTRL.t2 <- adonis2(com.bulk_dist_wUF ~ Irrigation, data=com.meta.bulk, 
+set.seed(132222) #132222
+com.adonis.bulk.bc.CTRL.t2 <- adonis2(com.bulk_dist_bc ~ Irrigation, data=com.meta.bulk, 
                                       permutations = CTRL.t2.com)
 com.adonis.bulk.bc.CTRL.t2
 
 # 2. Using ANOSIM package and define the strata
 set.seed(132)
-com.bc.anosim <- anosim(com.bulk_dist_wUF,
+com.bc.anosim <- anosim(com.bulk_dist_bc,
                         grouping = irri.com, permutations = 999, strata = block.com)
 summary(com.bc.anosim) # SIGNIFICANT
 
 
 # test the permanova for farming system
-set.seed(13)
-com.adonis.bulk <- adonis2(com.bulk_dist_uwUF ~ Irrigation*Treatment*Date, data=com.meta.bulk, 
+set.seed(133)
+com.adonis.bulk <- adonis2(com.bulk_dist_bc ~ Irrigation*Treatment*Date+block.com, data=com.meta.bulk, 
                            permutation=999) # only treatment is significant
 com.adonis.bulk
 ###################################################################################################
@@ -1198,7 +1232,7 @@ CTRL.t2.rh.com <- how(within = Within(type = "free"),
                       observed = TRUE)
 #they specify that plots are to be freely permuted within blocks but that blocks are not allowed to permute
 set.seed(13)
-com.adonis.rh.bc.CTRL.t2 <- adonis2(com.rh_dist_uwUF ~ Irrigation, data=com.meta.rh, 
+com.adonis.rh.bc.CTRL.t2 <- adonis2(com.rh_dist_bc ~ Irrigation, data=com.meta.rh, 
                                     permutations = CTRL.t2.rh.com)
 com.adonis.rh.bc.CTRL.t2
 
@@ -1209,7 +1243,7 @@ com.bc.anosim.rh <- anosim(com.rh_dist_wUF,
 summary(com.bc.anosim.rh) # SIGNIFICANT
 
 set.seed(13)
-com.adonis.rh <- adonis2(com.rh_dist_uwUF ~ Irrigation*Treatment*Date, data=com.meta.rh, 
+com.adonis.rh <- adonis2(com.rh_dist_bc ~ Irrigation*Treatment*Date+block.com.rh, data=com.meta.rh, 
                          permutation=999) # only treatment is significant
 com.adonis.rh
 

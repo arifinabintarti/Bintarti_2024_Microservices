@@ -16,58 +16,58 @@ aob.physeq_bulk1 # 937 taxa, 119 samples
 
 # Date: 04-28-2022
 # 1. MINERAL
-M04seq<- subset_samples(aob.physeq_bulk1, Date=="04-28-22" & Treatment=="M")
+M04seq<- subset_samples(aob.physeq_bulk1, Date=="Apr 28th" & Treatment=="M")
 M04seq1 <- prune_taxa(taxa_sums(M04seq)>0, M04seq)
 sort(rowSums(otu_table(M04seq1), na.rm = FALSE, dims = 1), decreasing = F)
 # 2. BIODYNAMIC
-D04seq<- subset_samples(aob.physeq_bulk1, Date=="04-28-22" & Treatment=="D")
+D04seq<- subset_samples(aob.physeq_bulk1, Date=="Apr 28th" & Treatment=="D")
 D04seq1 <- prune_taxa(taxa_sums(D04seq)>0, D04seq)
 # 3. CONVENTIONAL
-K04seq<- subset_samples(aob.physeq_bulk1, Date=="04-28-22" & Treatment=="K")
+K04seq<- subset_samples(aob.physeq_bulk1, Date=="Apr 28th" & Treatment=="K")
 K04seq1 <- prune_taxa(taxa_sums(K04seq)>0, K04seq)
 
 # Date: 06-01-2022
 # 1. MINERAL
-M06seq<- subset_samples(aob.physeq_bulk1, Date=="06-01-22" & Treatment=="M")
+M06seq<- subset_samples(aob.physeq_bulk1, Date=="Jun 1st" & Treatment=="M")
 M06seq1 <- prune_taxa(taxa_sums(M06seq)>0, M06seq)
 # 2. BIODYNAMIC
-D06seq<- subset_samples(aob.physeq_bulk1, Date=="06-01-22" & Treatment=="D")
+D06seq<- subset_samples(aob.physeq_bulk1, Date=="Jun 1st" & Treatment=="D")
 D06seq1 <- prune_taxa(taxa_sums(D06seq)>0, D06seq)
 # 3. CONVENTIONAL
-K06seq<- subset_samples(aob.physeq_bulk1, Date=="06-01-22" & Treatment=="K")
+K06seq<- subset_samples(aob.physeq_bulk1, Date=="Jun 1st" & Treatment=="K")
 K06seq1 <- prune_taxa(taxa_sums(K06seq)>0, K06seq)
 
 # Date: 07-05-2022
 # 1. MINERAL
-M0705seq<- subset_samples(aob.physeq_bulk1, Date=="07-05-22" & Treatment=="M")
+M0705seq<- subset_samples(aob.physeq_bulk1, Date=="Jul 5th" & Treatment=="M")
 M0705seq1 <- prune_taxa(taxa_sums(M0705seq)>0, M0705seq)
 # 2. BIODYNAMIC
-D0705seq<- subset_samples(aob.physeq_bulk1, Date=="07-05-22" & Treatment=="D")
+D0705seq<- subset_samples(aob.physeq_bulk1, Date=="Jul 5th" & Treatment=="D")
 D0705seq1 <- prune_taxa(taxa_sums(D0705seq)>0, D0705seq)
 # 3. CONVENTIONAL
-K0705seq<- subset_samples(aob.physeq_bulk1, Date=="07-05-22" & Treatment=="K")
+K0705seq<- subset_samples(aob.physeq_bulk1, Date=="Jul 5th" & Treatment=="K")
 K0705seq1 <- prune_taxa(taxa_sums(K0705seq)>0, K0705seq)
 
 # Date: 07-20-2022
 # 1. MINERAL
-M0720seq<- subset_samples(aob.physeq_bulk1, Date=="07-20-22" & Treatment=="M")
+M0720seq<- subset_samples(aob.physeq_bulk1, Date=="Jul 20th" & Treatment=="M")
 M0720seq1 <- prune_taxa(taxa_sums(M0720seq)>0, M0720seq)
 # 2. BIODYNAMIC
-D0720seq<- subset_samples(aob.physeq_bulk1, Date=="07-20-22" & Treatment=="D")
+D0720seq<- subset_samples(aob.physeq_bulk1, Date=="Jul 20th" & Treatment=="D")
 D0720seq1 <- prune_taxa(taxa_sums(D0720seq)>0, D0720seq)
 # 3. CONVENTIONAL
-K0720seq<- subset_samples(aob.physeq_bulk1, Date=="07-20-22" & Treatment=="K")
+K0720seq<- subset_samples(aob.physeq_bulk1, Date=="Jul 20th" & Treatment=="K")
 K0720seq1 <- prune_taxa(taxa_sums(K0720seq)>0, K0720seq)
 
 # Date: 09-13-2022
 # 1. MINERAL
-M09seq<- subset_samples(aob.physeq_bulk1, Date=="09-13-22" & Treatment=="M")
+M09seq<- subset_samples(aob.physeq_bulk1, Date=="Sept 13th" & Treatment=="M")
 M09seq1 <- prune_taxa(taxa_sums(M09seq)>0, M09seq)
 # 2. BIODYNAMIC
-D09seq<- subset_samples(aob.physeq_bulk1, Date=="09-13-22" & Treatment=="D")
+D09seq<- subset_samples(aob.physeq_bulk1, Date=="Sept 13th" & Treatment=="D")
 D09seq1 <- prune_taxa(taxa_sums(D09seq)>0, D09seq)
 # 3. CONVENTIONAL
-K09seq<- subset_samples(aob.physeq_bulk1, Date=="09-13-22" & Treatment=="K")
+K09seq<- subset_samples(aob.physeq_bulk1, Date=="Sept 13th" & Treatment=="K")
 K09seq1 <- prune_taxa(taxa_sums(K09seq)>0, K09seq)
 
 
@@ -80,43 +80,44 @@ aob.physeq_rh1 # 831 taxa
 
 # Date: 04-28-2022
 # 1. MINERAL
-M04.rh.seq<- subset_samples(aob.physeq_rh1, Date=="04-28-22" & Treatment=="M")
+M04.rh.seq<- subset_samples(aob.physeq_rh1, Date=="Apr 28th" & Treatment=="M")
 M04.rh.seq1 <- prune_taxa(taxa_sums(M04.rh.seq)>0, M04.rh.seq)
 sort(rowSums(otu_table(M04.rh.seq1), na.rm = FALSE, dims = 1), decreasing = F)
 # 2. BIODYNAMIC
-D04.rh.seq<- subset_samples(aob.physeq_rh1, Date=="04-28-22" & Treatment=="D")
+D04.rh.seq<- subset_samples(aob.physeq_rh1, Date=="Apr 28th" & Treatment=="D")
 D04.rh.seq1 <- prune_taxa(taxa_sums(D04.rh.seq)>0, D04.rh.seq)
 # 3. CONVENTIONAL
-K04.rh.seq<- subset_samples(aob.physeq_rh1, Date=="04-28-22" & Treatment=="K")
+K04.rh.seq<- subset_samples(aob.physeq_rh1, Date=="Apr 28th" & Treatment=="K")
 K04.rh.seq1 <- prune_taxa(taxa_sums(K04.rh.seq)>0, K04.rh.seq)
 
 # Date: 06-01-2022
 # 1. MINERAL
-M06.rh.seq<- subset_samples(aob.physeq_rh1, Date=="06-01-22" & Treatment=="M")
+M06.rh.seq<- subset_samples(aob.physeq_rh1, Date=="Jun 1st" & Treatment=="M")
 M06.rh.seq1 <- prune_taxa(taxa_sums(M06.rh.seq)>0, M06.rh.seq)
 # 2. BIODYNAMIC
-D06.rh.seq<- subset_samples(aob.physeq_rh1, Date=="06-01-22" & Treatment=="D")
+D06.rh.seq<- subset_samples(aob.physeq_rh1, Date=="Jun 1st" & Treatment=="D")
 D06.rh.seq1 <- prune_taxa(taxa_sums(D06.rh.seq)>0, D06.rh.seq)
 # 3. CONVENTIONAL
-K06.rh.seq<- subset_samples(aob.physeq_rh1, Date=="06-01-22" & Treatment=="K")
+K06.rh.seq<- subset_samples(aob.physeq_rh1, Date=="Jun 1st" & Treatment=="K")
 K06.rh.seq1 <- prune_taxa(taxa_sums(K06.rh.seq)>0, K06.rh.seq)
 
 # Date: 07-05-2022
 # 1. MINERAL
-M0705.rh.seq<- subset_samples(aob.physeq_rh1, Date=="07-05-22" & Treatment=="M")
+M0705.rh.seq<- subset_samples(aob.physeq_rh1, Date=="Jul 5th" & Treatment=="M")
 M0705.rh.seq1 <- prune_taxa(taxa_sums(M0705.rh.seq)>0, M0705.rh.seq)
 # 2. BIODYNAMIC
-D0705.rh.seq<- subset_samples(aob.physeq_rh1, Date=="07-05-22" & Treatment=="D")
+D0705.rh.seq<- subset_samples(aob.physeq_rh1, Date=="Jul 5th" & Treatment=="D")
 D0705.rh.seq1 <- prune_taxa(taxa_sums(D0705.rh.seq)>0, D0705.rh.seq)
 # 3. CONVENTIONAL
-K0705.rh.seq<- subset_samples(aob.physeq_rh1, Date=="07-05-22" & Treatment=="K")
+K0705.rh.seq<- subset_samples(aob.physeq_rh1, Date=="Jul 5th" & Treatment=="K")
 K0705.rh.seq1 <- prune_taxa(taxa_sums(K0705.rh.seq)>0, K0705.rh.seq)
+
 ################################################################################
 
 ###############################################################################
 # Filter low-abundant taxa
 # keeping OTUs with at least 0.01 % relative abundance across all samples
-physeq.subset <- aob.physeq_bulk1
+physeq.subset <- M04seq1
 physeq.subset 
 data.obs <- as.data.frame(otu_table(physeq.subset))
 keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
@@ -124,7 +125,7 @@ data.F=data.obs[keep.taxa.id,,drop=FALSE]
 new.otu <- as.matrix(data.F) # convert it into a matrix.
 new.otu <- otu_table(data.F, taxa_are_rows = TRUE) # convert into phyloseq compatible file.
 otu_table(physeq.subset) <- new.otu # incorporate into phyloseq Object
-physeq.subset # 
+physeq.subset # 428
 
 ################################################################################
 #Lets generate a prevalence table (number of samples each taxa occurs in) for each taxa.
@@ -165,14 +166,17 @@ tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 75,])
 physeq.subset.75 <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
 rm(ps,df_prev,tmp_otu_F)
 physeq.subset.75  # 32 taxa
-setwd('D:/Fina/INRAE_Project/microservices/DAA/')
-write.csv(otu_table(physeq.subset.75), file = "aob.filt75.bs.tab.csv")
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/')
+#write.csv(otu_table(physeq.subset.75), file = "aob.filt75.bs.tab.csv")
+
 ####################################################
 # DIFFERENTIAL ABUNDANCE
 ##################################################
 #install.packages("glmmTMB")
-library(glmmTMB)
-library(emmeans)
+#library(glmmTMB)
+#library(emmeans)
+#library(data.table)
+
 
 tmp_T3s <- physeq.subset.75
 str(tmp_T3s)
@@ -183,7 +187,8 @@ a = tibble("sample"= tmp_T3s@sam_data$SampleID,
 a[a == "Control"] <- "1a"
 a = as.factor(a$treatment)
 # offset
-o = log(sample_sums(tmp_T3s)) # using unfiltered data
+o = log(sample_sums(M04seq1)) # using unfiltered data
+#Since library sizes are different between groups, accounting for library size results in the gene no longer being DE at the 5% significance level. Not correcting for sequencing depth would thus result in spurious results.
 # random effect
 z <- as.factor(tmp_T3s@sam_data$SampleID)
 
@@ -203,7 +208,7 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
     ### model
     glmT3s <- glmmTMB(y ~ a + (1|z) , family="poisson", offset = o)
     #glmT3s <- glm(y ~ a, family='poisson')
-    glmT3s.sum = summary(glmT3s)$coefficients
+    glmT3s.sum = summary(glmT3s)$coefficients$cond
     glmT3s.sum = tibble("OTU"= OTU,
                         "treatment"=rownames(glmT3s.sum),
                         as_tibble(glmT3s.sum))
@@ -231,12 +236,20 @@ for (i in 1:length(taxa_names(tmp_T3s))) {
 
 glmT3s.model.global = glmT3s.sum.global
 glmT3s.pairwise.global = glmT3s.pairwise.global
+#When there is only one thing to test, there is no multiplicity issue, and hence no multiplicity adjustment to the P values.
 glmT3s.pairwise.global$p.adjust <- p.adjust(glmT3s.pairwise.global$p.value, method = "fdr")
 
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOB_Rhizo_rare_prev80/')
 write.csv(glmT3s.pairwise.global, file = "AOB_K0705.rh_130923.csv")
 aob.K0705.rh.fil <- as.data.frame(otu_table(physeq.subset.75))
 write.csv(aob.K0705.rh.fil, file = "AOB_K0705.rh.tab_130923.csv")
+
+
+#aob.log.dws.emm <- emmeans(aob.log.dws, ~ irrigation | fertilization*sampling.date)
+#aob.log.dws.pair <- pairs(aob.log.dws.emm)
+
+
+
 ##############################################################################################################################
 
 setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOB_BulkSoil_rare/')
@@ -636,7 +649,8 @@ comb.hm
 
 #### Bulk Soil #####
 
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/')
 rr.comp <- read.csv("3genes.bulk.RR.csv", row.names = 1)
 names(rr.comp)=str_sub(names(rr.comp),4)
 #Set annotation
@@ -791,8 +805,8 @@ comp.bs.hm <- Heatmap(as.matrix(rr.comp.ord),
                      col= col_fun)
 comp.bs.hm
 #decorate_annotation("RelativeAbundance", {
-  grid.text("Relative Abundance",y = unit(-8.8,"cm"),just = "bottom")
-})
+  #grid.text("Relative Abundance",y = unit(-8.8,"cm"),just = "bottom")
+#})
 
 
 
@@ -999,19 +1013,19 @@ aob.bulk.rawseq1 # 1008 taxa
 # Date: 04-28-2022
 
 # 1. MINERAL
-M04rawseq<- subset_samples(aob.bulk.rawseq1, Date=="04-28-22" & Treatment=="M")
+M04rawseq<- subset_samples(aob.bulk.rawseq1, Date=="Apr 28th" & Treatment=="M")
 M04rawseq1 <- prune_taxa(taxa_sums(M04rawseq)>0, M04rawseq)
 M04_table <- as.data.frame(otu_table(M04rawseq1))
 M04_table
 cond.aldx <- sample_data(M04rawseq1)$Irrigation
 # 2. BIODYNAMIC
-D04rawseq<- subset_samples(aob.bulk.rawseq1, Date=="04-28-22" & Treatment=="D")
+D04rawseq<- subset_samples(aob.bulk.rawseq1, Date=="Apr 28th" & Treatment=="D")
 D04rawseq1 <- prune_taxa(taxa_sums(D04rawseq)>0, D04rawseq)
 D04_table <- as.data.frame(otu_table(D04rawseq1))
 D04_table
 cond.aldx.D <- sample_data(D04rawseq1)$Irrigation
 # 3. CONVENTIONAL
-K04rawseq<- subset_samples(aob.bulk.rawseq1, Date=="04-28-22" & Treatment=="K")
+K04rawseq<- subset_samples(aob.bulk.rawseq1, Date=="Apr 28th" & Treatment=="K")
 K04rawseq1 <- prune_taxa(taxa_sums(K04rawseq)>0, K04rawseq)
 K04_table <- as.data.frame(otu_table(K04rawseq1))
 K04_table
@@ -1020,18 +1034,18 @@ cond.aldx.K <- sample_data(K04rawseq1)$Irrigation
 # Date: 06-01-2022
 
 # 1. MINERAL
-M06rawseq<- subset_samples(aob.bulk.rawseq1, Date=="06-01-22" & Treatment=="M")
+M06rawseq<- subset_samples(aob.bulk.rawseq1, Date=="Jun 1st" & Treatment=="M")
 M06rawseq1 <- prune_taxa(taxa_sums(M06rawseq)>0, M06rawseq)
 M06_table <- as.data.frame(otu_table(M06rawseq1))
 M06_table
 cond.aldx.M06 <- sample_data(M06rawseq1)$Irrigation
 # 2. BIODYNAMIC
-D06rawseq<- subset_samples(aob.bulk.rawseq1, Date=="06-01-22" & Treatment=="D")
+D06rawseq<- subset_samples(aob.bulk.rawseq1, Date=="Jun 1st" & Treatment=="D")
 D06rawseq1 <- prune_taxa(taxa_sums(D06rawseq)>0, D06rawseq)
 D06_table <- as.data.frame(otu_table(D06rawseq1))
 D06_table
 # 3. CONVENTIONAL
-K06rawseq<- subset_samples(aob.bulk.rawseq1, Date=="06-01-22" & Treatment=="K")
+K06rawseq<- subset_samples(aob.bulk.rawseq1, Date=="Jun 1st" & Treatment=="K")
 K06rawseq1 <- prune_taxa(taxa_sums(K06rawseq)>0, K06rawseq)
 K06_table <- as.data.frame(otu_table(K06rawseq1))
 K06_table
@@ -1040,18 +1054,18 @@ sample_data(K06rawseq1)$Irrigation
 # Date: 07-05-2022
 
 # 1. MINERAL
-M0705rawseq<- subset_samples(aob.bulk.rawseq1, Date=="07-05-22" & Treatment=="M")
+M0705rawseq<- subset_samples(aob.bulk.rawseq1, Date=="Jul 5th" & Treatment=="M")
 M0705rawseq1 <- prune_taxa(taxa_sums(M0705rawseq)>0, M0705rawseq)
 M0705_table <- as.data.frame(otu_table(M0705rawseq1))
 M0705_table
 cond.aldx.M0705 <- sample_data(M0705rawseq1)$Irrigation
 # 2. BIODYNAMIC
-D0705rawseq<- subset_samples(aob.bulk.rawseq1, Date=="07-05-22" & Treatment=="D")
+D0705rawseq<- subset_samples(aob.bulk.rawseq1, Date=="Jul 5th" & Treatment=="D")
 D0705rawseq1 <- prune_taxa(taxa_sums(D0705rawseq)>0, D0705rawseq)
 D0705_table <- as.data.frame(otu_table(D0705rawseq1))
 D0705_table
 # 3. CONVENTIONAL
-K0705rawseq<- subset_samples(aob.bulk.rawseq1, Date=="07-05-22" & Treatment=="K")
+K0705rawseq<- subset_samples(aob.bulk.rawseq1, Date=="Jul 5th" & Treatment=="K")
 K0705rawseq1 <- prune_taxa(taxa_sums(K0705rawseq)>0, K0705rawseq)
 K0705_table <- as.data.frame(otu_table(K0705rawseq1))
 K0705_table
@@ -1060,18 +1074,18 @@ sample_data(K0705rawseq1)$Irrigation
 # Date: 07-20-2022
 
 # 1. MINERAL
-M0720rawseq<- subset_samples(aob.bulk.rawseq1, Date=="07-20-22" & Treatment=="M")
+M0720rawseq<- subset_samples(aob.bulk.rawseq1, Date=="Jul 20th" & Treatment=="M")
 M0720rawseq1 <- prune_taxa(taxa_sums(M0720rawseq)>0, M0720rawseq)
 M0720_table <- as.data.frame(otu_table(M0720rawseq1))
 M0720_table
 cond.aldx.M0720 <- sample_data(M0720rawseq1)$Irrigation
 # 2. BIODYNAMIC
-D0720rawseq<- subset_samples(aob.bulk.rawseq1, Date=="07-20-22" & Treatment=="D")
+D0720rawseq<- subset_samples(aob.bulk.rawseq1, Date=="Jul 20th" & Treatment=="D")
 D0720rawseq1 <- prune_taxa(taxa_sums(D0720rawseq)>0, D0720rawseq)
 D0720_table <- as.data.frame(otu_table(D0720rawseq1))
 D0720_table
 # 3. CONVENTIONAL
-K0720rawseq<- subset_samples(aob.bulk.rawseq1, Date=="07-20-22" & Treatment=="K")
+K0720rawseq<- subset_samples(aob.bulk.rawseq1, Date=="Jul 20th" & Treatment=="K")
 K0720rawseq1 <- prune_taxa(taxa_sums(K0720rawseq)>0, K0720rawseq)
 K0720_table <- as.data.frame(otu_table(K0720rawseq1))
 K0720_table
@@ -1080,18 +1094,18 @@ sample_data(K0720rawseq1)$Irrigation
 # Date: 09-13-2022
 
 # 1. MINERAL
-M09rawseq<- subset_samples(aob.bulk.rawseq1, Date=="09-13-22" & Treatment=="M")
+M09rawseq<- subset_samples(aob.bulk.rawseq1, Date=="Sept 13th" & Treatment=="M")
 M09rawseq1 <- prune_taxa(taxa_sums(M09rawseq)>0, M09rawseq)
 M09_table <- as.data.frame(otu_table(M09rawseq1))
 M09_table
 cond.aldx.M09 <- sample_data(M09rawseq1)$Irrigation
 # 2. BIODYNAMIC
-D09rawseq<- subset_samples(aob.bulk.rawseq1, Date=="09-13-22" & Treatment=="D")
+D09rawseq<- subset_samples(aob.bulk.rawseq1, Date=="Sept 13th" & Treatment=="D")
 D09rawseq1 <- prune_taxa(taxa_sums(D09rawseq)>0, D09rawseq)
 D09_table <- as.data.frame(otu_table(D09rawseq1))
 D09_table
 # 3. CONVENTIONAL
-K09rawseq<- subset_samples(aob.bulk.rawseq1, Date=="09-13-22" & Treatment=="K")
+K09rawseq<- subset_samples(aob.bulk.rawseq1, Date=="Sept 13th" & Treatment=="K")
 K09rawseq1 <- prune_taxa(taxa_sums(K09rawseq)>0, K09rawseq)
 K09_table <- as.data.frame(otu_table(K09rawseq1))
 K09_table
@@ -1206,7 +1220,7 @@ df_otu_prev_ttt$max_prev <- apply(df_otu_prev_ttt,MARGIN=1, FUN=max)
 physeq.subset 
 ps =  physeq.subset 
 df_prev = df_otu_prev_ttt
-tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 80,])
+tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 75,])
 physeq.subset.75 <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
 rm(ps,df_prev,tmp_otu_F)
 physeq.subset.75 # 36 taxa
