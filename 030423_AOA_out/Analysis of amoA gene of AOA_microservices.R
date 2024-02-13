@@ -99,7 +99,6 @@ rarecurve(t(aoa.asv), step=50, cex=0.5, lwd=2, ylab="ASV", label=F)
 #BiocManager::install("phyloseq")
 library(phyloseq)
 ## make a phyloseq object of the asv table, taxonomy table, metadata
-
 # re-order the rownames of the asv table to match the colnames of the metadata.
 re_order <- match(rownames(meta_micro), colnames(aoa.asv))
 aoa.asv.ord  <- aoa.asv[ ,re_order]
@@ -1690,6 +1689,7 @@ pairwiseAdonis::pairwise.adonis(aoa_dist.BS.confym, aoa_meta.BS.confym$Irrigatio
 # 1. rarefied data
 aoa.rare.min.physeq
 tax_table(aoa.rare.min.physeq)
+
 # merge taxa by species
 aoa.sp <- tax_glom(aoa.rare.min.physeq, taxrank = "Sub_Clade2", NArm = F)
 aoa.sp.ra <- transform_sample_counts(aoa.sp, function(x) x/sum(x))
@@ -1699,6 +1699,7 @@ aoa.sp.df <- psmelt(aoa.sp.ra) %>%
   group_by(var2, Type, Date, Treatment, Irrigation, Order, Clade, Sub_Clade2) %>%
   summarize(Mean = mean(Abundance)) %>%
   arrange(-Mean)
+
 
 aoa.order <- tax_glom(aoa.rare.min.physeq, taxrank = "Order", NArm = F)
 aoa.order.ra <- transform_sample_counts(aoa.order, function(x) x/sum(x))
@@ -1713,6 +1714,10 @@ aoa.abund.trt.cla <- psmelt(aoa.cla.ra) %>%
   summarize(Mean = mean(Abundance)) %>%
   arrange(-Mean)
 
+aoa.abund.trt.subcla <- psmelt(aoa.cla.ra) %>%
+  group_by(Type,Clade) %>%
+  summarize(Mean = mean(Abundance)) %>%
+  arrange(-Mean)
 
 
 #install.packages("Polychrome")

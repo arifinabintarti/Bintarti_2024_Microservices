@@ -45,6 +45,9 @@ com.bulk.rich.aov <- anova_test(
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(com.bulk.rich.aov)
 
+
+
+
 # Test Method 3 
 #model3 <- lme(Richness ~ Irrigation*Treatment*Date, random=~1 | PlotID, method="REML", data=com.meta.bulk)
 #anova(model3)
@@ -54,7 +57,10 @@ get_anova_table(com.bulk.rich.aov)
 ############################################################################################################
 # Model Fit
 set.seed(13)
-com.rich.bulk.mod <- lmerTest::lmer(com.meta.bulk$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=com.meta.bulk)
+#install.packages("lme4", type = "source")
+library(lme4)
+library(lmerTest)
+com.rich.bulk.mod <- lmerTest::lmer(com.meta.bulk$Richness ~ Irrigation*Treatment*Date +Block+(1|PlotID), data=com.meta.bulk)
 anova(com.rich.bulk.mod, type = 2)
 
 com.rich.bulk.mod2 <- lmerTest::lmer(com.meta.bulk$Richness ~ Irrigation*Treatment*Date+(1|Block:Date), data=com.meta.bulk, na.action=na.omit)

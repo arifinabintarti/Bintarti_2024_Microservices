@@ -1597,7 +1597,10 @@ com.abund.trt.cla <- psmelt(com.cla.ra) %>%
   summarize(Mean = mean(Abundance)) %>%
   arrange(-Mean)
 
-
+com.abund.trt.subcla <- psmelt(com.cla.ra) %>%
+  group_by(Type,Clade) %>%
+  summarize(Mean = mean(Abundance)) %>%
+  arrange(-Mean)
 
 
 

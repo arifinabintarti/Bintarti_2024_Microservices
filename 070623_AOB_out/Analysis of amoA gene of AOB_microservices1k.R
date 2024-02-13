@@ -212,9 +212,7 @@ aob.rare.1282.seq # 1 samples removed (S11), 116 ASVs were removed
 ######################################################################################################
 
 # Calculate the alpha diversity (Richness and Pielou's evenness, we also calculates Shannon index) 
-
 #### AOB alpha diversity using rarefied data to the minimum sequencing depth (reads=858) ###
-
 colSums(otu_table(aob.rare.1282.seq))
 aob.asv.rare1k <- as.data.frame(otu_table(aob.rare.1282.seq))
 dim(aob.asv.rare1k) # 1222 ASVs
@@ -254,6 +252,7 @@ aob.meta.df.sub[sapply(aob.meta.df.sub, is.character)] <-
  lapply(aob.meta.df.sub[sapply(aob.meta.df.sub, is.character)], as.numeric)
 aob.meta.df.sub[sapply(aob.meta.df.sub, is.integer)] <- 
  lapply(aob.meta.df.sub[sapply(aob.meta.df.sub, is.integer)], as.numeric)
+
 # tidy up the data frame
 aob.meta.df.tidy <- aob.meta.df.sub %>%
   group_by(Irrigation, Treatment, Date,  Type, var2,var3) %>%
@@ -1899,15 +1898,18 @@ test.df <- psmelt(aob.sp.ra) %>%
   summarize(Mean = mean(Abundance)) %>%
   arrange(-Mean)
 
-
-
-
 aob.gen <- tax_glom(aob.rare.1282.seq, taxrank = "Genus", NArm = F)
 aob.gen.ra <- transform_sample_counts(aob.gen, function(x) x/sum(x))
 aob.abund.trt <- psmelt(aob.gen.ra) %>%
   group_by(Type, Treatment, Genus) %>%
   summarize(Mean = mean(Abundance)) %>%
   arrange(-Mean)
+
+aob.abund.trt.subcla <- psmelt(aob.gen.ra) %>%
+  group_by(Type,Genus) %>%
+  summarize(Mean = mean(Abundance)) %>%
+  arrange(-Mean)
+
 
 colours <- ColourPalleteMulti(aob.sp.df, "Genus", "Species")
 colours
