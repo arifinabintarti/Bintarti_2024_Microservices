@@ -13,7 +13,7 @@ library(ggforce)
 aoa.bulk_dist_bc <- vegdist(t(aoa.asv.bulk1), method = "bray")
 aoa.bulk_dist_bc
 # metadata
-aoa.meta.bulk
+str(aoa.meta.bulk.ed)
 aoa.meta.bulk.ed <- aoa.meta.bulk[,-30:-45]
 aoa.meta.bulk.ed$x <- as.factor(aoa.meta.bulk.ed$x)
 aoa.meta.bulk.ed$Block <- as.factor(aoa.meta.bulk.ed$Block)
@@ -36,7 +36,7 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 
 # run the final CAP by including PCoA axes showing the highest reclassification rate
 set.seed(13)
-aoa.cap.bulk <- CAPdiscrim(aoa.bulk_dist_bc ~ x, data = aoa.meta.bulk.ed, m = 44, permutations = 9999, add = TRUE) # 94.16667% 
+aoa.cap.bulk <- CAPdiscrim(aoa.bulk_dist_bc ~ x, data = aoa.meta.bulk.ed, m = 44, permutations = 9999, add = TRUE) # 94.16667% ,Significance of this percentage was 0.00010001 
 aoa.cap.bulk$x
 
 #aoa.cap.bulk.dist <- dist(aoa.cap.bulk$PCoA)
@@ -80,19 +80,22 @@ aoa.cap.plot <- ggplot(as.data.frame(aoa.cap.bulk$x), aes(x = aoa.cap.bulk$x[,1]
                      labels = c("BIODYN", "CONFYM", "CONMIN")) +
   scale_shape_manual(values = c(8, 1),
                      name = "Irrigation treatment",
-                     labels = c("control", "drought-induced")) + theme_classic() +
+                     labels = c("control", "drought")) + theme_classic() +
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
   geom_mark_ellipse(aes(fill = aoa.meta.bulk.ed$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
-  #labs(title = "AOA")+
-  theme(axis.text.x = element_text(color = "grey20", size = 10, angle = 0, hjust = .5, vjust = .5, face = "plain"),
-        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"),
-        axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
-        axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")) +
+  #labs(subtitle = "C. AOA")+
+  labs(subtitle = "B. AOA")+
+  theme(axis.text.x = element_text(color = "grey20", size = 16, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+        axis.text.y = element_text(color = "grey20", size = 16, angle = 0, hjust = 1, vjust = 0, face = "plain"),
+        axis.title.x = element_text(color = "grey20", size = 18, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+        axis.title.y = element_text(color = "grey20", size = 18, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        plot.subtitle = element_text(size=20, face="bold")) +
   #theme(plot.margin = unit(c(1,1,1,1), "cm")) +
   theme(legend.position = "none",
-        legend.title = element_text(size=13),
-        legend.text = element_text(size=13)) +
+        legend.title = element_blank(),
+        #legend.title = element_text(size=13),
+        legend.text = element_text(size=20)) +
   annotate("text",x=-9.5,y=-1,label= "90%", hjust = 0, size = 4,color="#009E73") +
   annotate("text",x=-7.5,y=3,label= "95%", hjust = 0, size = 4,color="#009E73") +
   annotate("text",x=-1.7,y=-7,label= "100%", hjust = 0, size = 4, color="#FF618C")+
@@ -100,7 +103,8 @@ aoa.cap.plot <- ggplot(as.data.frame(aoa.cap.bulk$x), aes(x = aoa.cap.bulk$x[,1]
   annotate("text",x=2,y=6,label= "95%", hjust = 0, size = 4, color="#E69F00")+
   annotate("text",x=6.5,y=0.4,label= "85%", hjust = 0, size = 4,color="#E69F00")+
   annotate("text",x=-14,y=-10,label= "Overall reclassification rate: 94.2%", hjust = 0, size = 4) +
-  annotate("text", x=-14, y=-11.5, label= "Pillai's test=4.1***", hjust = 0, size = 4)
+  annotate("text", x=-14, y=-11.5, label= "Pillai's test=4.1***", hjust = 0, size = 4)+
+ guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
 aoa.cap.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
@@ -108,6 +112,7 @@ ggsave("AOA_CAP_bulk_bray.tiff",
        aoa.cap.plot, device = "tiff",
        width = 4, height =3, 
        units= "in", dpi = 600)
+
 ### 1 B. Rhizosphere
 
 # run Bray-Curtis beta diversity on rhizosphere
@@ -115,8 +120,8 @@ aoa.rh_dist_bc <- vegdist(t(aoa.asv.rh1), method = "bray")
 aoa.rh_dist_bc
 # metadata
 aoa.meta.rh
-aoa.meta.rh.ed <- aoa.meta.rh[,c(-14:-29,-42:-45)]
-aoa.meta.rh.ed$x <- as.factor(aoa.meta.rh.ed$x)
+#aoa.meta.rh.ed <- aoa.meta.rh[,c(-14:-29,-42:-45)]
+#aoa.meta.rh.ed$x <- as.factor(aoa.meta.rh.ed$x)
 # run CAP on increasing numbers of PCoA axes to check how many axes need to be included in the model (diagnostics).
 nc <- nrow(as.matrix(aoa.rh_dist_bc))
 success <- data.frame(m = numeric(nc), class.success = numeric(nc))
@@ -136,7 +141,7 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 
 # run the final CAP by including PCoA axes showing the highest reclassification rate
 set.seed(13)
-aoa.cap.rh <- CAPdiscrim(aoa.rh_dist_bc ~ x, data = aoa.meta.rh.ed, m = 38, permutations = 9999, add = TRUE) # 90.27778 % 
+aoa.cap.rh <- CAPdiscrim(aoa.rh_dist_bc ~ x, data = aoa.meta.rh.ed, m = 38, permutations = 9999, add = TRUE) # 90.27778 % ,Significance of this percentage was 0.0001
 aoa.cap.rh
 
 dist_matrix.aoa.rh <- dist(aoa.cap.rh$x)
@@ -179,13 +184,16 @@ aoa.cap.rh.plot <- ggplot(as.data.frame(aoa.cap.rh$x), aes(x = aoa.cap.rh$x[,1],
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
   geom_mark_ellipse(aes(fill = aoa.meta.rh.ed$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
-  theme(axis.text.x = element_text(color = "grey20", size = 10, angle = 0, hjust = .5, vjust = .5, face = "plain"),
-        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"),
-        axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
-        axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")) +
+ labs(subtitle = "D. AOA")+
+  theme(axis.text.x = element_text(color = "grey20", size = 16, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+        axis.text.y = element_text(color = "grey20", size = 16, angle = 0, hjust = 1, vjust = 0, face = "plain"),
+        axis.title.x = element_text(color = "grey20", size = 18, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+        axis.title.y = element_text(color = "grey20", size = 18, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        plot.subtitle = element_text(size=20, face="bold")) +
   theme(legend.position = "none",
-        legend.title = element_text(size=13),
-        legend.text = element_text(size=13)) +
+        legend.title = element_blank(),
+        #legend.title = element_text(size=13),
+        legend.text = element_text(size=20)) +
  annotate("text",x=-14,y=-1,label= "100%", hjust = 0, size = 4,color="#009E73") +
  annotate("text",x=-14,y=3,label= "83.3%", hjust = 0, size = 4,color="#009E73") +
  annotate("text",x=-3,y=-7,label= "91.7%", hjust = 0, size = 4, color="#FF618C")+
@@ -193,7 +201,8 @@ aoa.cap.rh.plot <- ggplot(as.data.frame(aoa.cap.rh$x), aes(x = aoa.cap.rh$x[,1],
  annotate("text",x=3,y=6,label= "100%", hjust = 0, size = 4, color="#E69F00")+
  annotate("text",x=6,y=1,label= "91.7%", hjust = 0, size = 4,color="#E69F00")+
 annotate("text",x=-17,y=-9,label= "Overall reclassification rate: 90.3%", hjust = 0, size = 4) +
-annotate("text", x=-17, y=-10.5, label= "Pillai's test=4.4***", hjust = 0, size = 4)
+annotate("text", x=-17, y=-10.5, label= "Pillai's test=4.4***", hjust = 0, size = 4)+
+ guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
 aoa.cap.rh.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
@@ -233,7 +242,7 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 
 # run the final CAP by including PCoA axes showing the highest reclassification rate
 set.seed(13)
-com.cap.bulk <- CAPdiscrim(com.bulk_dist_bc ~ x, data = com.meta.bulk.ed, m = 49, permutations = 9999, add = TRUE) # 78.81356% 
+com.cap.bulk <- CAPdiscrim(com.bulk_dist_bc ~ x, data = com.meta.bulk.ed, m = 49, permutations = 9999, add = TRUE) # 78.81356% , Significance of this percentage was 0.0001
 com.cap.bulk
 
 
@@ -278,14 +287,17 @@ com.cap.plot <- ggplot(as.data.frame(com.cap.bulk$x), aes(x = com.cap.bulk$x[,1]
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
   geom_mark_ellipse(aes(fill = com.meta.bulk.ed$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
-  #labs(title = "Comammox")+
-  theme(axis.text.x = element_text(color = "grey20", size = 10, angle = 0, hjust = .5, vjust = .5, face = "plain"),
-        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"),
-        axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
-        axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")) +
+ #labs(subtitle = "E. Comammox")+
+  labs(subtitle = "C. Comammox")+
+  theme(axis.text.x = element_text(color = "grey20", size = 16, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+        axis.text.y = element_text(color = "grey20", size = 16, angle = 0, hjust = 1, vjust = 0, face = "plain"),
+        axis.title.x = element_text(color = "grey20", size = 18, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+        axis.title.y = element_text(color = "grey20", size = 18, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        plot.subtitle = element_text(size=20, face="bold")) +
   theme(legend.position = "none",
-        legend.title = element_text(size=13),
-        legend.text = element_text(size=13)) +
+        legend.title = element_blank(),
+        #legend.title = element_text(size=13),
+        legend.text = element_text(size=20)) +
   annotate("text",x=-9,y=2.5,label= "90%", hjust = 0, size = 4,color="#009E73") +
   annotate("text",x=-15,y=3,label= "89.5%", hjust = 0, size = 4,color="#009E73") +
   annotate("text",x=1,y=-2,label= "85%", hjust = 0, size = 4, color="#FF618C")+
@@ -293,7 +305,8 @@ com.cap.plot <- ggplot(as.data.frame(com.cap.bulk$x), aes(x = com.cap.bulk$x[,1]
   annotate("text",x=6,y=5,label= "80%", hjust = 0, size = 4, color="#E69F00")+
   annotate("text",x=-2.5,y=5,label= "63.2%", hjust = 0, size = 4,color="#E69F00")+
   annotate("text",x=-17,y=-7,label= "Overall reclassification rate: 78.8%", hjust = 0, size = 4) +
-  annotate("text", x=-17, y=-8.5, label= "Pillai's test=3.7***", hjust = 0, size = 4)
+  annotate("text", x=-17, y=-8.5, label= "Pillai's test=3.7***", hjust = 0, size = 4)+
+ guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
 com.cap.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
@@ -308,9 +321,9 @@ ggsave("COM_CAP_bulk_bray.tiff",
 com.rh_dist_bc <- vegdist(t(com.asv.rh1), method = "bray")
 com.rh_dist_bc
 # metadata
-com.meta.rh
-com.meta.rh.ed <- com.meta.rh[,c(-14:-29,-42:-45)]
-com.meta.rh.ed$x <- as.factor(com.meta.rh.ed$x)
+str(com.meta.rh)
+#com.meta.rh.ed <- com.meta.rh[,c(-14:-29,-42:-45)]
+#com.meta.rh.ed$x <- as.factor(com.meta.rh.ed$x)
 # run CAP on increasing numbers of PCoA axes to check how many axes need to be included in the model (diagnostics).
 nc <- nrow(as.matrix(com.rh_dist_bc))
 success <- data.frame(m = numeric(nc), class.success = numeric(nc))
@@ -330,7 +343,7 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 
 # run the final CAP by including PCoA axes showing the highest reclassification rate
 set.seed(13)
-com.cap.rh <- CAPdiscrim(com.rh_dist_bc ~ x, data = com.meta.rh.ed, m = 19, permutations = 9999, add = TRUE) #  83.33% 
+com.cap.rh <- CAPdiscrim(com.rh_dist_bc ~ x, data = com.meta.rh, m = 19, permutations = 9999, add = TRUE) #  83.33%, Significance of this percentage was 0.0001
 com.cap.rh
 
 dist_matrix.com.rh <- dist(com.cap.rh$x)
@@ -349,8 +362,8 @@ com.cap2.rh <- paste("CAP2 (", round((100/sum(com.cap.rh$lda.other$svd^2) * com.
 # Plot with basic R
 
 plot(com.cap.rh$x[, 1:2], xlab = com.cap1.rh, ylab = com.cap2.rh, pch = c(16, 17),
-     col = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")[com.meta.rh.ed$x])
-ordiellipse(com.cap.rh$x[, 1:2], groups = com.meta.rh.ed$x, draw = "polygon", 
+     col = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")[com.meta.rh$x])
+ordiellipse(com.cap.rh$x[, 1:2], groups = com.meta.rh$x, draw = "polygon", 
             col = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00"), pch = c(16, 17),
             kind = "ehull",   border = NA, alpha = 50)
 legend("bottomleft", legend = c("Control BIODYN (100%)", "Drought-induced BIODYN (91.7%)",
@@ -361,8 +374,8 @@ legend("bottomleft", legend = c("Control BIODYN (100%)", "Drought-induced BIODYN
 # Plot with ggplot2
 
 com.cap.rh.plot <- ggplot(as.data.frame(com.cap.rh$x), aes(x = com.cap.rh$x[,1], y = com.cap.rh$x[,2])) +
-  geom_point(aes(color = com.meta.rh.ed$Treatment, shape = com.meta.rh.ed$Irrigation), size = 2) +
-  #geom_text(label=com.meta.rh.ed$PlotID)+
+  geom_point(aes(color = com.meta.rh$Treatment, shape = com.meta.rh$Irrigation), size = 2) +
+  #geom_text(label=com.meta.rh$PlotID)+
   xlab(com.cap1.rh) + ylab(com.cap2.rh) +
   scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
                      name = "Farming system",
@@ -371,15 +384,18 @@ com.cap.rh.plot <- ggplot(as.data.frame(com.cap.rh$x), aes(x = com.cap.rh$x[,1],
                      name = "Drought",
                      labels = c("control", "drought")) + theme_classic() +
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
-  geom_mark_ellipse(aes(fill = com.meta.rh.ed$x), 
+  geom_mark_ellipse(aes(fill = com.meta.rh$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
-  theme(axis.text.x = element_text(color = "grey20", size = 10, angle = 0, hjust = .5, vjust = .5, face = "plain"),
-        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"),
-        axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
-        axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")) +
+  labs(subtitle = "F. Comammox")+
+  theme(axis.text.x = element_text(color = "grey20", size = 16, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+        axis.text.y = element_text(color = "grey20", size = 16, angle = 0, hjust = 1, vjust = 0, face = "plain"),
+        axis.title.x = element_text(color = "grey20", size = 18, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+        axis.title.y = element_text(color = "grey20", size = 18, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        plot.subtitle = element_text(size=20, face="bold")) +
   theme(legend.position = "none",
-        legend.title = element_text(size=13),
-        legend.text = element_text(size=13))+
+        legend.title = element_blank(),
+        #legend.title = element_text(size=13),
+        legend.text = element_text(size=20))+
   annotate("text",x=-16,y=-2.5,label= "100%", hjust = 0, size = 4,color="#009E73") +
   annotate("text",x=-16,y=3,label= "91.7%", hjust = 0, size = 4,color="#009E73") +
   annotate("text",x=0.5,y=-2,label= "75%", hjust = 0, size = 4, color="#FF618C")+
@@ -387,7 +403,8 @@ com.cap.rh.plot <- ggplot(as.data.frame(com.cap.rh$x), aes(x = com.cap.rh$x[,1],
   annotate("text",x=0,y=7,label= "75%", hjust = 0, size = 4, color="#E69F00")+
   annotate("text",x=-2,y=3,label= "75%", hjust = 0, size = 4,color="#E69F00")+
   annotate("text",x=-17,y=-7,label= "Overall reclassification rate: 83.3%", hjust = 0, size = 4) +
-  annotate("text", x=-17, y=-8.5, label= "Pillai's test=3.4***", hjust = 0, size = 4)
+  annotate("text", x=-17, y=-8.5, label= "Pillai's test=3.4***", hjust = 0, size = 4)+
+ guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
 com.cap.rh.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
@@ -428,7 +445,7 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 # run the final CAP by including PCoA axes showing the highest reclassification rate
 
 set.seed(333)
-aob.cap.bulk <- CAPdiscrim(aob.bulk_dist_bc ~ x, data = aob.meta.bulk.ed, m = 35, permutations = 9999, add = TRUE) # 60.5042 % 
+aob.cap.bulk <- CAPdiscrim(aob.bulk_dist_bc ~ x, data = aob.meta.bulk, m = 35, permutations = 9999, add = TRUE) # 60.5042 % ,Significance of this percentage was 0.0001
 aob.cap.bulk
 
 dist_matrix.aob <- dist(aob.cap.bulk$x)
@@ -459,27 +476,31 @@ legend("bottomleft", legend = c("Control BIODYN (57.9%)", "Drought-induced BIODY
 # Plot with ggplot2
 
 aob.cap.plot <- ggplot(as.data.frame(aob.cap.bulk$x), aes(x = aob.cap.bulk$x[,1], y = aob.cap.bulk$x[,2])) +
-  geom_point(aes(color = aob.meta.bulk.ed$Treatment, shape = aob.meta.bulk.ed$Irrigation), size = 2) +
-  #geom_text(label=aoa.meta.bulk.ed$PlotID)+
+  geom_point(aes(color = aob.meta.bulk$Treatment, shape = aob.meta.bulk$Irrigation), size = 2) +
+  #geom_text(label=aoa.meta.bulk$PlotID)+
   xlab(aob.cap1.bulk) + ylab(aob.cap2.bulk) +
   scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
                      name = "Farming system",
                      labels = c("BIODYN", "CONFYM", "CONMIN")) +
   scale_shape_manual(values = c(8, 1),
                      name = "Irrigation treatment",
-                     labels = c("control", "drought-induced")) + theme_classic() +
+                     labels = c("control", "drought")) + theme_classic() +
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
-  geom_mark_ellipse(aes(fill = aob.meta.bulk.ed$x), 
+  geom_mark_ellipse(aes(fill = aob.meta.bulk$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
-  #labs(title = "AOB")+
-  theme(axis.text.x = element_text(color = "grey20", size = 10, angle = 0, hjust = .5, vjust = .5, face = "plain"),
-        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"),
-        axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
-        axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")) +
+  #labs(title = "Bulk Soil", subtitle = "A. AOB")+
+  labs(subtitle = "A. AOB")+
+  theme(axis.text.x = element_text(color = "grey20", size = 16, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+        axis.text.y = element_text(color = "grey20", size = 16, angle = 0, hjust = 1, vjust = 0, face = "plain"),
+        axis.title.x = element_text(color = "grey20", size = 18, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+        axis.title.y = element_text(color = "grey20", size = 18, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        plot.subtitle = element_text(size=20, face="bold"),
+        plot.title = element_text(size=25, face="bold")) +
   #theme(plot.margin = unit(c(1,1,1,1), "cm")) +
   theme(legend.position = "none",
-        legend.title = element_text(size=13),
-        legend.text = element_text(size=13)) +
+        legend.title = element_blank(),
+        #legend.title = element_text(size=13),
+        legend.text = element_text(size=20)) +
   annotate("text",x=-3,y=1.6,label= "57.9%", hjust = 0, size = 4,color="#009E73") +
   annotate("text",x=-5.5,y=3.5,label= "80%", hjust = 0, size = 4,color="#009E73") +
   annotate("text",x=-2.2,y=-2.2,label= "45%", hjust = 0, size = 4, color="#FF618C")+
@@ -487,7 +508,8 @@ aob.cap.plot <- ggplot(as.data.frame(aob.cap.bulk$x), aes(x = aob.cap.bulk$x[,1]
   annotate("text",x=3.6,y=5,label= "70%", hjust = 0, size = 4, color="#E69F00")+
   annotate("text",x=-1,y=3,label= "55%", hjust = 0, size = 4,color="#E69F00")+
   annotate("text",x=-6,y=-5.5,label= "Overall reclassification rate: 60.5%", hjust = 0, size = 4) +
-  annotate("text", x=-6, y=-6.5, label= "Pillai's test=2.7***", hjust = 0, size = 4)
+  annotate("text", x=-6, y=-6.5, label= "Pillai's test=2.7***", hjust = 0, size = 4)+
+ guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
 aob.cap.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
@@ -504,14 +526,14 @@ aob.rh_dist_bc <- vegdist(t(aob.asv.rh1), method = "bray")
 aob.rh_dist_bc
 # metadata
 aob.meta.rh
-aob.meta.rh.ed <- aob.meta.rh[,c(-14:-29,-42:-45)]
-aob.meta.rh.ed$x <- as.factor(aob.meta.rh.ed$x)
+#aob.meta.rh.ed <- aob.meta.rh[,c(-14:-29,-42:-45)]
+#aob.meta.rh.ed$x <- as.factor(aob.meta.rh.ed$x)
 # run CAP on increasing numbers of PCoA axes to check how many axes need to be included in the model (diagnostics).
 nc <- nrow(as.matrix(aob.rh_dist_bc))
 success <- data.frame(m = numeric(nc), class.success = numeric(nc))
 set.seed(133)
 for (i in 1:50) {
-  cap <- CAPdiscrim(aob.rh_dist_bc ~ x, data = aob.meta.rh.ed, m = i, add = TRUE)
+  cap <- CAPdiscrim(aob.rh_dist_bc ~ x, data = aob.meta.rh, m = i, add = TRUE)
   success[i, 1] <- cap$m
   success[i, 2] <- 100/length(cap$group) * length(which(cap$group == cap$CV))
 }
@@ -525,7 +547,7 @@ text(success$m, success$class.success, labels = success$m, pos = 1, cex = 0.6)
 
 # run the final CAP by including PCoA axes showing the highest reclassification rate
 set.seed(13)
-aob.cap.rh <- CAPdiscrim(aob.rh_dist_bc ~ x, data = aob.meta.rh.ed, m = 20, permutations = 9999, add = TRUE) # 54.16667 % 
+aob.cap.rh <- CAPdiscrim(aob.rh_dist_bc ~ x, data = aob.meta.rh, m = 20, permutations = 9999, add = TRUE) # 54.16667 % ,Significance of this percentage was 0.0001
 aob.cap.rh
 
 dist_matrix.aob.rh <- dist(aob.cap.rh$x)
@@ -557,7 +579,7 @@ legend("bottomleft", legend = c("Control BIODYN (66.7%)", "Drought-induced BIODY
 # Plot with ggplot2
 
 aob.cap.rh.plot <- ggplot(as.data.frame(aob.cap.rh$x), aes(x = aob.cap.rh$x[,1], y = aob.cap.rh$x[,2])) +
-  geom_point(aes(color = aob.meta.rh.ed$Treatment, shape = aob.meta.rh.ed$Irrigation), size = 2) +
+  geom_point(aes(color = aob.meta.rh$Treatment, shape = aob.meta.rh$Irrigation), size = 2) +
   #geom_text(label=aob.meta.rh.ed$PlotID)+
   xlab(aob.cap1.rh) + ylab(aob.cap2.rh) +
   scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
@@ -565,17 +587,21 @@ aob.cap.rh.plot <- ggplot(as.data.frame(aob.cap.rh$x), aes(x = aob.cap.rh$x[,1],
                      labels = c("BIODYN", "CONFYM", "CONMIN")) +
   scale_shape_manual(values = c(8, 1),
                      name = "Irrigation treatment",
-                     labels = c("control", "drought-induced")) + theme_classic() +
+                     labels = c("control", "drought")) + theme_classic() +
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
-  geom_mark_ellipse(aes(fill = aob.meta.rh.ed$x), 
+  geom_mark_ellipse(aes(fill = aob.meta.rh$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
-  theme(axis.text.x = element_text(color = "grey20", size = 10, angle = 0, hjust = .5, vjust = .5, face = "plain"),
-        axis.text.y = element_text(color = "grey20", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"),
-        axis.title.x = element_text(color = "grey20", size = 12, angle = 0, hjust = .5, vjust = .5, face = "plain"),
-        axis.title.y = element_text(color = "grey20", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")) +
-  theme(legend.position = "none",
-        legend.title = element_text(size=13),
-        legend.text = element_text(size=13))+
+  labs(title = "Rhizosphere", subtitle = "B. AOB")+
+  theme(axis.text.x = element_text(color = "grey20", size = 16, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+        axis.text.y = element_text(color = "grey20", size = 16, angle = 0, hjust = 1, vjust = 0, face = "plain"),
+        axis.title.x = element_text(color = "grey20", size = 18, angle = 0, hjust = .5, vjust = .5, face = "plain"),
+        axis.title.y = element_text(color = "grey20", size = 18, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        plot.subtitle = element_text(size=20, face="bold"),
+        plot.title = element_text(size=25, face="bold")) +
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        #legend.title = element_text(size=13),
+        legend.text = element_text(size=20))+
   annotate("text",x=-5,y=2,label= "66.7%", hjust = 0, size = 4,color="#009E73") +
   annotate("text",x=-5.5,y=-3,label= "58.3%", hjust = 0, size = 4,color="#009E73") +
   annotate("text",x=-2.7,y=3,label= "66.7%", hjust = 0, size = 4, color="#FF618C")+
@@ -583,7 +609,8 @@ aob.cap.rh.plot <- ggplot(as.data.frame(aob.cap.rh$x), aes(x = aob.cap.rh$x[,1],
   annotate("text",x=3.3,y=-3.5,label= "41.7%", hjust = 0, size = 4, color="#E69F00")+
   annotate("text",x=-1.3,y=-2,label= "41.7%", hjust = 0, size = 4,color="#E69F00")+
   annotate("text",x=-6,y=-5.5,label= "Overall reclassification rate: 54.2%", hjust = 0, size = 4) +
-  annotate("text", x=-6, y=-6.5, label= "Pillai's test=2.6***", hjust = 0, size = 4)
+  annotate("text", x=-6, y=-6.5, label= "Pillai's test=2.6***", hjust = 0, size = 4)+
+ guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
 aob.cap.rh.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
@@ -594,7 +621,7 @@ ggsave("AOB_CAP_rhizo_bray.tiff",
 ############################################################################################################################################
 # Save all the plots 
 library(patchwork)
-cap.all.BS <- aob.cap.plot | aoa.cap.plot | com.cap.plot
+cap.all.BS <- aob.cap.plot / aoa.cap.plot / com.cap.plot
 cap.all.BS
 setwd('D:/Fina/INRAE_Project/microservices_fig')
 ggsave("cap.all.BS.tiff",
@@ -602,7 +629,7 @@ ggsave("cap.all.BS.tiff",
        width = 13, height = 4, 
        units= "in", dpi = 600)
 
-cap.all.RZ <- aob.cap.rh.plot | aoa.cap.rh.plot | com.cap.rh.plot
+cap.all.RZ <- aob.cap.rh.plot / aoa.cap.rh.plot / com.cap.rh.plot
 cap.all.RZ
 setwd('D:/Fina/INRAE_Project/microservices_fig')
 ggsave("cap.all.RZ.tiff",
@@ -614,17 +641,55 @@ library(ggpubr)
 cap.all.RZ <- ggarrange(aob.cap.rh.plot,aoa.cap.rh.plot,com.cap.rh.plot,
                         nrow = 1,
                         common.legend = T, 
-                        legend = "right") 
+                        legend = "bottom") 
                         #ncol=2, 
                         #nrow = 2,
                         #common.legend = T,
                         #legend = "right")
 cap.all.RZ
-setwd('D:/Fina/INRAE_Project/microservices_fig')
+#setwd('D:/Fina/INRAE_Project/microservices_fig')
 ggsave("cap.all.RZ.legend.tiff",
        cap.all.RZ, device = "tiff",
        width = 13, height = 4, 
        units= "in", dpi = 600)
+
+
+
+CAP.All <- ((aob.cap.plot / aoa.cap.plot / com.cap.plot) | (aob.cap.rh.plot / aoa.cap.rh.plot / com.cap.rh.plot))+
+ plot_layout(guides = "collect") & theme(legend.position = 'right',legend.title = element_blank(), legend.text = element_text(size = 22))
+CAP.All
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
+ggsave("Fig.2dpi300.tiff",
+       CAP.All, device = "tiff",
+       width = 10, height = 12, 
+       units= "in", dpi = 300, compression="lzw")
+
+ggsave("Fig.2.2dpi300.tiff",
+       CAP.All, device = "tiff",
+       width = 10, height = 15, 
+       units= "in", dpi = 300, compression="lzw")
+
+CAP.BS <- (aob.cap.plot / aoa.cap.plot / com.cap.plot)
+CAP.BS
+CAP.RS <- (aob.cap.rh.plot / aoa.cap.rh.plot / com.cap.rh.plot)
+ggsave("Fig.2.CAP.BS.tiff",
+       CAP.BS, device = "tiff",
+       width = 5, height = 11, 
+       units= "in", dpi = 300, compression="lzw")
+ggsave("Fig.2.CAP.RS.tiff",
+       CAP.RS, device = "tiff",
+       width = 5, height = 11, 
+       units= "in", dpi = 300, compression="lzw")
+
+CAP.BS.horiz <- (aob.cap.plot | aoa.cap.plot| com.cap.plot) +
+ plot_layout(guides = "collect") & theme(legend.position = 'bottom',legend.title = element_blank(), legend.text = element_text(size = 22))
+CAP.BS.horiz
+ggsave("Fig.CAP.BS.horiz.tiff",
+       CAP.BS.horiz, device = "tiff",
+       width = 15, height = 6, 
+       units= "in", dpi = 300, compression="lzw")
+
+
 
 ##################################################################################################################
 

@@ -3,9 +3,11 @@
 qPCR.RS$x
 qPCR.RS.ed <- qPCR.RS %>%
   mutate(x = factor(x,levels = c("cont.D","rain.D","cont.K","rain.K","cont.M","rain.M")))
-label <- c(`D` ="BIODYN (D)", 
-           `K` ="CONFYM (K)", 
-           `M` ="CONMIN (M)")
+label <- c(`D` ="BIODYN", 
+           `K` ="CONFYM", 
+           `M` ="CONMIN")
+qPCR.RS.ed$sampling.date <- factor(qPCR.RS.ed$sampling.date, levels = c("Apr 28th", "Jun 1st", "Jul 5th"),
+                          labels = c("Apr", "Jun", "Jul"))
 
 # 1. Rhizosphere - AOA
 
@@ -120,7 +122,7 @@ comA.cop.rh.plot
 
 # 4. Rhizosphere- Comammox B
 
-comB.cop.rh.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComB_nbc_per_ngDNA)) +
+comB.cop.rh.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=ComB_nbc_per_ngDNA)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   #ylim(0,7e+08)+
@@ -292,52 +294,54 @@ ggsave("AOA_16S.All.tiff",
 
 #6. Rhizosphere - AOB/16S RATIO
 
-AOB_16S.rat.rh.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=AOB_16S_ratio_percent)) +
+AOB_16S.stat_text.RS <- data.frame(sampling.date = 0.5, AOB_16S_ratio_percent = 0.4 , fertilization="D", label="D x C x T *")
+
+AOB_16S.rat.RS.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=AOB_16S_ratio_percent)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_bw() +
-  #ylim(0,8.9)+
-  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('control (D)', 'drought (D)', 'control (K)', 
-                             'drought (K)', 'control (M)', 'drought (M)'))+
+  theme_classic() +
+  scale_y_continuous(limits = c(0, 5))+
+  #ylim(0,5)+
+  labs(title = "Rhizosphere", subtitle = "B")+
   ylab('AOB/16S (%)')+
+  #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
+                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
-  theme(legend.title = element_blank(),
-        plot.title = element_text(size = 20, face='bold'),
+  theme(legend.position = "none",
+        legend.title = element_text(size=15, face='bold'),
         legend.text = element_text(size=15),
-        strip.text = element_blank(),
-        axis.text.y = element_text(size = 14),
-        #axis.text.x = element_blank(),
-        #axis.ticks.x = element_blank(),
-        axis.text.x = element_text(size = 14,angle = 45, hjust = 1),
-        axis.title.y = element_text(size=15,face="bold"),
+        strip.text = element_text(size=18),
+        #strip.text = element_blank(),
+        axis.text.y = element_text(size = 18),
+        #axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.y = element_markdown(size=19),
+        plot.title = element_text(size=25, face="bold"),
+        plot.subtitle = element_text(size=20, face="bold"),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())+
-  guides(fill="none", alpha="none")+ggtitle("B. Rhizosphere")
-AOB_16S.rat.rh.plot
+ geom_label(data = AOB_16S.stat_text.RS,label=AOB_16S.stat_text.RS$label,hjust=0, colour="black", size=4, fontface="bold")
+AOB_16S.rat.RS.plot
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
 aob_16S_percent_rat_rh_emm <- qPCR.RS.ed %>%
   group_by(sampling.date, fertilization) %>%
   emmeans_test(AOB_16S_ratio_percent ~ irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model =  t.aob_16S_percent.rh)
+               conf.level = 0.95, model =  t.aob.RS.arc.aov2)
 aob_16S_percent_rat_rh_emm 
 aob_16S_percent_rh.xy <- aob_16S_percent_rat_rh_emm %>% 
   add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
 # plotting the pairwise comparisons among treatments (emmeans results)
-AOB_16S.rat.rh.plot2 <- AOB_16S.rat.rh.plot + 
-  stat_pvalue_manual(aob_16S_percent_rh.xy,label = "p = {scales::pvalue(p.adj)}",size=3, 
-                     bracket.size = 0.6,#bracket.nudge.y = -0.05,
-                     bracket.shorten = 1, color = "black",
-                     tip.length = 0.005, hide.ns = TRUE)+
-  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
-AOB_16S.rat.rh.plot2
-AOB_16S.rat.rh.plot3 <- AOB_16S.rat.rh.plot2 +   ylim(0,5)
-AOB_16S.rat.rh.plot3 
+AOB_16S.rat.RS.plot2 <- AOB_16S.rat.RS.plot + 
+  stat_pvalue_manual(aob_16S_percent_rh.xy,x = "sampling.date", y.position = 4.8,
+                     label = "p.adj.signif",size=5,
+                     tip.length = 0.01, hide.ns = F)
+AOB_16S.rat.RS.plot2
 
-AOB_16S.All <-  AOB_16S.rat.plot3  / AOB_16S.rat.rh.plot3 
-AOB_16S.All
 setwd('D:/Fina/INRAE_Project/microservices_fig/qPCR')
 ggsave("AOB_16S.All.tiff",
        AOB_16S.All, device = "tiff",
@@ -348,58 +352,38 @@ ggsave("AOB_16S.All.tiff",
 
 # 7. Rhizosphere - ComammoxA/16S RATIO
 
-comA_16S.rat.rh.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=ComA_16S_ratio_percent)) +
+#comA_16S.stat_text.RS <- data.frame(sampling.date = 0.5, ComA_16S_ratio_percent = 0.16 , fertilization="D", label="")
+
+comA_16S.rat.RS.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=ComA_16S_ratio_percent)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_bw() +
-  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('control (D)', 'drought (D)', 'control (K)', 
-                             'drought (K)', 'control (M)', 'drought (M)'))+
-  #labs(fill='Farming system', alpha= 'Drought')+
-  #ylab(bquote('Comammox B'~italic(amoA)~'gene'~(copies~g^-1~dry~soil)))+
+  theme_classic() +
+  scale_y_continuous(limits = c(0, 1.2))+
+  #ylim(0,5)+
+  labs(subtitle = "D")+
   ylab('Comammox A/16S (%)')+
+  #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
+                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
-  theme(legend.title = element_blank(),
-        #strip.background = element_blank(),
-        #strip.text.x = element_blank(),
-        plot.title = element_text(size = 20, face='bold'),
+  theme(legend.position = "none",
+        legend.title = element_text(size=15, face='bold'),
         legend.text = element_text(size=15),
+        #strip.text = element_text(size=18),
         strip.text = element_blank(),
-        axis.text.y = element_text(size = 14),
-        #axis.text.x = element_blank(),
-        #axis.ticks.x = element_blank(),
-        axis.text.x = element_text(size = 14,angle = 45, hjust = 1),
-        axis.title.y = element_text(size=15,face="bold"),
+        axis.text.y = element_text(size = 18),
+        #axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.y = element_markdown(size=19),
+        #plot.title = element_text(size=25, face="bold"),
+        plot.subtitle = element_text(size=20, face="bold"),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
-  guides(fill="none", alpha="none")+ggtitle("B. Rhizosphere")
-comA_16S.rat.rh.plot
-# adding xy position for the pairwise comparisons among treatments (emmeans results)
-comA_16S.rat.rh.emm.rstat <- qPCR.RS.ed %>%
-  group_by(sampling.date, fertilization) %>%
-  emmeans_test(ComA_16S_ratio_percent  ~ irrigation, 
-               p.adjust.method = "BH", 
-               conf.level = 0.95, model = t.comA_16S_arcs.rh)
-comA_16S.rat.rh.emm.rstat
-# add x y position
-comA_16S.rat.rh.emm.xy <- comA_16S.rat.rh.emm.rstat  %>% 
-  add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
-# plotting the pairwise comparisons among treatments (emmeans results)
-comA_16S.rat.rh.plot2 <- comA_16S.rat.rh.plot + 
-  stat_pvalue_manual(comA_16S.rat.rh.emm.xy ,
-                     #step.increase = 1,
-                     #label = "p.adj.signif",size=3.5,
-                     label = "p = {scales::pvalue(p.adj)}",size=3, 
-                     bracket.size = 0.6,#bracket.nudge.y = -0.05,
-                     bracket.shorten = 1, color = "black",
-                     tip.length = 0.005, hide.ns = TRUE)+
-  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
-comA_16S.rat.rh.plot3 <- comA_16S.rat.rh.plot2 +   ylim(0,1.2)
-comA_16S.rat.rh.plot3 
+        panel.grid.minor = element_blank())
+comA_16S.rat.RS.plot
 
-ComA_16S.All <-  comA_16S.rat.plot3  / comA_16S.rat.rh.plot3 
-ComA_16S.All
 setwd('D:/Fina/INRAE_Project/microservices_fig/qPCR')
 ggsave("ComA_16S.All.tiff",
        ComA_16S.All, device = "tiff",
@@ -410,58 +394,39 @@ ggsave("ComA_16S.All.tiff",
 
 # 7. Rhizosphere - ComammoxB/16S RATIO
 
-comB_16S.rat.rh.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=ComB_16S_ratio_percent)) +
+comB_16S.stat_text.RS <- data.frame(sampling.date = 0.5, ComB_16S_ratio_percent = 0.015 , fertilization="D", label="C *")
+
+comB_16S.rat.RS.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=ComB_16S_ratio_percent)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_bw() +
-  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('control (D)', 'drought (D)', 'control (K)', 
-                             'drought (K)', 'control (M)', 'drought (M)'))+
-  #labs(fill='Farming system', alpha= 'Drought')+
-  #ylab(bquote('Comammox B'~italic(amoA)~'gene'~(copies~g^-1~dry~soil)))+
+  theme_classic() +
+  scale_y_continuous(limits = c(0, 0.22))+
+  #ylim(0,5)+
+  labs(subtitle = "F")+
   ylab('Comammox B/16S (%)')+
+  #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
+                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
-  theme(legend.title = element_blank(),
-        #strip.background = element_blank(),
-        #strip.text.x = element_blank(),
-        plot.title = element_text(size = 20, face='bold'),
+  theme(legend.position = "none",
+        legend.title = element_text(size=15, face='bold'),
         legend.text = element_text(size=15),
+        #strip.text = element_text(size=18),
         strip.text = element_blank(),
-        axis.text.y = element_text(size = 14),
+        axis.text.y = element_text(size = 18),
+        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
         #axis.text.x = element_blank(),
         #axis.ticks.x = element_blank(),
-        axis.text.x = element_text(size = 14,angle = 45, hjust = 1),
-        axis.title.y = element_text(size=15,face="bold"),
+        axis.title.y = element_markdown(size=19),
+        #plot.title = element_text(size=25, face="bold"),
+        plot.subtitle = element_text(size=20, face="bold"),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())+
-  guides(fill="none", alpha="none")+ggtitle("B. Rhizosphere")
-comB_16S.rat.rh.plot
-# adding xy position for the pairwise comparisons among treatments (emmeans results)
-comB_16S.rat.rh.emm.rstat <- qPCR.RS.ed %>%
-  group_by(sampling.date, fertilization) %>%
-  emmeans_test(ComB_16S_ratio_percent  ~ irrigation, 
-               p.adjust.method = "BH", 
-               conf.level = 0.95, model = t.comB_16S_percent.rh)
-comB_16S.rat.rh.emm.rstat
-# add x y position
-comB_16S.rat.rh.emm.xy <- comB_16S.rat.rh.emm.rstat  %>% 
-  add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
-# plotting the pairwise comparisons among treatments (emmeans results)
-comB_16S.rat.rh.plot2 <- comB_16S.rat.rh.plot + 
-  stat_pvalue_manual(comB_16S.rat.rh.emm.xy ,
-                     #step.increase = 1,
-                     #label = "p.adj.signif",size=3.5,
-                     label = "p = {scales::pvalue(p.adj)}",size=3, 
-                     bracket.size = 0.6,#bracket.nudge.y = -0.05,
-                     bracket.shorten = 1, color = "black",
-                     tip.length = 0.005, hide.ns = TRUE)+
-  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
-comB_16S.rat.rh.plot3 <- comB_16S.rat.rh.plot2 +   ylim(0,0.25)
-comB_16S.rat.rh.plot3 
+ geom_label(data = comB_16S.stat_text.RS,label=comB_16S.stat_text.RS$label,hjust=0, colour="black", size=4, fontface="bold")
+comB_16S.rat.RS.plot
 
-ComB_16S.All <-  comB_16S.rat.plot3  / comB_16S.rat.rh.plot3 
-ComB_16S.All
 setwd('D:/Fina/INRAE_Project/microservices_fig/qPCR')
 ggsave("ComB_16S.All.tiff",
        ComB_16S.All, device = "tiff",

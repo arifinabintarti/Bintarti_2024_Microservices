@@ -16,6 +16,18 @@ library(DHARMa)
 # 1a. Analyses of Bulk Soil
 aoa.meta.bulk <- aoa.meta.df[1:120,]
 str(aoa.meta.bulk)
+aoa.meta.bulk$SampleID<-factor(aoa.meta.bulk$SampleID)
+aoa.meta.bulk$PlotID<-factor(aoa.meta.bulk$PlotID)
+aoa.meta.bulk$Irrigation<-factor(aoa.meta.bulk$Irrigation)
+aoa.meta.bulk$Block<-factor(aoa.meta.bulk$Block)
+aoa.meta.bulk$x<-factor(aoa.meta.bulk$x)
+aoa.meta.bulk$rep<-factor(aoa.meta.bulk$rep)
+aoa.meta.bulk$rep2<-factor(aoa.meta.bulk$rep2)
+aoa.meta.bulk$var2<-factor(aoa.meta.bulk$var2)
+aoa.meta.bulk$var3<-factor(aoa.meta.bulk$var3)
+aoa.meta.bulk$AOA_sqrtRich <- sqrt(aoa.meta.bulk$Richness)
+
+
 aoa.meta.bulk.sum.rich <- aoa.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   get_summary_stats(Richness, type = "mean_sd")
@@ -46,6 +58,34 @@ aoa.bulk.rich.aov <- anova_test(
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aoa.bulk.rich.aov)
 
+# Three-Way Repeated-Measures ANOVA
+aoa.bulk.rich.aov <- anova_test(
+  data = aoa.meta.bulk, type=2,dv = Richness, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aoa.bulk.rich.aov)
+
+# Test only 4 time points:
+aoa.meta.bulk.4 <- aoa.meta.bulk[1:96,]
+str(aoa.meta.bulk.4)
+aoa.meta.bulk.4$SampleID<-factor(aoa.meta.bulk.4$SampleID)
+aoa.meta.bulk.4$PlotID<-factor(aoa.meta.bulk.4$PlotID)
+aoa.meta.bulk.4$Irrigation<-factor(aoa.meta.bulk.4$Irrigation)
+aoa.meta.bulk.4$Block<-factor(aoa.meta.bulk.4$Block)
+aoa.meta.bulk.4$Date<-factor(aoa.meta.bulk.4$Date)
+aoa.meta.bulk.4$x<-factor(aoa.meta.bulk.4$x)
+aoa.meta.bulk.4$rep<-factor(aoa.meta.bulk.4$rep)
+aoa.meta.bulk.4$rep2<-factor(aoa.meta.bulk.4$rep2)
+aoa.meta.bulk.4$var2<-factor(aoa.meta.bulk.4$var2)
+aoa.meta.bulk.4$var3<-factor(aoa.meta.bulk.4$var3)
+
+# Three-Way Repeated-Measures ANOVA
+aoa.bulk.rich.aov.4 <- anova_test(
+  data = aoa.meta.bulk.4, type=2,dv = Richness, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aoa.bulk.rich.aov.4)
+
+
+
 # Test Method 3 
 #model3 <- lme(Richness ~ Irrigation*Treatment*Date, random=~1 | PlotID, method="REML", data=aoa.meta.bulk)
 #anova(model3)
@@ -57,11 +97,11 @@ get_anova_table(aoa.bulk.rich.aov)
 library(lmerTest)
 set.seed(13)
 aoa.rich.bulk.mod <- lmerTest::lmer(aoa.meta.bulk$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aoa.meta.bulk)
-anova(aoa.rich.bulk.mod, type = 2)
+anova(aoa.rich.bulk.mod, type = 3)
 
-aoa.rich.bulk.mod2 <- lmerTest::lmer(aoa.meta.bulk$Richness ~ Irrigation*Treatment*Date+(1|Block:Date),
-                                     data=aoa.meta.bulk, na.action=na.omit)
-anova(aoa.rich.bulk.mod2)
+aoa.rich.bulk.mod2 <- lmerTest::lmer(aoa.meta.bulk$Richness ~ Irrigation*Treatment*Date+(1|Block)+(1|Block:Date),
+                                     data=aoa.meta.bulk,contrasts = list(Irrigation="contr.sum",Treatment="contr.sum",Date="contr.sum"))
+car::Anova(aoa.rich.bulk.mod2, test="F", type="III") 
 # test assumptions:
 library(DHARMa)
 shapiro.test(resid(aoa.rich.bulk.mod2)) # not normal
@@ -93,6 +133,18 @@ aoa.rich.emm.pair.DF <- as.data.frame(summary(aoa.rich.emm.pair))
 
 aoa.meta.rh <- aoa.meta.df[121:192,]
 str(aoa.meta.rh)
+View(aoa.meta.rh)
+aoa.meta.rh$SampleID<-factor(aoa.meta.rh$SampleID)
+aoa.meta.rh$PlotID<-factor(aoa.meta.rh$PlotID)
+aoa.meta.rh$Irrigation<-factor(aoa.meta.rh$Irrigation)
+aoa.meta.rh$Block<-factor(aoa.meta.rh$Block)
+aoa.meta.rh$x<-factor(aoa.meta.rh$x)
+aoa.meta.rh$rep<-factor(aoa.meta.rh$rep)
+aoa.meta.rh$rep2<-factor(aoa.meta.rh$rep2)
+aoa.meta.rh$var2<-factor(aoa.meta.rh$var2)
+aoa.meta.rh$var3<-factor(aoa.meta.rh$var3)
+aoa.meta.rh$Date <- factor(aoa.meta.rh$Date)
+
 aoa.meta.rh.sum.rich <- aoa.meta.rh %>%
   group_by(Irrigation, Treatment, Date) %>%
   get_summary_stats(Richness, type = "mean_sd")
@@ -121,23 +173,26 @@ aoa.rh.rich.aov <- anova_test(
   data = aoa.meta.rh, dv = Richness, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aoa.rh.rich.aov)
+
+
+# Three-Way Repeated-Measures ANOVA
+aoa.rich.RS.aov1 <- anova_test(
+  data = aoa.meta.rh, type=2,dv = Richness, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aoa.rich.RS.aov1)
 # other model
-# model1 <- aov(aob.meta.rh$Richness ~ Irrigation*Treatment*Date + Error(PlotID/Irrigation*Treatment), data=aob.meta.rh)
-# summary(model1)
-# Test Method 3
-# model3 <- lme(Richness ~ Irrigation*Treatment*Date, random=~1 | PlotID, method="ML", data=aob.meta.rh)
-# anova(model3)
+aoa.rich.RS.aov2 <- aov(aoa.meta.rh$Richness ~ Irrigation*Treatment*Date + 
+               Error(rep2/(Irrigation*Treatment*Date)), data=aoa.meta.rh)
+summary(aoa.rich.RS.aov2)
+hist(aoa.meta.rh$Richness) # fine
 
 # Model Fit
 set.seed(13)
-aoa.rich.rhizo.mod <- lmerTest::lmer(aoa.meta.rh$Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aoa.meta.rh)
-anova(aoa.rich.rhizo.mod, type = 2)
-
-aoa.rich.rhizo.mod2 <- lmerTest::lmer(aoa.meta.rh$Richness ~ Irrigation*Treatment*Date +(1|Block:Date), data=aoa.meta.rh)
-anova(aoa.rich.rhizo.mod2)
-
-shapiro.test(resid(aoa.rich.rhizo.mod2)) # not normal
-plot(simulateResiduals(aoa.rich.rhizo.mod2)) # okay
+aoa.rich.rhizo.mod <- lmerTest::lmer(aoa.meta.rh$Richness ~ Irrigation*Treatment*Date +(1|Block)+(1|Block:Date), 
+                                     data=aoa.meta.rh,contrasts = list(Irrigation="contr.sum",Treatment="contr.sum",Date="contr.sum"))
+car::Anova(aoa.rich.rhizo.mod, test="F", type="III") 
+shapiro.test(resid(aoa.rich.rhizo.mod)) # not normal
+plot(simulateResiduals(aoa.rich.rhizo.mod)) # okay
 
 # pairwise comparisons
 # 1. between fertilization treatment:
@@ -151,7 +206,7 @@ aoa.emm.rich.irri.rh <- aoa.meta.rh %>%
   group_by(Date, Treatment) %>%
   emmeans_test(Richness ~ Irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = aoa.rich.rhizo.mod2)
+               conf.level = 0.95, model = aoa.rich.RS.aov2)
 aoa.emm.rich.irri.rh
 # pairwise
 aoa.rich.emm.rh <- emmeans(aoa.rich.rhizo.mod2, ~ Treatment)
@@ -173,10 +228,12 @@ aoa.bulk.sum.sha.plot
 aoa.bulk.sha.out <- aoa.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   identify_outliers(Shannon) # no extreme outliers
+view(aoa.bulk.sha.out)
 # Saphiro-Wilk for normality
 aoa.bulk.sha.SW <- aoa.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   shapiro_test(Shannon)
+view(aoa.bulk.sha.SW)
 ggqqplot(aoa.meta.bulk, "Shannon", ggtheme = theme_bw()) +
   facet_grid(Date ~ Treatment, labeller = "label_both") #All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
 # Lavene test
@@ -189,10 +246,29 @@ aoa.bulk.sha.aov <- anova_test(
   data = aoa.meta.bulk, type=2, dv = Shannon, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aoa.bulk.sha.aov)
+
+# Three-Way Repeated-Measures ANOVA
+aoa.bulk.sha.aov <- anova_test(
+  data = aoa.meta.bulk, type=3,dv = Shannon, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aoa.bulk.sha.aov)
+
+# 4 Time Points:
+# Three-Way Repeated-Measures ANOVA
+aoa.bulk.sha.aov.4 <- anova_test(
+  data = aoa.meta.bulk.4, type=3,dv = Shannon, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aoa.bulk.sha.aov.4)
+# Test Method 3 
+aoa.bulk.sha.lmer4 <- lme4::lmer(aoa.meta.bulk.4$Shannon ~ Irrigation*Treatment*Date +(1|Block)+(1|Block:Date), 
+                           data=aoa.meta.bulk.4,contrasts = list(Irrigation="contr.sum",Treatment="contr.sum",Date="contr.sum"))
+car::Anova(aoa.bulk.sha.lmer4, test="F", type="III") 
+shapiro.test(resid(aoa.bulk.sha.lmer4)) # 
+plot(simulateResiduals(aoa.bulk.sha.lmer4)) # 
+
 ############################################################################################################
 # Model Fit
 set.seed(13)
-#aoa.sha.bulk.mod <- lmerTest::lmer(aoa.meta.bulk$Shannon ~ Irrigation*Treatment*Date +(1|PlotID), data=aoa.meta.bulk)
 #anova(aoa.sha.bulk.mod)
 
 aoa.sha.bulk.mod2 <- lmerTest::lmer(aoa.meta.bulk$Shannon ~ Irrigation*Treatment*Date +(1|Date:Block), data=aoa.meta.bulk)
@@ -252,6 +328,12 @@ aoa.rh.sha.aov <- anova_test(
   data = aoa.meta.rh, type=3, dv = Shannon, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aoa.rh.sha.aov)
+
+# Three-Way Repeated-Measures ANOVA
+aoa.rh.sha.aov <- anova_test(
+  data = aoa.meta.rh, type=3,dv = Shannon, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aoa.rh.sha.aov)
 ############################################################################################################
 # Model Fit
 set.seed(13)
@@ -308,6 +390,19 @@ aoa.bulk.invsimp.aov <- anova_test(
   data = aoa.meta.bulk, dv = InvSimpson, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aoa.bulk.invsimp.aov)
+
+# Three-Way Repeated-Measures ANOVA
+aoa.bulk.simp.aov <- anova_test(
+  data = aoa.meta.bulk, type=3,dv = InvSimpson, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aoa.bulk.simp.aov)
+
+
+# Three-Way Repeated-Measures ANOVA 4 tIME pOINTS
+aoa.bulk.simp.aov.4 <- anova_test(
+  data = aoa.meta.bulk.4, type=3,dv = InvSimpson, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aoa.bulk.simp.aov.4)
 ############################################################################################################
 # Model Fit
 set.seed(13)
@@ -359,6 +454,12 @@ aoa.rh.invsimp.aov <- anova_test(
   data = aoa.min.meta.rh, dv = InvSimpson, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aoa.rh.invsimp.aov)
+
+# Three-Way Repeated-Measures ANOVA
+aoa.rh.simp.aov <- anova_test(
+  data = aoa.meta.rh, type=2,dv = InvSimpson, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aoa.rh.simp.aov)
 ############################################################################################################
 # Model Fit
 set.seed(13)

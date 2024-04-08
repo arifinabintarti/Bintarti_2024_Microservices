@@ -16,72 +16,75 @@ aoa.physeq_bulk1 # 487 taxa
 
 # Date: 04-28-2022
 # 1. MINERAL
-aoaM04seq<- subset_samples(aoa.physeq_bulk1, Date=="04-28-22" & Treatment=="M")
-aoaM04seq1 <- prune_taxa(taxa_sums(aoaM04seq)>0, aoaM04seq)
+aoaM04seq<- subset_samples(aoa.physeq_bulk1, Date=="Apr 28th" & Treatment=="M")
+aoaM04seq1 <- prune_taxa(taxa_sums(aoaM04seq)>0, aoaM04seq) # 46 taxa after filtering (32)
 sort(rowSums(otu_table(aoaM04seq1), na.rm = FALSE, dims = 1), decreasing = F)
+aoaM04seq1 # 206 8
 # 2. BIODYNAMIC
-aoaD04seq<- subset_samples(aoa.physeq_bulk1, Date=="04-28-22" & Treatment=="D")
-aoaD04seq1 <- prune_taxa(taxa_sums(aoaD04seq)>0, aoaD04seq)
+aoaD04seq<- subset_samples(aoa.physeq_bulk1, Date=="Apr 28th" & Treatment=="D")
+aoaD04seq1 <- prune_taxa(taxa_sums(aoaD04seq)>0, aoaD04seq) # 76 taxa after filtering (56)
+aoaD04seq1 # 195 8
 # 3. CONVENTIONAL
-aoaK04seq<- subset_samples(aoa.physeq_bulk1, Date=="04-28-22" & Treatment=="K")
-aoaK04seq1 <- prune_taxa(taxa_sums(aoaK04seq)>0, aoaK04seq)
+aoaK04seq<- subset_samples(aoa.physeq_bulk1, Date=="Apr 28th" & Treatment=="K")
+aoaK04seq1 <- prune_taxa(taxa_sums(aoaK04seq)>0, aoaK04seq) # 50 taxa after filtering (31)
+aoaK04seq1 # 168
 
 # Date: 06-01-2022
 # 1. MINERAL
-aoaM06seq<- subset_samples(aoa.physeq_bulk1, Date=="06-01-22" & Treatment=="M")
-aoaM06seq1 <- prune_taxa(taxa_sums(aoaM06seq)>0, aoaM06seq)
+aoaM06seq<- subset_samples(aoa.physeq_bulk1, Date=="Jun 1st" & Treatment=="M")
+aoaM06seq1 <- prune_taxa(taxa_sums(aoaM06seq)>0, aoaM06seq) # 50 taxa after filtering (31)
 # 2. BIODYNAMIC
-aoaD06seq<- subset_samples(aoa.physeq_bulk1, Date=="06-01-22" & Treatment=="D")
-aoaD06seq1 <- prune_taxa(taxa_sums(aoaD06seq)>0, aoaD06seq)
+aoaD06seq<- subset_samples(aoa.physeq_bulk1, Date=="Jun 1st" & Treatment=="D")
+aoaD06seq1 <- prune_taxa(taxa_sums(aoaD06seq)>0, aoaD06seq) # 76 taxa after filtering (53)
 # 3. CONVENTIONAL
-aoaK06seq<- subset_samples(aoa.physeq_bulk1, Date=="06-01-22" & Treatment=="K")
-aoaK06seq1 <- prune_taxa(taxa_sums(aoaK06seq)>0, aoaK06seq)
+aoaK06seq<- subset_samples(aoa.physeq_bulk1, Date=="Jun 1st" & Treatment=="K")
+aoaK06seq1 <- prune_taxa(taxa_sums(aoaK06seq)>0, aoaK06seq) # 59 taxa after filtering (31)
 
 # Date: 07-05-2022
 # 1. MINERAL
-aoaM0705seq<- subset_samples(aoa.physeq_bulk1, Date=="07-05-22" & Treatment=="M")
-aoaM0705seq1 <- prune_taxa(taxa_sums(aoaM0705seq)>0, aoaM0705seq)
+aoaM0705seq<- subset_samples(aoa.physeq_bulk1, Date=="Jul 5th" & Treatment=="M")
+aoaM0705seq1 <- prune_taxa(taxa_sums(aoaM0705seq)>0, aoaM0705seq) # 48 taxa after filtering (30)
 # 2. BIODYNAMIC
-aoaD0705seq<- subset_samples(aoa.physeq_bulk1, Date=="07-05-22" & Treatment=="D")
-aoaD0705seq1 <- prune_taxa(taxa_sums(aoaD0705seq)>0, aoaD0705seq)
+aoaD0705seq<- subset_samples(aoa.physeq_bulk1, Date=="Jul 5th" & Treatment=="D")
+aoaD0705seq1 <- prune_taxa(taxa_sums(aoaD0705seq)>0, aoaD0705seq) # 74 taxa after filtering (50)
 # 3. CONVENTIONAL
-aoaK0705seq<- subset_samples(aoa.physeq_bulk1, Date=="07-05-22" & Treatment=="K")
-aoaK0705seq1 <- prune_taxa(taxa_sums(aoaK0705seq)>0, aoaK0705seq)
+aoaK0705seq<- subset_samples(aoa.physeq_bulk1, Date=="Jul 5th" & Treatment=="K")
+aoaK0705seq1 <- prune_taxa(taxa_sums(aoaK0705seq)>0, aoaK0705seq) # 50 taxa after filtering (32)
 
 # Date: 07-20-2022
 # 1. MINERAL
-aoaM0720seq<- subset_samples(aoa.physeq_bulk1, Date=="07-20-22" & Treatment=="M")
-aoaM0720seq1 <- prune_taxa(taxa_sums(aoaM0720seq)>0, aoaM0720seq)
+aoaM0720seq<- subset_samples(aoa.physeq_bulk1, Date=="Jul 20th" & Treatment=="M")
+aoaM0720seq1 <- prune_taxa(taxa_sums(aoaM0720seq)>0, aoaM0720seq) # 45 taxa after filtering (25)
 # 2. BIODYNAMIC
-aoaD0720seq<- subset_samples(aoa.physeq_bulk1, Date=="07-20-22" & Treatment=="D")
-aoaD0720seq1 <- prune_taxa(taxa_sums(aoaD0720seq)>0, aoaD0720seq)
+aoaD0720seq<- subset_samples(aoa.physeq_bulk1, Date=="Jul 20th" & Treatment=="D")
+aoaD0720seq1 <- prune_taxa(taxa_sums(aoaD0720seq)>0, aoaD0720seq) # 73 taxa after filtering (53)
 # 3. CONVENTIONAL
-aoaK0720seq<- subset_samples(aoa.physeq_bulk1, Date=="07-20-22" & Treatment=="K")
-aoaK0720seq1 <- prune_taxa(taxa_sums(aoaK0720seq)>0, aoaK0720seq)
+aoaK0720seq<- subset_samples(aoa.physeq_bulk1, Date=="Jul 20th" & Treatment=="K")
+aoaK0720seq1 <- prune_taxa(taxa_sums(aoaK0720seq)>0, aoaK0720seq) # 50 taxa after filtering (27)
 
 # Date: 09-13-2022
 # 1. MINERAL
-aoaM09seq<- subset_samples(aoa.physeq_bulk1, Date=="09-13-22" & Treatment=="M")
-aoaM09seq1 <- prune_taxa(taxa_sums(aoaM09seq)>0, aoaM09seq)
+aoaM09seq<- subset_samples(aoa.physeq_bulk1, Date=="Sept 13th" & Treatment=="M")
+aoaM09seq1 <- prune_taxa(taxa_sums(aoaM09seq)>0, aoaM09seq) # 46 taxa after filtering (26)
 # 2. BIODYNAMIC
-aoaD09seq<- subset_samples(aoa.physeq_bulk1, Date=="09-13-22" & Treatment=="D")
-aoaD09seq1 <- prune_taxa(taxa_sums(aoaD09seq)>0, aoaD09seq)
+aoaD09seq<- subset_samples(aoa.physeq_bulk1, Date=="Sept 13th" & Treatment=="D")
+aoaD09seq1 <- prune_taxa(taxa_sums(aoaD09seq)>0, aoaD09seq) # 76 taxa after filtering (58)
 # 3. CONVENTIONAL
-aoaK09seq<- subset_samples(aoa.physeq_bulk1, Date=="09-13-22" & Treatment=="K")
-aoaK09seq1 <- prune_taxa(taxa_sums(aoaK09seq)>0, aoaK09seq)
-
+aoaK09seq<- subset_samples(aoa.physeq_bulk1, Date=="Sept 13th" & Treatment=="K")
+aoaK09seq1 <- prune_taxa(taxa_sums(aoaK09seq)>0, aoaK09seq) # 50 taxa after filtering (29)
+# total 869 taxa, prev 80 (564)
 ################################################################################
 # Filter low-abundant taxa
 # keeping OTUs with at least 0.01 % relative abundance across all samples
-physeq.subset <- aoaK0720seq1
-physeq.subset #
+physeq.subset <-  aoa.physeq_bulk1
+physeq.subset # 487
 data.obs <- as.data.frame(otu_table(physeq.subset))
 keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
 data.F=data.obs[keep.taxa.id,,drop=FALSE]
 new.otu <- as.matrix(data.F) # convert it into a matrix.
 new.otu <- otu_table(data.F, taxa_are_rows = TRUE) # convert into phyloseq compatible file.
 otu_table(physeq.subset) <- new.otu # incorporate into phyloseq Object
-physeq.subset # 
+physeq.subset # 200
 
 ################################################################################
 #Lets generate a prevalence table (number of samples each taxa occurs in) for each taxa.
@@ -98,14 +101,14 @@ ps = physeq.subset
 df_tmp <- psmelt(ps)
 df_tmp$sample <- 0
 df_tmp$sample[df_tmp$Abundance > 0] <- 1 #E: DON'T UNDERSTAND WHY THIS IS DONE
-df_otu_prev_ttt <- data.frame(matrix(ncol=nlevels(as.factor(df_tmp$Irrigation)),
+df_otu_prev_ttt <- data.frame(matrix(ncol=nlevels(as.factor(df_tmp$var3)),
                                      nrow=nlevels(as.factor(df_tmp$OTU)), 
                                      dimnames=list(levels(as.factor(df_tmp$OTU)),
-                                                   levels(as.factor(df_tmp$Irrigation)))))
+                                                   levels(as.factor(df_tmp$var3)))))
 #attention il ya Sample et sample
 for (i in unique(df_tmp$OTU)) {
-  for (j in unique(df_tmp$Irrigation)) {
-    df_otu_prev_ttt[i,j] <- sum(df_tmp$sample[df_tmp$OTU == i & df_tmp$Irrigation == j],na.rm = T) / nrow(df_tmp[df_tmp$OTU == i & df_tmp$Irrigation == j,]) *100
+  for (j in unique(df_tmp$var3)) {
+    df_otu_prev_ttt[i,j] <- sum(df_tmp$sample[df_tmp$OTU == i & df_tmp$var3 == j],na.rm = T) / nrow(df_tmp[df_tmp$OTU == i & df_tmp$var3 == j,]) *100
     print(paste(i,j,df_otu_prev_ttt[i,j]),sep="\t")
     #print(df_otu_prev_ttt[i,j])
   }
@@ -118,10 +121,10 @@ df_otu_prev_ttt$max_prev <- apply(df_otu_prev_ttt,MARGIN=1, FUN=max)
 physeq.subset 
 ps =  physeq.subset 
 df_prev = df_otu_prev_ttt
-tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 75,])
+tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 80,])
 physeq.subset.75 <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
-rm(ps,df_prev,tmp_otu_F)
-physeq.subset.75 # 46 taxa
+#rm(ps,df_prev,tmp_otu_F)
+physeq.subset.75 # 79 taxa
 
 ####################################################
 # DIFFERENTIAL ABUNDANCE
@@ -194,7 +197,8 @@ glmT3s.pairwise.global$p.adjust <- p.adjust(glmT3s.pairwise.global$p.value, meth
 #aoa.K09.fil <- as.data.frame(otu_table(physeq.subset.75))
 #write.csv(aoa.K09.fil, file = "AOA_K09.tab_130923.csv")
 ################################################################################
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOA_BulkSoil_rare_prev80/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/AOA_BulkSoil_rare_prev80/')
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOA_BulkSoil_rare_prev80/')
 AOA_M04 <- read.csv("AOA_M04_130923.csv")[,-1]
 AOA_M04$contrast <- paste("M_042822", AOA_M04$contrast, sep="_")
 AOA_D04 <- read.csv("AOA_D04_130923.csv")[,-1]
@@ -230,23 +234,26 @@ AOA_D09$contrast <- paste("D_091322", AOA_D09$contrast, sep="_")
 AOA_K09 <- read.csv("AOA_K09_130923.csv")[,-1]
 AOA_K09$contrast <- paste("K_091322", AOA_K09$contrast, sep="_")
 
-glmT3s.pairwise.global.ALL <- rbind(AOA_M04, AOA_D04, AOA_K04, AOA_M06, AOA_D06, AOA_K06,
+AOA.glmT3s.pairwise.global.ALL <- rbind(AOA_M04, AOA_D04, AOA_K04, AOA_M06, AOA_D06, AOA_K06,
                                     AOA_M0705, AOA_D0705, AOA_K0705, AOA_M0720, AOA_D0720, AOA_K0720,
                                     AOA_M09, AOA_D09, AOA_K09)
-
+view(AOA.glmT3s.pairwise.global.ALL)
+length(unique(AOA.glmT3s.pairwise.global.ALL$OTU)) #79
 ## nb of pval <= 0.05 before and after filter
 table(glmT3s.pairwise.global.ALL$p.value <= 0.05)
 table(glmT3s.pairwise.global.ALL$p.adjust <= 0.05)
 
 ## nb of OTU with a pval <= 0.05 before and after filter
-tmp_otu3s = unique(glmT3s.pairwise.global.ALL$OTU[glmT3s.pairwise.global.ALL$p.adjust <= 0.05])
-glmT3s.pairwise.global.signif = glmT3s.pairwise.global.ALL[glmT3s.pairwise.global.ALL$p.adjust <=0.05,]
+#tmp_otu3s = unique(glmT3s.pairwise.global.ALL$OTU[glmT3s.pairwise.global.ALL$p.adjust <= 0.05])
+#glmT3s.pairwise.global.signif = glmT3s.pairwise.global.ALL[glmT3s.pairwise.global.ALL$p.adjust <=0.05,]
+tmp_otu3s = unique(glmT3s.pairwise.global.ALL$OTU[AOA.glmT3s.pairwise.global.ALL$p.value <= 0.05])
+AOA.glmT3s.pairwise.global.signif = AOA.glmT3s.pairwise.global.ALL[AOA.glmT3s.pairwise.global.ALL$p.value <=0.05,]
 
 length(tmp_otu3s)
 tmp_otu3s
 
 # cast pvalues
-contrasts.glm.CBFP.T3s <- glmT3s.pairwise.global.ALL[,c(10,1,2)]
+contrasts.glm.CBFP.T3s <- glmT3s.pairwise.global.ALL[,c(7,1,2)]
 # numeric variable needs to be named "value" 
 colnames(contrasts.glm.CBFP.T3s) <- c("value", "OTU_names", "contrast")
 #contrasts.glm.CBFP.T3s <- subset(contrasts.glm.CBFP.T3s, (contrasts.glm.CBFP.T3s$OTU_names %in% BFPOTUs.T3snet.sig))
@@ -267,7 +274,7 @@ str(contrasts.glm.CBFP.T3s.sub)
 ctrst.glm.CBFP.T3s.sub <- data.frame(t(contrasts.glm.CBFP.T3s.sub))
 
 # replace pvalues to 0 if non significant, or 1 if significant
-#ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub ==NA] <- 0
+ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub ==NA] <- 0
 ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub >0.05] <- 2
 ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub <0.05] <- 1
 ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub >1] <- 0
@@ -307,7 +314,7 @@ meanotus$RR_K_072022 <- log2(meanotus$RKBS4 / meanotus$CKBS4)
 meanotus$RR_K_091322 <- log2(meanotus$RKBS5 / meanotus$CKBS5)
 
 
-head(meanotus)
+colnames(meanotus)
 # keep only columns containing log2fold ratios (RRs)
 meanotus<-meanotus[,c(31:45)]
 head(meanotus)
@@ -328,40 +335,75 @@ ctrst.glm.CBFP.T3s.sub <- ctrst.glm.CBFP.T3s.sub[rownames(meanotus), ]
 # Multiply the matrices to get the RR when it is significant and 0 when it is not significant
 rr<-meanotus*ctrst.glm.CBFP.T3s.sub
 
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOA_BulkSoil_rare_prev80/')
-write.csv(rr, file = "AOA_RR_130923.csv")
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOA_BulkSoil_rare_prev80/')
+#write.csv(rr, file = "AOA_RR_130923.csv")
+setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/AOA_BulkSoil_rare_prev80/')
+write.csv(rr, file = "AOA_RR_prev80_p.value_270224.csv")
 ################################################################################
 #HeatMap
 #install.packages("colorRamp2")
 library(colorRamp2)
 #BiocManager::install("ComplexHeatmap")
 library(ComplexHeatmap)
+grad.col.aoa <- c("#990F0F", "#B22C2C", "#CC5151", "#E57E7E", "#FFB2B2",
+                  "#99540F", "#B26F2C", "#CC8E51", "#E5B17E", "#FFD8B2",
+                  "#6B990F", "#85B22C", "#A3CC51", "#C3E57E", "#E5FFB2",
+                  "#0F6B99", "#2C85B2", "#51A3CC", "#7EC3E5", "#B2E5FF",
+                  "#260F99", "#422CB2", "#6551CC", "#8F7EE5", "#BFB2FF",
+                  "#148F77", "#009E73", "#43BA8F", "#48C9B0", "#A3E4D7",
+                  "#7D3560", "#A1527F", "#CC79A7", "#E794C1", "#EFB6D6")
 # read the log2fold ratio data files
 # bulk soil
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/log2fold/')
-rr.aoa <- read.csv("AOA_RR_Bulk_130923.csv", row.names = 1)
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/log2fold/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/log2fold/')
+#rr.aoa <- read.csv("AOA_RR_Bulk_130923.csv", row.names = 1)
+rr.aoa <- read.csv("AOA_RR_Bulk_p.val_280224.csv", row.names = 1)
 names(rr.aoa)=str_sub(names(rr.aoa),4)
 # rizosphere
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/log2fold/')
-rr.aoa.rhizo <- read.csv("AOA_RR_Rhizo_140923.csv", row.names = 1)
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/log2fold/')
+#rr.aoa.rhizo <- read.csv("AOA_RR_Rhizo_140923.csv", row.names = 1)
+rr.aoa.rhizo <- read.csv("AOA_RR_Rhizo_p.val_280224.csv", row.names = 1)
 names(rr.aoa.rhizo)=str_sub(names(rr.aoa.rhizo),4)
-#Set annotation
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
-ann.aoa <- read.csv("AOA.anno.csv", row.names = 1)
-colours.aoa <- list("Taxonomy"=c("Nitrososphaerales (NS-Delta-1.Incertae_sedis)"="#A3CC51",
-                            "Nitrososphaerales (NS-Gamma-1.2)"="#E5FFB2",
-                            "Ca.Nitrosotaleales (NT-Alpha-1.1.2.2)"="#B22C2C",
-                            "Nitrososphaerales (NS-Gamma-2.3.1)"="#B2E5FF"))
 
-colAnn.aoa <- rowAnnotation(df=ann.aoa,name = "Taxonomy",col=colours.aoa,
-                        annotation_width=unit(c(1, 4), "cm"), 
-                        gap=unit(1, "mm"))
+#Set annotation
+setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/')
+ann.aoa <- read.csv("AOA_anno_prev80_pval_280224.csv", row.names = 1)
+rr.aoa.ord <- rr.aoa[rownames(ann.aoa), ]
+view(rr.aoa.ord)
+rr.aoa.rhizo.ord <- rr.aoa.rhizo[rownames(ann.aoa), ]
+colours.aoa <- list("Taxonomy"=c("NT-Alpha-1.1.2.2-JN179533"="#B22C2C",
+                                 "NS-Beta-1.3_OTU1_1-EU885554"="#E5B17E",
+                                 "NS-Delta-1.Incertae_sedis.2_OTU1_1-EU885561"="#85B22C",
+                                 "NS-Delta-1.Incertae_sedis.2_OTU2_1-EU885632"="#A3CC51",
+                                 "NS-Gamma-1.2_OTU1_1-EU671146"="#E5FFB2",
+                                 "NS-Gamma-1.Incertae_sedis_OTU1_1-EU651089"="#0F6B99",
+                                 "NS-Gamma-2.3.1_OTU2_1-KC469632"="#B2E5FF"))
+col_level.aoa <- factor(ann.aoa$Taxonomy, levels = c("NT-Alpha-1.1.2.2-JN179533",
+                                                  "NS-Beta-1.3_OTU1_1-EU885554",
+                                                  "NS-Delta-1.Incertae_sedis.2_OTU1_1-EU885561",
+                                                  "NS-Delta-1.Incertae_sedis.2_OTU2_1-EU885632",
+                                                  "NS-Gamma-1.2_OTU1_1-EU671146",
+                                                  "NS-Gamma-1.Incertae_sedis_OTU1_1-EU651089",
+                                                  "NS-Gamma-2.3.1_OTU2_1-KC469632"))
+tax_level.aoa=levels(col_level.aoa)
+str(tax_level.aoa)
+tax_level.aoa
+colAnn.aoa  <- rowAnnotation(df=ann.aoa,
+                             col=colours.aoa,
+                             show_legend =F,
+                             annotation_legend_param = list(Taxonomy = list(
+                             title="Taxonomy",
+                             ncol=1,
+                             at = tax_level.aoa)),
+                             annotation_width=unit(c(1, 4), "cm"), 
+                             gap=unit(1, "mm"))
 colAnn.aoa
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/')
 ann.fert <- read.csv("BulkSoil.anno.csv", row.names = 1)
-colours.fert <- list("Fertilization"=c("M"="#ffcf20FF",
-                                       "D"="#541352FF",
-                                       "K"="#2f9aa0FF"))
+colours.fert <- list("Fertilization"=c("M"="#E69F00",
+                             "D"="#009E73",
+                             "K"="#FF618C"))
 colFert.Ann <- columnAnnotation(df=ann.fert, col=colours.fert,
                                 show_legend =F,
                                 show_annotation_name =F,
@@ -370,34 +412,37 @@ colFert.Ann <- columnAnnotation(df=ann.fert, col=colours.fert,
 # heatmap
 dev.off()
 col_fun = colorRamp2(c(10, 0, -10), c("blue", "white", "red"))
-aoa.bs.hm <- Heatmap(as.matrix(rr.aoa),
+aoa.bs.hm <- Heatmap(as.matrix(rr.aoa.ord),
                      name = "Log2-ratio",
                      column_title = "Bulk Soil",
-                     cluster_columns = F,
-                     column_order = order(colnames(as.matrix(rr.aoa))),
-                     #bottom_annotation = colFert.Ann,
+                     cluster_rows = F,
+                     column_order = order(colnames(as.matrix(rr.aoa.ord))),
+                     bottom_annotation = colFert.Ann,
                      #column_names_gp = gpar(fontsize=15, col = c(rep("#ffcf20FF", 5), rep("#541352FF", 5), rep("#2f9aa0FF", 5))),
                      #column_names_rot = 45,
+                     right_annotation = colAnn.aoa,
                      show_column_dend = F,
                      show_row_dend = F,
                      border_gp = gpar(col = "black", lty = 2),
                      col= col_fun)
-aoa.bs.hm
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+aoa.bs.hm 
+aoa.BS <- draw(aoa.bs.hm)
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/')
 ann.fert.rh <- read.csv("Rhizo.anno.csv", row.names = 1)
-colours.fert <- list("Fertilization"=c("M"="#ffcf20FF",
-                                       "D"="#541352FF",
-                                       "K"="#2f9aa0FF"))
+colours.fert <- list("Fertilization"=c("M"="#E69F00",
+                             "D"="#009E73",
+                             "K"="#FF618C"))
 colFert.Ann.rh <- columnAnnotation(df=ann.fert.rh, col=colours.fert,
                                    show_legend =F,
                                    show_annotation_name =F,
                                    annotation_width=unit(c(1, 4), "cm"), 
                                    gap=unit(1, "mm"))
-aoa.rh.hm <- Heatmap(as.matrix(rr.aoa.rhizo),
+aoa.rh.hm <- Heatmap(as.matrix(rr.aoa.rhizo.ord),
                      name = "Log2-ratio",
                      column_title = "Rhizosphere",
-                     cluster_columns = F,
-                     column_order = order(colnames(as.matrix(rr.aoa.rhizo))),
+                     cluster_rows = F,
+                     column_order = order(colnames(as.matrix(rr.aoa.rhizo.ord))),
                      right_annotation = colAnn.aoa,
                      #bottom_annotation = colFert.Ann.rh,
                      #column_names_rot = 45,
@@ -447,50 +492,51 @@ aoa.physeq_rh1 # 405 taxa
 
 # Date: 04-28-2022
 # 1. MINERAL
-M04.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="04-28-22" & Treatment=="M")
-M04.rh.seq1 <- prune_taxa(taxa_sums(M04.rh.seq)>0, M04.rh.seq)
+M04.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="Apr 28th" & Treatment=="M")
+M04.rh.seq1 <- prune_taxa(taxa_sums(M04.rh.seq)>0, M04.rh.seq) # 40 taxa after filtering (26 taxa)
 sort(rowSums(otu_table(M04.rh.seq1), na.rm = FALSE, dims = 1), decreasing = F)
 # 2. BIODYNAMIC
-D04.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="04-28-22" & Treatment=="D")
-D04.rh.seq1 <- prune_taxa(taxa_sums(D04.rh.seq)>0, D04.rh.seq)
+D04.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="Apr 28th" & Treatment=="D")
+D04.rh.seq1 <- prune_taxa(taxa_sums(D04.rh.seq)>0, D04.rh.seq) # 77 taxa after filtering (60)
 # 3. CONVENTIONAL
-K04.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="04-28-22" & Treatment=="K")
-K04.rh.seq1 <- prune_taxa(taxa_sums(K04.rh.seq)>0, K04.rh.seq)
+K04.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="Apr 28th" & Treatment=="K")
+K04.rh.seq1 <- prune_taxa(taxa_sums(K04.rh.seq)>0, K04.rh.seq) # 49 taxa after filtering (27)
 
 # Date: 06-01-2022
 # 1. MINERAL
-M06.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="06-01-22" & Treatment=="M")
-M06.rh.seq1 <- prune_taxa(taxa_sums(M06.rh.seq)>0, M06.rh.seq)
+M06.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="Jun 1st" & Treatment=="M")
+M06.rh.seq1 <- prune_taxa(taxa_sums(M06.rh.seq)>0, M06.rh.seq) # 47 taxa after filtering (27)
 # 2. BIODYNAMIC
-D06.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="06-01-22" & Treatment=="D")
-D06.rh.seq1 <- prune_taxa(taxa_sums(D06.rh.seq)>0, D06.rh.seq)
+D06.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="Jun 1st" & Treatment=="D")
+D06.rh.seq1 <- prune_taxa(taxa_sums(D06.rh.seq)>0, D06.rh.seq) # 75 taxa after filtering (54)
 # 3. CONVENTIONAL
-K06.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="06-01-22" & Treatment=="K")
-K06.rh.seq1 <- prune_taxa(taxa_sums(K06.rh.seq)>0, K06.rh.seq)
+K06.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="Jun 1st" & Treatment=="K")
+K06.rh.seq1 <- prune_taxa(taxa_sums(K06.rh.seq)>0, K06.rh.seq) # 46 taxa after filtering (30)
 
 # Date: 07-05-2022
 # 1. MINERAL
-M0705.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="07-05-22" & Treatment=="M")
-M0705.rh.seq1 <- prune_taxa(taxa_sums(M0705.rh.seq)>0, M0705.rh.seq)
+M0705.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="Jul 5th" & Treatment=="M")
+M0705.rh.seq1 <- prune_taxa(taxa_sums(M0705.rh.seq)>0, M0705.rh.seq) # 41 taxa after filtering (24)
 # 2. BIODYNAMIC
-D0705.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="07-05-22" & Treatment=="D")
-D0705.rh.seq1 <- prune_taxa(taxa_sums(D0705.rh.seq)>0, D0705.rh.seq)
+D0705.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="Jul 5th" & Treatment=="D")
+D0705.rh.seq1 <- prune_taxa(taxa_sums(D0705.rh.seq)>0, D0705.rh.seq) # 71 taxa after filtering (51)
 # 3. CONVENTIONAL
-K0705.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="07-05-22" & Treatment=="K")
-K0705.rh.seq1 <- prune_taxa(taxa_sums(K0705.rh.seq)>0, K0705.rh.seq)
+K0705.rh.seq<- subset_samples(aoa.physeq_rh1, Date=="Jul 5th" & Treatment=="K")
+K0705.rh.seq1 <- prune_taxa(taxa_sums(K0705.rh.seq)>0, K0705.rh.seq) # 51 taxa after filtering (30)
+# total = 497 taxa (PREV 80 =329)
 ################################################################################
 ###############################################################################
 # Filter low-abundant taxa
 # keeping OTUs with at least 0.01 % relative abundance across all samples
-physeq.subset <- K0705.rh.seq1
-physeq.subset 
+physeq.subset <-aoa.physeq_rh1
+physeq.subset # 405
 data.obs <- as.data.frame(otu_table(physeq.subset))
 keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
 data.F=data.obs[keep.taxa.id,,drop=FALSE]
 new.otu <- as.matrix(data.F) # convert it into a matrix.
 new.otu <- otu_table(data.F, taxa_are_rows = TRUE) # convert into phyloseq compatible file.
 otu_table(physeq.subset) <- new.otu # incorporate into phyloseq Object
-physeq.subset # 
+physeq.subset # 186
 
 ################################################################################
 #Lets generate a prevalence table (number of samples each taxa occurs in) for each taxa.
@@ -507,14 +553,14 @@ ps = physeq.subset
 df_tmp <- psmelt(ps)
 df_tmp$sample <- 0
 df_tmp$sample[df_tmp$Abundance > 0] <- 1 #E: DON'T UNDERSTAND WHY THIS IS DONE
-df_otu_prev_ttt <- data.frame(matrix(ncol=nlevels(as.factor(df_tmp$Irrigation)),
+df_otu_prev_ttt <- data.frame(matrix(ncol=nlevels(as.factor(df_tmp$var3)),
                                      nrow=nlevels(as.factor(df_tmp$OTU)), 
                                      dimnames=list(levels(as.factor(df_tmp$OTU)),
-                                                   levels(as.factor(df_tmp$Irrigation)))))
+                                                   levels(as.factor(df_tmp$var3)))))
 #attention il ya Sample et sample
 for (i in unique(df_tmp$OTU)) {
-  for (j in unique(df_tmp$Irrigation)) {
-    df_otu_prev_ttt[i,j] <- sum(df_tmp$sample[df_tmp$OTU == i & df_tmp$Irrigation == j],na.rm = T) / nrow(df_tmp[df_tmp$OTU == i & df_tmp$Irrigation == j,]) *100
+  for (j in unique(df_tmp$var3)) {
+    df_otu_prev_ttt[i,j] <- sum(df_tmp$sample[df_tmp$OTU == i & df_tmp$var3 == j],na.rm = T) / nrow(df_tmp[df_tmp$OTU == i & df_tmp$var3 == j,]) *100
     print(paste(i,j,df_otu_prev_ttt[i,j]),sep="\t")
     #print(df_otu_prev_ttt[i,j])
   }
@@ -530,7 +576,7 @@ df_prev = df_otu_prev_ttt
 tmp_otu_F = rownames(df_prev[df_prev$max_prev >= 80,])
 physeq.subset.75 <- prune_taxa(taxa_names(ps) %in% tmp_otu_F, ps)
 rm(ps,df_prev,tmp_otu_F)
-physeq.subset.75  # 32 taxa
+physeq.subset.75  # 71 taxa
 
 ####################################################
 # DIFFERENTIAL ABUNDANCE
@@ -604,7 +650,8 @@ glmT3s.pairwise.global$p.adjust <- p.adjust(glmT3s.pairwise.global$p.value, meth
 #write.csv(aoa.K0705.rh.fil, file = "AOA_K0705.rh.tab_140923.csv")
 
 ##############################################################################################################################
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOA_Rhizo_rare_prev80/')
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOA_Rhizo_rare_prev80/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/AOA_Rhizo_rare_prev80/')
 AOA_M04 <- read.csv("AOA_M04.rh_140923.csv")[,-1]
 AOA_M04$contrast <- paste("M_042822", AOA_M04$contrast, sep="_")
 AOA_D04 <- read.csv("AOA_D04.rh_140923.csv")[,-1]
@@ -626,22 +673,25 @@ AOA_D0705$contrast <- paste("D_070522", AOA_D0705$contrast, sep="_")
 AOA_K0705 <- read.csv("AOA_K0705.rh_140923.csv")[,-1]
 AOA_K0705$contrast <- paste("K_070522", AOA_K0705$contrast, sep="_")
 
-glmT3s.pairwise.global.ALL <- rbind(AOA_M04, AOA_D04, AOA_K04, AOA_M06, AOA_D06, AOA_K06,
+glmT3s.pairwise.global.AOA.RS <- rbind(AOA_M04, AOA_D04, AOA_K04, AOA_M06, AOA_D06, AOA_K06,
                                     AOA_M0705, AOA_D0705, AOA_K0705)
-
+dim(glmT3s.pairwise.global.AOA.RS)
+length(unique(glmT3s.pairwise.global.AOA.RS$OTU)) #71
 ## nb of pval <= 0.05 before and after filter
-table(glmT3s.pairwise.global.ALL$p.value <= 0.06)
-table(glmT3s.pairwise.global.ALL$p.adjust <= 0.06)
+table(glmT3s.pairwise.global.AOA.RS$p.value <= 0.05) # 14 not unique
+table(glmT3s.pairwise.global.AOA.RS$p.adjust <= 0.05)
 
 ## nb of OTU with a pval <= 0.05 before and after filter
-tmp_otu3s = unique(glmT3s.pairwise.global.ALL$OTU[glmT3s.pairwise.global.ALL$p.adjust <= 0.06])
-glmT3s.pairwise.global.signif = glmT3s.pairwise.global.ALL[glmT3s.pairwise.global.ALL$p.adjust <=0.06,]
+#tmp_otu3s = unique(glmT3s.pairwise.global.ALL$OTU[glmT3s.pairwise.global.ALL$p.adjust <= 0.06])
+#glmT3s.pairwise.global.signif = glmT3s.pairwise.global.ALL[glmT3s.pairwise.global.ALL$p.adjust <=0.06,]
+tmp_otu3s.AOA.RS = unique(glmT3s.pairwise.global.AOA.RS$OTU[glmT3s.pairwise.global.AOA.RS$p.value <= 0.05])
+glmT3s.pairwise.global.signif = glmT3s.pairwise.global.AOA.RS[glmT3s.pairwise.global.AOA.RS$p.value <=0.05,]
 
-length(tmp_otu3s)
+length(tmp_otu3s.AOA.RS) #12 unique
 tmp_otu3s
 
 # cast pvalues
-contrasts.glm.CBFP.T3s <- glmT3s.pairwise.global.ALL[,c(10,1,2)]
+contrasts.glm.CBFP.T3s <- glmT3s.pairwise.global.ALL[,c(7,1,2)]
 # numeric variable needs to be named "value" 
 colnames(contrasts.glm.CBFP.T3s) <- c("value", "OTU_names", "contrast")
 #contrasts.glm.CBFP.T3s <- subset(contrasts.glm.CBFP.T3s, (contrasts.glm.CBFP.T3s$OTU_names %in% BFPOTUs.T3snet.sig))
@@ -654,7 +704,7 @@ contrasts.glm.CBFP.T3s$contrast <- NULL
 
 
 # keep OTUs with at least one contrast <0.05 
-contrasts.glm.CBFP.T3s.sub <- contrasts.glm.CBFP.T3s[,colSums(contrasts.glm.CBFP.T3s<0.06, na.rm=TRUE) >= 1]
+contrasts.glm.CBFP.T3s.sub <- contrasts.glm.CBFP.T3s[,colSums(contrasts.glm.CBFP.T3s<0.05, na.rm=TRUE) >= 1]
 dim(contrasts.glm.CBFP.T3s.sub)
 head(contrasts.glm.CBFP.T3s.sub)
 str(contrasts.glm.CBFP.T3s.sub)
@@ -662,7 +712,7 @@ str(contrasts.glm.CBFP.T3s.sub)
 ctrst.glm.CBFP.T3s.sub <- data.frame(t(contrasts.glm.CBFP.T3s.sub))
 
 # replace pvalues to 0 if non significant, or 1 if significant
-#ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub ==NA] <- 0
+ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub ==NA] <- 0
 ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub >0.05] <- 2
 ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub <0.05] <- 1
 ctrst.glm.CBFP.T3s.sub[ctrst.glm.CBFP.T3s.sub >1] <- 0
@@ -711,9 +761,10 @@ ctrst.glm.CBFP.T3s.sub <- ctrst.glm.CBFP.T3s.sub[rownames(meanotus), ]
 
 # Multiply the matrices to get the RR when it is significant and 0 when it is not significant
 rr<-meanotus*ctrst.glm.CBFP.T3s.sub
-
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOA_Rhizo_rare_prev80/')
-write.csv(rr, file = "AOA_RR_Rhizo_140923.csv")
+setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/AOA_Rhizo_rare_prev80/')
+write.csv(rr, file = "AOA_RR_Rhizo_prev80_p.value_270224.csv")
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/AOA_Rhizo_rare_prev80/')
+#write.csv(rr, file = "AOA_RR_Rhizo_140923.csv")
 
 
 

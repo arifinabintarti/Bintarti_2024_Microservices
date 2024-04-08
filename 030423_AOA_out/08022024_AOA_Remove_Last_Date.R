@@ -104,7 +104,7 @@ aoa.tax <- column_to_rownames(aoa.tax, var = "ASVid")
 #row.names(aoa.tax) <- aoa.tax$ASVid
 aoa.tax.physeq <- tax_table(as.matrix(aoa.tax)) # taxonomy table
 # phyloseq object of the metadata
-meta_micro$Date <- factor(meta_micro$Date, levels = c("4/28/22", "06/01/2022", "07/05/2022", "7/20/22", "9/13/22"),
+meta_micro$Date <- factor(meta_micro$Date, levels = c("4/28/22", "6/1/22", "7/5/22", "7/20/22", "9/13/22"),
                           labels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"))
 rownames(meta_micro) <- sample_names(aoa.asv.physeq)
 aoa.meta.physeq <- sample_data(meta_micro)# meta data
@@ -172,7 +172,8 @@ aoa.meta.df.sub2$PlotID<-as.factor(aoa.meta.df.sub2$PlotID)
 aoa.meta.df.sub2$Irrigation<-as.factor(aoa.meta.df.sub2$Irrigation)
 aoa.meta.df.sub2$Block<-as.factor(aoa.meta.df.sub2$Block)
 aoa.meta.df.sub2$x<-as.factor(aoa.meta.df.sub2$x)
-aoa.meta.df.sub2$var<-as.factor(aoa.meta.df.sub2$var)
+aoa.meta.df.sub2$rep<-as.factor(aoa.meta.df.sub2$rep)
+aoa.meta.df.sub2$rep2<-as.factor(aoa.meta.df.sub2$rep2)
 aoa.meta.df.sub2$var2<-as.factor(aoa.meta.df.sub2$var2)
 aoa.meta.df.sub2$var3<-as.factor(aoa.meta.df.sub2$var3)
 aoa.meta.df.sub2[sapply(aoa.meta.df.sub2, is.character)] <- 
@@ -192,6 +193,18 @@ library(rstatix)
 aoa.meta.bulk2 <- aoa.meta.df.sub2[1:96,]
 str(aoa.meta.bulk2)
 dim(aoa.meta.bulk2)
+aoa.meta.bulk2$SampleID<-factor(aoa.meta.bulk2$SampleID)
+aoa.meta.bulk2$PlotID<-factor(aoa.meta.bulk2$PlotID)
+aoa.meta.bulk2$Irrigation<-factor(aoa.meta.bulk2$Irrigation)
+aoa.meta.bulk2$Block<-factor(aoa.meta.bulk2$Block)
+aoa.meta.bulk2$x<-factor(aoa.meta.bulk2$x)
+aoa.meta.bulk2$rep<-factor(aoa.meta.bulk2$rep)
+aoa.meta.bulk2$rep2<-factor(aoa.meta.bulk2$rep2)
+aoa.meta.bulk2$var2<-factor(aoa.meta.bulk2$var2)
+aoa.meta.bulk2$var3<-factor(aoa.meta.bulk2$var3)
+aoa.meta.bulk2$AOA_sqrtRich <- sqrt(aoa.meta.bulk2$AOA_Richness)
+
+
 aoa.BS.sum.rich <- aoa.meta.bulk2 %>%
   group_by(Irrigation, Treatment, Date) %>%
   get_summary_stats(AOA_Richness, type = "mean_sd")
@@ -230,12 +243,11 @@ aoa.BS.rich.aov <- anova_test(
   between = c(Irrigation, Treatment, Date))
 get_anova_table(aoa.BS.rich.aov)
 
-# this one below isn't work
-res.aov <- anova_test(
-  data = aoa.meta.bulk2, dv = AOA_Richness, wid = PlotID,
-  within = c(Irrigation, Treatment, Date)
-  ) #A linear combination of factors means your system is overdetermined
-get_anova_table(res.aov)
+# Three-Way Repeated-Measures ANOVA
+aoa.bulk.rich.aov2 <- anova_test(
+  data = aoa.meta.bulk2, type=2,dv = AOA_Richness, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aoa.bulk.rich.aov2)
 
 
 # with afex package
@@ -254,8 +266,9 @@ anova(aoa.BS.rich.mod1)
 aoa.BS.rich.mod2 <- lmerTest::lmer(aoa.meta.bulk2$AOA_Richness ~ Irrigation*Treatment*Date +(1|PlotID), data=aoa.meta.bulk2)
 anova(aoa.BS.rich.mod2)
 VarCorr(aoa.BS.rich.mod2)
-aoa.BS.rich.mod3 <- lmerTest::lmer(aoa.meta.bulk2$AOA_Richness ~ Irrigation*Treatment*Date+(1|Block:Date),data=aoa.meta.bulk2)#control = lmerControl(check.nobs.vs.nRE="ignore"))
-anova(aoa.BS.rich.mod3, type = 3)
+aoa.BS.rich.mod3 <- lme4::lmer(aoa.meta.bulk2$AOA_Richness ~ Irrigation*Treatment*Date+(1|Block)+(1|Block:Date),
+                                   contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"),data=aoa.meta.bulk2)#control = lmerControl(check.nobs.vs.nRE="ignore"))
+car::Anova(aoa.BS.rich.mod3, test="F", type="III") 
 summary(aoa.BS.rich.mod3)
 VarCorr(aoa.BS.rich.mod3)
 
@@ -265,7 +278,16 @@ plot(simulateResiduals(aoa.BS.rich.mod3)) # okay
 
 #confidence interval
 confint(aoa.BS.rich.mod3, oldNames = FALSE)
+
 # Test Method 3 - Shannon Index
+
+# Three-Way Repeated-Measures ANOVA
+aoa.bulk.sha.aov2 <- anova_test(
+  data = aoa.meta.bulk2, type=2,dv = AOA_Shannon, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aoa.bulk.sha.aov2)
+
+
 aoa.BS.sha.mod1 <- lme(AOA_Shannon ~ Irrigation*Treatment*Date, random=~1 | PlotID, data=aoa.meta.bulk2, na.action = na.omit)
 anova(aoa.BS.sha.mod1) 
 aoa.BS.sha.mod2 <- lmerTest::lmer(aoa.meta.bulk2$AOA_Shannon ~ Irrigation*Treatment*Date +(1|PlotID), data=aoa.meta.bulk2, na.action = na.omit)
@@ -279,25 +301,123 @@ plot(simulateResiduals(aoa.BS.sha.mod3)) # okay
 
 # with afex package
 library(afex)
-aoa.BS.sha.afex <- aov_ez("PlotID", "AOA_Shannon", aoa.meta.bulk2, 
-             within = "Date",
-             between = c("Irrigation","Treatment"),
+aoa.BS.sha.afex <- aov_ez("rep2", "AOA_Shannon", aoa.meta.bulk2, 
+             within = c("Irrigation","Treatment", "Date"),
+             #between = c("Irrigation","Treatment"),
              type = 3,
              return = afex_options("return_aov"),
              anova_table = list(correction = "none"))
 aoa.BS.sha.afex
 
-# Three-way repeated ANOVA
-summary(aov(AOA_Richness~Irrigation*Treatment*Date + 
-             Error(PlotID/(Date*Treatment*Irrigation)),
-             aoa.meta.bulk2)) #Date 3    939  312.94   2.844 0.0461 * #with warning
-# similar with
-summary(aov(AOA_Richness~Irrigation*Treatment*Date + 
-             Error(PlotID),
-             aoa.meta.bulk2)) # where PlotID being the lowest level in the hierarchy
-#______________________________________________________
-summary(aov(AOA_Shannon~Irrigation*Treatment*Date + 
-             Error(PlotID/(Date*Treatment*Irrigation)),
-             aoa.meta.bulk2)) #Treatment 2  7.996   3.998   5.846 0.0111 *
+#BETA DIVERSITY ANALYSIS #
+
+# 1. Calculating dissimilarity indices for community ecologist to make a distance structure (Bray-Curtis distance between samples)
+
+# Bray-Curtis - Bulk Soil :
+aoa.asv.rare.df <- as.data.frame(otu_table(aoa.rare.nolast))
+aoa.asv4.BS <- aoa.asv.rare.df[,1:96]
+colnames(aoa.asv4.BS)
+aoa.asv4.BS1 <- aoa.asv4.BS[rowSums(aoa.asv4.BS)>0,]
+sort(rowSums(aoa.asv4.BS1, na.rm = FALSE, dims = 1), decreasing = FALSE)
+setwd('D:/Fina/INRAE_Project/microservices/070623_AOA_out/')
+#write.csv(aoa.asv.bulk1, file = "aoa.bulk1.otutab.csv")
+aoa4.BS_dist_bc <- vegdist(t(aoa.asv4.BS1), method = "bray")
+
+# 2. CMD/classical multidimensional scaling (MDS) of a data matrix. Also known as principal coordinates analysis
+# Bray-Curtis - Bulk Soil:
+aoa4.BS_pcoa_bc <- cmdscale(aoa4.BS_dist_bc, eig=T)
+
+# 3. scores of PC1 and PC2
+# Bray-Curtis - Bulk Soil:
+ax1.scores4.aoa.BS <- aoa4.BS_pcoa_bc$points[,1]
+ax2.scores4.aoa.BS <- aoa4.BS_pcoa_bc$points[,2] 
+
+# 4. calculate percent variance explained, then add to plot
+aoa.meta.bulk2 <- aoa.meta.df.sub2[1:96,]
+# Bray-curtis - Bulk Soil:
+ax1.aoa.BS4 <- aoa4.BS_pcoa_bc$eig[1]/sum(aoa4.BS_pcoa_bc$eig)
+ax2.aoa.BS4 <- aoa4.BS_pcoa_bc$eig[2]/sum(aoa4.BS_pcoa_bc$eig)
+aoa.map.pcoa.BS4 <- cbind(aoa.meta.bulk2,ax1.scores4.aoa.BS,ax2.scores4.aoa.BS)
+#################################################################################################
+
+# RHIZOSPHERE
+
+# Bray-Curtis - Rhizosphere :
+aoa.asv.rare.df <- as.data.frame(otu_table(aoa.rare.nolast))
+colnames(aoa.asv.rare.df)
+aoa.asv4.RS <- aoa.asv.rare.df[,97:168]
+colnames(aoa.asv4.RS)
+aoa.asv4.RS1 <- aoa.asv4.RS[rowSums(aoa.asv4.RS)>0,]
+sort(rowSums(aoa.asv4.RS1, na.rm = FALSE, dims = 1), decreasing = FALSE)
+dim(aoa.asv4.RS1) #847 72
+aoa4.RS_dist_bc <- vegdist(t(aoa.asv4.RS1), method = "bray")
+
+# 2. CMD/classical multidimensional scaling (MDS) of a data matrix. Also known as principal coordinates analysis
+# Bray-Curtis - Rhizosphere :
+aoa4.RS_pcoa_bc <- cmdscale(aoa4.RS_dist_bc, eig=T)
+
+# 3. scores of PC1 and PC2
+# Bray-Curtis - Rhizosphere :
+ax1.scores4.aoa.RS <- aoa4.RS_pcoa_bc$points[,1]
+ax2.scores4.aoa.RS <- aoa4.RS_pcoa_bc$points[,2] 
+
+# 4. calculate percent variance explained, then add to plot
+aoa.meta.rh2 <- aoa.meta.df.sub2[97:168,]
+view(aoa.meta.rh2)
+# Bray-curtis - Rhizosphere :
+ax1.aoa.RS4 <- aoa4.RS_pcoa_bc$eig[1]/sum(aoa4.RS_pcoa_bc$eig)
+ax2.aoa.RS4 <- aoa4.RS_pcoa_bc$eig[2]/sum(aoa4.RS_pcoa_bc$eig)
+aoa.map.pcoa.RS4 <- cbind(aoa.meta.rh2,ax1.scores4.aoa.RS,ax2.scores4.aoa.RS)
+
+###############################################################################
+# Adonis
+# 1. Using adonis2 package with defined perm to restrict the permutation 
+str(aoa.meta.bulk2)
+set.seed(13)
+aoa.adonis.BS4.bc <- adonis2(aoa4.BS_dist_bc ~ Irrigation, strata=aoa.meta.bulk2$Block, data=aoa.meta.bulk2, 
+                              permutations = 999) # not significant
+aoa.adonis.BS4.bc
+
+# similar with below:
+perm1.aoa = how(within = Within(type="free"), 
+            plots = Plots(type = "none"),
+            blocks = aoa.meta.bulk2$Block,
+            nperm = 999,
+            observed = TRUE)
+set.seed(13)
+aoa.adonis.BS.bc.perm1 <- adonis2(aoa4.BS_dist_bc ~ Irrigation, data=aoa.meta.bulk2, 
+                                    permutations = perm1.aoa)
+aoa.adonis.BS.bc.perm1 
+
+# another way to use how()
+# Since our intent is to focus on the variation among treatments, 
+# we need to restrict the permutations so that plots are permuted within each block, but plots are not permuted across blocks.
+# these two ways are equivalent:
+CTRL.t1.aoa <- how(within = Within(type = "free"),
+               plots = Plots(type = "none"),
+               blocks = aoa.meta.bulk2$Block,
+               nperm = 999,
+               observed = TRUE)
+# and
+CTRL.t2.aoa <- how(within = Within(type = "free"),
+               plots = Plots(strata = aoa.meta.bulk2$Block, type = "none"),
+               nperm = 999,
+               observed = TRUE)
+#they specify that plots are to be freely permuted within blocks but that blocks are not allowed to permute
+set.seed(13)
+aoa.adonis.BS.bc.CTRL.t2 <- adonis2(aoa4.BS_dist_bc ~ Irrigation, data=aoa.meta.bulk2, 
+                                      permutations = CTRL.t2.aoa)
+aoa.adonis.BS.bc.CTRL.t2
+# 2. Using ANOSIM package and define the strata
+set.seed(13)
+aoa.BS.bc.anosim <- anosim(aoa4.BS_dist_bc,
+                        grouping = aoa.meta.bulk2$Irrigation, permutations = 999, strata = aoa.meta.bulk2$Block)
+summary(aoa.BS.bc.anosim) # almost 0.057
+# test the permanova for whole plot
+set.seed(13)
+aoa.adonis.BS4 <- adonis2(aoa4.BS_dist_bc ~ Irrigation*Treatment*Date, data=aoa.meta.bulk2, 
+                           permutation=999) # only treatment is significant
+aoa.adonis.BS4
+
 
 

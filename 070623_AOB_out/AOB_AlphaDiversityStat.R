@@ -15,6 +15,17 @@ library(rstatix)
 # 1a. Analyses of Bulk Soil
 aob.meta.bulk <- aob.meta.df.sub[1:119,]
 str(aob.meta.bulk)
+aob.meta.bulk$SampleID<-factor(aob.meta.bulk$SampleID)
+aob.meta.bulk$PlotID<-factor(aob.meta.bulk$PlotID)
+aob.meta.bulk$Irrigation<-factor(aob.meta.bulk$Irrigation)
+aob.meta.bulk$Block<-factor(aob.meta.bulk$Block)
+aob.meta.bulk$x<-factor(aob.meta.bulk$x)
+aob.meta.bulk$rep<-factor(aob.meta.bulk$rep)
+aob.meta.bulk$rep2<-factor(aob.meta.bulk$rep2)
+aob.meta.bulk$var2<-factor(aob.meta.bulk$var2)
+aob.meta.bulk$var3<-factor(aob.meta.bulk$var3)
+aob.meta.bulk$AOB_sqrtRich <- sqrt(aob.meta.bulk$Richness)
+
 aob.meta.bulk.sum.rich <- aob.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   get_summary_stats(Richness, type = "mean_sd")
@@ -26,17 +37,20 @@ aob.bulk.sum.rich.plot
 # check assumption (outliers)
 aob.bulk.rich.out <- aob.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
-  identify_outliers(Richness) # no extreme outliers
+  identify_outliers(Richness)
+View(aob.bulk.rich.out)# no extreme outliers
 # Saphiro-Wilk for normality
 aob.bulk.rich.SW <- aob.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   shapiro_test(Richness)
+View(aob.bulk.rich.SW)
 ggqqplot(aob.meta.bulk, "Richness", ggtheme = theme_bw()) +
   facet_grid(Date ~ Treatment, labeller = "label_both") #All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
 # Lavene test
 aob.bulk.rich.Lave <- aob.meta.bulk %>%
   group_by(Date) %>%
   levene_test(Richness ~ Irrigation*Treatment)
+View(aob.bulk.rich.Lave)
 #If group sample sizes are (approximately) equal, run the three-way mixed ANOVA anyway because it is somewhat robust to heterogeneity of variance in these circumstances.
 # Three-Way Mixed (Split-Plot) ANOVA 
 set.seed(13)
@@ -44,11 +58,100 @@ aob.bulk.rich.aov <- anova_test(
   data = aob.meta.bulk, type=2, dv = Richness, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aob.bulk.rich.aov)
+
+# Three-Way Repeated-Measures ANOVA
+aob.bulk.rich.aov <- anova_test(
+  data = aob.meta.bulk, type=3,dv = Richness, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aob.bulk.rich.aov)
+
+aob.BS.Rich.aov2 <- aov(Richness ~ Irrigation*Treatment*Date + Error(rep2/(Irrigation*Treatment*Date)), data=aob.meta.bulk)
+summary(aob.BS.Rich.aov2)
+
+
+# 1. between fertilization treatment:
+aob.pwc.trt <- aob.meta.bulk %>%
+  group_by(Date,Irrigation) %>%
+  emmeans_test(Richness ~ Treatment, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95)
+View(aob.pwc.trt)
+# 2. between irrigation:
+aob.pwc.irr <- aob.meta.bulk %>%
+  group_by(Date, Treatment) %>%
+  emmeans_test(Richness ~ Irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95)
+View(aob.pwc.irr)
+# AOB Richness Summary
+aob.rich.sum <- aob.meta.bulk %>%
+  group_by(Irrigation, Treatment) %>%
+  get_summary_stats(Richness, type = "mean_sd")
+View(aob.rich.sum)
+aob.rich.sum.date <- aob.meta.bulk %>%
+  group_by(Irrigation, Treatment, Date) %>%
+  get_summary_stats(Richness, type = "mean_sd")
+View(aob.rich.sum.date)
+aob.rich.sum.plot <- ggboxplot(
+  aob.meta.bulk, x = "Irrigation", y = "Richness",
+  color = "Treatment", palette = "jco",
+  facet.by =  "Date")
+aob.rich.sum.plot
+
+
+
+# Test only 4 time points:
+aob.meta.bulk.4 <- aob.meta.bulk[1:95,]
+str(aob.meta.bulk.4)
+aob.meta.bulk.4$SampleID<-factor(aob.meta.bulk.4$SampleID)
+aob.meta.bulk.4$PlotID<-factor(aob.meta.bulk.4$PlotID)
+aob.meta.bulk.4$Irrigation<-factor(aob.meta.bulk.4$Irrigation)
+aob.meta.bulk.4$Block<-factor(aob.meta.bulk.4$Block)
+aob.meta.bulk.4$Date<-factor(aob.meta.bulk.4$Date)
+aob.meta.bulk.4$x<-factor(aob.meta.bulk.4$x)
+aob.meta.bulk.4$rep<-factor(aob.meta.bulk.4$rep)
+aob.meta.bulk.4$rep2<-factor(aob.meta.bulk.4$rep2)
+aob.meta.bulk.4$var2<-factor(aob.meta.bulk.4$var2)
+aob.meta.bulk.4$var3<-factor(aob.meta.bulk.4$var3)
+# check assumption (outliers)
+aob.bulk.rich.out <- aob.meta.bulk.4 %>%
+  group_by(Irrigation, Treatment, Date) %>%
+  identify_outliers(Richness)
+View(aob.bulk.rich.out)# no extreme outliers
+# Saphiro-Wilk for normality
+aob.bulk.rich.SW <- aob.meta.bulk.4 %>%
+  group_by(Irrigation, Treatment, Date) %>%
+  shapiro_test(Richness)
+View(aob.bulk.rich.SW)
+ggqqplot(aob.meta.bulk.4, "Richness", ggtheme = theme_bw()) +
+  facet_grid(Date ~ Treatment, labeller = "label_both") #All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
+# Lavene test
+aob.bulk.rich.Lave <- aob.meta.bulk.4 %>%
+  group_by(Date) %>%
+  levene_test(Richness ~ Irrigation*Treatment)
+View(aob.bulk.rich.Lave)
+# Three-Way Repeated-Measures ANOVA
+aob.bulk.rich.aov.4 <- anova_test(
+  data = aob.meta.bulk.4, type=3,dv = Richness, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aob.bulk.rich.aov.4)
+
+
 # Test Method 3 
-model3 <- lme(Richness ~ Irrigation*Treatment*Date, random=~1 | PlotID, data=aob.meta.bulk, na.action = na.omit)
-anova(model3) ### lme() IS SIMILAR to lme4 lmer() ###
-#model1 <- aov(aob.meta.bulk$Richness ~ Irrigation*Treatment*Date + Error(PlotID/Irrigation*Treatment) , data=aob.meta.bulk)
-#summary(model1)
+aob.bulk.rich.lmer <- lmerTest::lmer(aob.meta.bulk$Richness ~ Irrigation*Treatment*Date +(1|Block)+(1|Block:Date), 
+                           data=aob.meta.bulk,contrasts = list(Irrigation="contr.sum",Treatment="contr.sum",Date="contr.sum"))
+anova(aob.bulk.rich.lmer, type = 3)
+car::Anova(aob.bulk.rich.lmer, test="F", type="III") 
+# test assumptions:
+hist(aob.meta.bulk$Richness) # normal distributed
+shapiro.test(resid(aob.bulk.rich.lmer)) # normal
+plot(simulateResiduals(aob.bulk.rich.lmer)) # good
+
+# Test Method 3 
+aob.bulk.rich.lmer.4 <- lmerTest::lmer(aob.meta.bulk.4$Richness ~ Irrigation*Treatment*Date +(1|Block)+(1|Block:Date), 
+                           data=aob.meta.bulk.4,contrasts = list(Irrigation="contr.sum",Treatment="contr.sum",Date="contr.sum"))
+anova(aob.bulk.rich.lmer.4, type = 3)
+car::Anova(aob.bulk.rich.lmer.4, test="F", type="III") 
 
 ############################################################################################################
 # Model Fit
@@ -81,7 +184,8 @@ emm.rich.irri.bulk <- aob.meta.bulk %>%
   group_by(Date, Treatment) %>%
   emmeans_test(Richness ~ Irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = rich.bulk.mod)
+               conf.level = 0.95, model = aob.bulk.rich.lmer)
+view(emm.rich.irri.bulk)
 #############################################################################################################
 
 # Check other methods:
@@ -133,6 +237,19 @@ con.irri.bulk <- contrast(emm.irri.bulk, "pairwise", adjust="fdr")
 # 1b. Analyses of rhizosphere Soil
 aob.meta.rh <- aob.meta.df.sub[120:191,]
 str(aob.meta.rh)
+View(aob.meta.rh)
+aob.meta.rh$SampleID<-factor(aob.meta.rh$SampleID)
+aob.meta.rh$PlotID<-factor(aob.meta.rh$PlotID)
+aob.meta.rh$Irrigation<-factor(aob.meta.rh$Irrigation)
+aob.meta.rh$Block<-factor(aob.meta.rh$Block)
+aob.meta.rh$x<-factor(aob.meta.rh$x)
+aob.meta.rh$rep<-factor(aob.meta.rh$rep)
+aob.meta.rh$rep2<-factor(aob.meta.rh$rep2)
+aob.meta.rh$var2<-factor(aob.meta.rh$var2)
+aob.meta.rh$var3<-factor(aob.meta.rh$var3)
+aob.meta.rh$Date <- factor(aob.meta.rh$Date)
+
+
 aob.meta.rh.sum.rich <- aob.meta.rh %>%
   group_by(Irrigation, Treatment, Date) %>%
   get_summary_stats(Richness, type = "mean_sd")
@@ -161,8 +278,15 @@ aob.rh.rich.aov <- anova_test(
   data = aob.meta.rh, dv = Richness, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aob.rh.rich.aov)
+
+# Three-Way Repeated-Measures ANOVA
+aob.rh.rich.aov <- anova_test(
+  data = aob.meta.rh, type=3,dv = Richness, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aob.rh.rich.aov)
 # other model
-# model1 <- aov(aob.meta.rh$Richness ~ Irrigation*Treatment*Date + Error(PlotID/Irrigation*Treatment), data=aob.meta.rh)
+model1 <- aov(aob.meta.rh$Richness ~ Irrigation*Treatment*Date + Error(PlotID/Irrigation*Treatment), data=aob.meta.rh)
+
 # summary(model1)
 # Test Method 3
 # model3 <- lme(Richness ~ Irrigation*Treatment*Date, random=~1 | PlotID, method="ML", data=aob.meta.rh)
@@ -207,22 +331,40 @@ aob.bulk.sum.sha.plot
 aob.bulk.sha.out <- aob.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   identify_outliers(Shannon) # no extreme outliers
+View(aob.bulk.sha.out)
 # Saphiro-Wilk for normality
 aob.bulk.sha.SW <- aob.meta.bulk %>%
   group_by(Irrigation, Treatment, Date) %>%
   shapiro_test(Shannon)
+View(aob.bulk.sha.SW)
 ggqqplot(aob.meta.bulk, "Shannon", ggtheme = theme_bw()) +
   facet_grid(Date ~ Treatment, labeller = "label_both") #All the points fall approximately along the reference line, for each cell. So we can assume normality of the data
 # Lavene test
 aob.bulk.sha.Lave <- aob.meta.bulk %>%
   group_by(Date) %>%
   levene_test(Shannon ~ Irrigation*Treatment)
+View(aob.bulk.sha.Lave)
 #If group sample sizes are (approximately) equal, run the three-way mixed ANOVA anyway because it is somewhat robust to heterogeneity of variance in these circumstances.
 # Three-Way Mixed (Split-Plot) ANOVA 
 aob.bulk.sha.aov <- anova_test(
   data = aob.meta.bulk, type=2, dv = Shannon, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aob.bulk.sha.aov)
+
+
+# Three-Way Repeated-Measures ANOVA
+aob.bulk.sha.aov <- anova_test(
+  data = aob.meta.bulk, type=3,dv = Shannon, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aob.bulk.sha.aov)
+
+
+# Three-Way Repeated-Measures ANOVA 4 tIME pOINTS
+aob.bulk.sha.aov.4 <- anova_test(
+  data = aob.meta.bulk.4, type=3,dv = Shannon, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aob.bulk.sha.aov.4)
+
 ############################################################################################################
 # Model Fit
 set.seed(13)
@@ -279,6 +421,26 @@ aob.rh.sha.aov <- anova_test(
   data = aob.meta.rh, type=3, dv = Shannon, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aob.rh.sha.aov)
+
+# Three-Way Repeated-Measures ANOVA
+aob.rh.sha.aov <- anova_test(
+  data = aob.meta.rh, type=3,dv = Shannon, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aob.rh.sha.aov)
+# AOB Shannon Summary
+aob.sha.sum <- aob.meta.bulk %>%
+  group_by(Irrigation, Treatment) %>%
+  get_summary_stats(Shannon, type = "mean_sd")
+View(aob.sha.sum)
+aob.sha.sum.date <- aob.meta.bulk %>%
+  group_by(Irrigation, Treatment, Date) %>%
+  get_summary_stats(Shannon, type = "mean_sd")
+View(aob.sha.sum.date)
+aob.sha.sum.plot <- ggboxplot(
+  aob.meta.bulk, x = "Irrigation", y = "Shannon",
+  color = "Treatment", palette = "jco",
+  facet.by =  "Date")
+aob.sha.sum.plot
 ############################################################################################################
 # Model Fit
 set.seed(13)
@@ -355,6 +517,20 @@ emm.invsimp.irri.bulk <- aob.meta.bulk %>%
   emmeans_test(InvSimpson ~ Irrigation, 
                p.adjust.method = "BH", 
                conf.level = 0.95, model = invsimp.bulk.mod)
+
+
+# Three-Way Repeated-Measures ANOVA
+aob.bulk.simp.aov <- anova_test(
+  data = aob.meta.bulk, type=3,dv = InvSimpson, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aob.bulk.simp.aov)
+
+
+# Three-Way Repeated-Measures ANOVA 4 tIME pOINTS
+aob.bulk.simp.aov.4 <- anova_test(
+  data = aob.meta.bulk.4, type=3,dv = InvSimpson, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aob.bulk.simp.aov.4)
 #############################################################################################################
 
 ##################################################################
@@ -387,6 +563,12 @@ aob.rh.invsimp.aov <- anova_test(
   data = aob.min.meta.rh, dv = InvSimpson, wid = PlotID,
   within = Date, between = c(Irrigation, Treatment))
 get_anova_table(aob.rh.invsimp.aov)
+
+# Three-Way Repeated-Measures ANOVA
+aob.rh.simp.aov <- anova_test(
+  data = aob.meta.rh, type=3,dv = InvSimpson, wid = rep2,
+  within = c(Irrigation, Treatment, Date))
+get_anova_table(aob.rh.simp.aov)
 ############################################################################################################
 # Model Fit
 set.seed(13)

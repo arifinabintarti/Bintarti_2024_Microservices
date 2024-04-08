@@ -101,7 +101,6 @@ set.seed(13)
 rarecurve(t(aob.asv), step=50, cex=0.5, lwd=2, ylab="ASV", label=F)
 #BiocManager::install("phyloseq")
 
-
 ## make a phyloseq object of the asv table, taxonomy table, metadata
 
 # re-order the rownames of the asv table to match the colnames of the metadata.
@@ -115,11 +114,11 @@ sample_names(aob.asv.physeq) <- paste0("S", sample_names(aob.asv.physeq))
 
 # phyloseq object of the taxonomy table
 aob.tax <- column_to_rownames(aob.tax, var = "ASVid")
-aob.tax.physeq = tax_table(as.matrix(aob.tax)) # taxonomy table
+aob.tax.physeq = phyloseq::tax_table(as.matrix(aob.tax)) # taxonomy table
 
 # phyloseq object of the metadata
 str(meta_micro)
-meta_micro$Date <- factor(meta_micro$Date, levels = c("4/28/22", "06/01/2022", "07/05/2022", "7/20/22", "9/13/22"),
+meta_micro$Date <- factor(meta_micro$Date, levels = c("4/28/22", "6/1/22", "7/5/22", "7/20/22", "9/13/22"),
                           labels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"))
 rownames(meta_micro) <- sample_names(aob.asv.physeq)
 aob.meta.physeq <- sample_data(meta_micro)# meta data
@@ -240,14 +239,17 @@ aob.meta.df.sub$Type <- factor(aob.meta.df.sub$Type, levels = c("BS", "RS"),
                                labels = c("Bulk Soil", "Rhizosphere"))
 aob.meta.df.sub$Treatment <- factor(aob.meta.df.sub$Treatment, levels = c("D", "K", "M"),
                                     labels = c("BIODYN", "CONFYM", "CONMIN"))
-aob.meta.df.sub$SampleID<-as.factor(aob.meta.df.sub$SampleID)
-aob.meta.df.sub$PlotID<-as.factor(aob.meta.df.sub$PlotID)
-aob.meta.df.sub$Irrigation<-as.factor(aob.meta.df.sub$Irrigation)
-aob.meta.df.sub$Block<-as.factor(aob.meta.df.sub$Block)
-aob.meta.df.sub$x<-as.factor(aob.meta.df.sub$x)
-aob.meta.df.sub$var<-as.factor(aob.meta.df.sub$var)
-aob.meta.df.sub$var2<-as.factor(aob.meta.df.sub$var2)
-aob.meta.df.sub$var3<-as.factor(aob.meta.df.sub$var3)
+aob.meta.df.sub$SampleID<-factor(aob.meta.df.sub$SampleID)
+aob.meta.df.sub$PlotID<-factor(aob.meta.df.sub$PlotID)
+aob.meta.df.sub$Irrigation<-factor(aob.meta.df.sub$Irrigation)
+aob.meta.df.sub$Block<-factor(aob.meta.df.sub$Block)
+aob.meta.df.sub$x<-factor(aob.meta.df.sub$x)
+aob.meta.df.sub$DxD<-factor(aob.meta.df.sub$DxD)
+aob.meta.df.sub$period<-factor(aob.meta.df.sub$period)
+aob.meta.df.sub$rep<-factor(aob.meta.df.sub$rep)
+aob.meta.df.sub$rep2<-factor(aob.meta.df.sub$rep2)
+aob.meta.df.sub$var2<-factor(aob.meta.df.sub$var2)
+aob.meta.df.sub$var3<-factor(aob.meta.df.sub$var3)
 aob.meta.df.sub[sapply(aob.meta.df.sub, is.character)] <- 
  lapply(aob.meta.df.sub[sapply(aob.meta.df.sub, is.character)], as.numeric)
 aob.meta.df.sub[sapply(aob.meta.df.sub, is.integer)] <- 
@@ -451,7 +453,16 @@ ggsave("AOB_rich_mean_boxplot.tiff",
        units= "in", dpi = 600)
 
 # richness between irrigations
-aob.rich.pwc.irri.plot <- ggplot(aob.meta.df.sub.ed, aes(x=Date, y=Richness)) +
+aob.meta.df.sub.ed2 <- aob.meta.df.sub.ed
+aob.meta.df.sub.ed2$Date <- factor(aob.meta.df.sub.ed2$Date, levels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"),
+                          labels = c("2022-04-28", "2022-06-01", "2022-07-05", "2022-07-20", "2022-09-13"))
+aob.meta.df.sub.ed2$Date <- as.Date(aob.meta.df.sub.ed2$Date)
+
+ann_text<-data.frame(Date = as.Date("2022-07-30"), Richness = 0, Type="Bulk Soil",label="Rewetting")
+stat_text.BS <- data.frame(Date = as.Date("2022-08-25"), Richness = 140, Type="Bulk Soil",Treatment="CONMIN", label="C = **")
+stat_text.RS <- data.frame(Date = as.Date("2022-08-25"), Richness = 140, Type="Rhizosphere",Treatment="CONMIN", label="C = **")
+# plot BS and RS together
+aob.rich.pwc.irri.plot <- ggplot(aob.meta.df.sub.ed2, aes(x=Date, y=Richness)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
@@ -469,19 +480,20 @@ aob.rich.pwc.irri.plot <- ggplot(aob.meta.df.sub.ed, aes(x=Date, y=Richness)) +
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
+        panel.grid.minor = element_blank())+
+ geom_vline(data=filter(aob.meta.df.sub.ed2, Type=="Bulk Soil"),aes(xintercept = as.Date("2022-07-14")), linetype="dashed", colour="darkgrey") +
+ geom_text(data = ann_text,label=ann_text$label, colour="grey25")+
+ geom_text(data = stat_text.BS,label=stat_text$label, colour="black", size=4, fontface="bold")+
+ geom_text(data = stat_text.RS,label=stat_text$label, colour="black", size=4, fontface="bold")
+#annotate(geom = "text", x = as.Date("2022-07-10"), y = -5, hjust = 0, size = 4, label = "Rewetting", color = "black")
 aob.rich.pwc.irri.plot
+
 setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
 ggsave("AOB_rich_irri_boxplot.tiff",
        aob.rich.pwc.irri.plot, device = "tiff",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
-ggsave("AOB_rich_irri_boxplot.tiff",
-       aob.rich.pwc.irri.plot, device = "tiff",
-       width = 10, height =5.5, 
-       units= "in", dpi = 600)
-
+#setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
 # 2. Shannon
 
 # Shannon: plotting the significance across treatment
@@ -557,12 +569,223 @@ ggsave("AOB_sha_irri_boxplot.tiff",
        aob.sha.pwc.irri.plot, device = "tiff",
        width = 10, height =5.5, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
-ggsave("AOB_sha_irri_boxplot.tiff",
-       aob.sha.pwc.irri.plot, device = "tiff",
-       width = 10, height =5.5, 
-       units= "in", dpi = 600)
+#setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
 
+#############################################################################################################################
+# Separate between Bulk soil and Rhizosphere Alpha Diversity
+
+#_Bulk Soil Richness_________________________________________________________________________________________________________________
+# plot just BS
+aob.meta.bulk <- aob.meta.df.sub[1:119,]
+str(aob.meta.bulk)
+aob.meta.bulk$SampleID<-factor(aob.meta.bulk$SampleID)
+aob.meta.bulk$PlotID<-factor(aob.meta.bulk$PlotID)
+aob.meta.bulk$Irrigation<-factor(aob.meta.bulk$Irrigation)
+aob.meta.bulk$Block<-factor(aob.meta.bulk$Block)
+aob.meta.bulk$x<-factor(aob.meta.bulk$x)
+aob.meta.bulk$rep<-factor(aob.meta.bulk$rep)
+aob.meta.bulk$rep2<-factor(aob.meta.bulk$rep2)
+aob.meta.bulk$var2<-factor(aob.meta.bulk$var2)
+aob.meta.bulk$DxD<-factor(aob.meta.bulk$DxD)
+aob.meta.bulk$period<-factor(aob.meta.bulk$period)
+aob.meta.bulk$period2<-factor(aob.meta.bulk$period2)
+
+aob.meta.bulk.edit <- aob.meta.bulk
+aob.meta.bulk.edit$Date <- factor(aob.meta.bulk.edit$Date, levels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"),
+                          labels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
+#aob.meta.bulk.edit$Date <- factor(aob.meta.bulk.edit$Date, levels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"),
+                          #labels = c("2022-04-28", "2022-06-01", "2022-07-05", "2022-07-20", "2022-09-13"))
+#aob.meta.bulk.edit$Date <- as.Date(aob.meta.bulk.edit$Date)
+
+#aob.meta.bulk.edit$Date <- factor(aob.meta.bulk.edit$Date)
+aob.meta.bulk.edit <- aob.meta.bulk.edit %>%
+  mutate(x = factor(x,levels = c("cont.D","rain.D","cont.K","rain.K","cont.M","rain.M")))
+label <- c(`D` ="BIODYN (D)", 
+           `K` ="CONFYM (K)", 
+           `M` ="CONMIN (M)")
+
+#stat_text.BS2 <- data.frame(Date = as.Date("2022-05-01"), Richness = 100,Treatment="BIODYN", label="C **")
+
+stat_text.BS2 <- data.frame(Date = 0.5, Richness = 9,Treatment="BIODYN", label="C **")
+AOB.BS.Richness.plot <- ggplot(aob.meta.bulk.edit , aes(x=Date, y=Richness)) +
+  geom_boxplot(aes(group = var3, fill = x))+
+  theme_classic() +
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
+                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+  labs(y="AOB Richness", subtitle = "A", title="Bulk Soil")+# tag="Bulk Soil")+
+  facet_wrap(~ Treatment)+
+  #scale_y_continuous(limits = c(0, NA))+
+  scale_y_continuous(limits = c(0, 120))+
+  theme(legend.position = "none",
+        legend.title = element_text(size=15, face='bold'),
+        legend.text = element_text(size=15),
+        axis.text.x  = element_blank(),
+        axis.ticks.x  = element_blank(),
+        strip.text = element_text(size=18),
+        axis.text.y = element_text(size = 18),
+        #axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
+        axis.title.y = element_text(size=18),
+        axis.title.x =element_blank(),
+        plot.title = element_text(size = 25, face = "bold"),
+        plot.subtitle = element_text(size = 20, face = "bold"),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+ geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
+ #geom_vline(data=filter(aob.meta.df.sub.ed2, Type=="Bulk Soil"),aes(xintercept = as.Date("2022-07-14")), linetype="dashed", colour="darkgrey") +
+ #geom_vline(xintercept = as.Date("2022-07-14"), linetype="dashed", colour="darkgrey") 
+ #annotate(geom = "text", x = as.Date("2022-07-15"), y = 0, hjust = 0, size = 4, label = "Rewetting", color = "grey25")+
+ geom_label(data = stat_text.BS2,label=stat_text.BS2$label, hjust=0, colour="black", size=4, fontface="bold")
+ 
+AOB.BS.Richness.plot
+
+
+#_Rizhosphere Richness________________________________________________________________________________________________________________________
+# plot just RS
+aob.meta.rh <- aob.meta.df.sub[120:191,]
+str(aob.meta.rh)
+aob.meta.rh$SampleID<-factor(aob.meta.rh$SampleID)
+aob.meta.rh$PlotID<-factor(aob.meta.rh$PlotID)
+aob.meta.rh$Irrigation<-factor(aob.meta.rh$Irrigation)
+aob.meta.rh$Block<-factor(aob.meta.rh$Block)
+aob.meta.rh$x<-factor(aob.meta.rh$x)
+aob.meta.rh$rep<-factor(aob.meta.rh$rep)
+aob.meta.rh$rep2<-factor(aob.meta.rh$rep2)
+aob.meta.rh$var2<-factor(aob.meta.rh$var2)
+aob.meta.rh$var3<-factor(aob.meta.rh$var3)
+aob.meta.rh$DxD<-factor(aob.meta.rh$DxD)
+aob.meta.rh$period<-factor(aob.meta.rh$period)
+#aob.meta.rh$period2<-factor(aob.meta.rh$period2)
+
+aob.meta.rh.edit <- aob.meta.rh
+aob.meta.rh.edit$Date <- factor(aob.meta.rh.edit$Date, levels = c("Apr 28th", "Jun 1st", "Jul 5th"),
+                          labels = c("Apr", "Jun", "Jul"))
+aob.meta.rh.edit <- aob.meta.rh.edit %>%
+  mutate(x = factor(x,levels = c("cont.D","rain.D","cont.K","rain.K","cont.M","rain.M")))
+label <- c(`D` ="BIODYN (D)", 
+           `K` ="CONFYM (K)", 
+           `M` ="CONMIN (M)")
+
+aob.stat_text.RS.rich <- data.frame(Date = 0.5, Richness = 9,Treatment="BIODYN", label="C **")
+
+AOB.RS.Richness.plot <- ggplot(aob.meta.rh.edit , aes(x=Date, y=Richness)) +
+  geom_boxplot(aes(group = var3, fill = x))+
+  theme_classic() +
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
+                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+  labs(y="AOB Richness", subtitle = "G", title="Rhizosphere")+
+  facet_wrap(~ Treatment)+
+  #ylim(0,139)+
+  scale_y_continuous(limits = c(0, 140))+
+  theme(legend.position = "none",
+        legend.title = element_text(size=15, face='bold'),
+        legend.text = element_text(size=15),
+        strip.text = element_text(size=18),
+        #strip.text = element_blank(),
+        axis.text.y = element_text(size = 18),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        #axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
+        axis.title.y = element_text(size=18),
+        plot.title = element_text(size = 25, face="bold"),
+        plot.subtitle = element_text(size = 20, face="bold"),
+        axis.title.x =element_blank(),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+ #annotate(geom = "text", x = as.Date("2022-07-15"), y = 0, hjust = 0, size = 4, label = "Rewetting", color = "grey25")+
+ geom_label(data = aob.stat_text.RS.rich,label=aob.stat_text.RS.rich$label, hjust=0,colour="black", size=4, fontface="bold")
+
+ AOB.RS.Richness.plot
+
+
+#_Bulk Soil Shannon Index________________________________________________________________________________________________________________________________
+
+#aob.stat_text.BS.shan <- data.frame(Date = as.Date("2022-04-28"), Shannon = 2.3,Treatment="BIODYN", label="C **")
+aob.stat_text.BS.shan <- data.frame(Date = 0.5, Shannon = 0.35,Treatment="BIODYN", label="C **")
+AOB.BS.Shannon.plot <- ggplot(aob.meta.bulk.edit , aes(x=Date, y=Shannon)) +
+  geom_boxplot(aes(group = var3, fill = x))+
+  theme_classic() +
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
+                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+  labs(y="AOB Shannon", subtitle = "D")+
+  facet_wrap(~ Treatment)+
+  scale_y_continuous(limits = c(0, 4.5))+
+  theme(legend.position = "none",
+        legend.title = element_text(size=15, face='bold'),
+        legend.text = element_text(size=15),
+        #axis.text.x  = element_blank(),
+        #axis.ticks.x  = element_blank(),
+        strip.text = element_blank(),
+        #strip.text = element_text(size=18),
+        axis.text.y = element_text(size = 18),
+        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
+        axis.title.y = element_text(size=18),
+        axis.title.x =element_blank(),
+        plot.subtitle = element_text(size = 20, face = "bold"),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+ #geom_vline(data=filter(aob.meta.df.sub.ed2, Type=="Bulk Soil"),aes(xintercept = as.Date("2022-07-14")), linetype="dashed", colour="darkgrey") +
+ #geom_vline(xintercept = as.Date("2022-07-14"), linetype="dashed", colour="darkgrey") +
+ geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
+ annotate(geom = "text", x = 3.6, y = 0, hjust = 0, size = 4, label = "Rewetting", color = "grey25")+
+ #annotate(geom = "text", x = as.Date("2022-07-15"), y = 0, hjust = 0, size = 4, label = "Rewetting", color = "grey25")+
+ geom_label(data = aob.stat_text.BS.shan,label=aob.stat_text.BS.shan$label, hjust=0,colour="black", size=4, fontface="bold")
+ 
+AOB.BS.Shannon.plot
+
+#_Rhizosphere Shannon Index_____________________________________________________________________________________________________________________________________
+
+aob.stat_text.RS.shan <- data.frame(Date = 0.5, Shannon = 0.35,Treatment="BIODYN", label="C *")
+
+AOB.RS.Shannon.plot <- ggplot(aob.meta.rh.edit , aes(x=Date, y=Shannon)) +
+  geom_boxplot(aes(group = var3, fill = x))+
+  theme_classic() +
+  scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
+                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
+                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+  labs(y="AOB Shannon", subtitle = "J")+
+  facet_wrap(~ Treatment)+
+  scale_y_continuous(limits = c(0, 4.5))+
+  theme(legend.position = "none",
+        legend.title = element_text(size=15, face='bold'),
+        legend.text = element_text(size=15),
+        #strip.text = element_text(size=18),
+        strip.text = element_blank(),
+        axis.text.y = element_text(size = 18),
+        #axis.text.x = element_blank(),
+        #axis.ticks.x = element_blank(),
+        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
+        axis.title.y = element_text(size=18),
+        plot.subtitle = element_text(size=20, face="bold"),
+        axis.title.x =element_blank(),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+ #annotate(geom = "text", x = as.Date("2022-07-15"), y = 0, hjust = 0, size = 4, label = "Rewetting", color = "grey25")+
+ geom_label(data = aob.stat_text.RS.shan,label=aob.stat_text.RS.shan$label, hjust=0,colour="black", size=4, fontface="bold")
+
+ AOB.RS.Shannon.plot
+
+# SAVE ALL GROUPS SHANNON PLOTS 
+library(patchwork)
+
+all.alpha <- ((AOB.BS.Richness.plot/AOB.BS.Shannon.plot/AOB.RS.Richness.plot/AOB.RS.Shannon.plot)|(AOA.BS.Richness.plot/AOA.BS.Shannon.plot/AOA.RS.Richness.plot/AOA.RS.Shannon.plot)|(COM.BS.Richness.plot/COM.BS.Shannon.plot/COM.RS.Richness.plot/COM.RS.Shannon.plot))+
+ plot_layout(guides = "collect") & theme(legend.position = 'bottom',legend.title = element_blank())
+all.alpha             
+                
+ggsave("Fig.1dpi300.tiff",
+       all.alpha, device = "tiff",
+       width = 19.8, height =20,
+       #width = 19.8, height =13.5, 
+       units= "in", dpi = 300, compression="lzw")
+
+
+#_____________________________________________________________________________________________________________________________________
 # Inverse Simpson
 
 # Inverse Simpson: plotting the significance across treatment
@@ -879,8 +1102,8 @@ aob.bulk_pcoa.uwUF <- cmdscale(aob.bulk_dist_uwUF, eig=T)
 # 3. scores of PC1 and PC2
 
 # Bray-Curtis - Bulk Soil:
-ax1.scores.bulk <- aob.bulk_pcoa_bc$points[,1]
-ax2.scores.bulk <- aob.bulk_pcoa_bc$points[,2] 
+ax1.scores.aob.BS <- aob.bulk_pcoa_bc$points[,1]
+ax2.scores.aob.BS <- aob.bulk_pcoa_bc$points[,2] 
 # Jaccard - Bulk Soil:
 ax1.scores.j.bulk <- aob.bulk_pcoa_jac$points[,1]
 ax2.scores.j.bulk <- aob.bulk_pcoa_jac$points[,2]
@@ -910,9 +1133,9 @@ env_fit.aob.uwuF <- envfit(aob.bulk_pcoa.uwUF, env.aob.bulk, na.rm=TRUE)
 # 5. calculate percent variance explained, then add to plot
 aob.meta.bulk <- aob.meta.df.sub[1:119,]
 # Bray-curtis - Bulk Soil:
-ax1.bulk <- aob.bulk_pcoa_bc$eig[1]/sum(aob.bulk_pcoa_bc$eig)
-ax2.bulk <- aob.bulk_pcoa_bc$eig[2]/sum(aob.bulk_pcoa_bc$eig)
-aob.map.pcoa.bulk <- cbind(aob.meta.bulk,ax1.scores.bulk,ax2.scores.bulk)
+ax1.aob.BS <- aob.bulk_pcoa_bc$eig[1]/sum(aob.bulk_pcoa_bc$eig)
+ax2.aob.BS <- aob.bulk_pcoa_bc$eig[2]/sum(aob.bulk_pcoa_bc$eig)
+aob.map.pcoa.bulk <- cbind(aob.meta.bulk,ax1.scores.aob.BS,ax2.scores.aob.BS)
 # Jaccard - Bulk Soil:
 ax1.j.bulk <- aob.bulk_pcoa_jac$eig[1]/sum(aob.bulk_pcoa_jac$eig)
 ax2.j.bulk <- aob.bulk_pcoa_jac$eig[2]/sum(aob.bulk_pcoa_jac$eig)
@@ -963,8 +1186,8 @@ aob.rh_pcoa.uwUF <- cmdscale(aob.rh_dist_uwUF, eig=T)
 # 3. scores of PC1 and PC2
 
 # Bray-Curtis - Rhizosphere :
-ax1.scores.rh <- aob.rh_pcoa_bc$points[,1]
-ax2.scores.rh <- aob.rh_pcoa_bc$points[,2] 
+ax1.scores.aob.RS <- aob.rh_pcoa_bc$points[,1]
+ax2.scores.aob.RS <- aob.rh_pcoa_bc$points[,2] 
 # Jaccard - Rhizosphere :
 ax1.scores.j.rh <- aob.rh_pcoa_jac$points[,1]
 ax2.scores.j.rh <- aob.rh_pcoa_jac$points[,2]
@@ -992,9 +1215,9 @@ env_fit.aob.uwuF.rh <- envfit(aob.rh_pcoa.uwUF, env.aob.rh, na.rm=TRUE)
 # 5. calculate percent variance explained, then add to plot
 aob.meta.rh <- aob.meta.df.sub[120:191,]
 # Bray-curtis - Rhizosphere :
-ax1.rh <- aob.rh_pcoa_bc$eig[1]/sum(aob.rh_pcoa_bc$eig)
-ax2.rh <- aob.rh_pcoa_bc$eig[2]/sum(aob.rh_pcoa_bc$eig)
-aob.map.pcoa.rh <- cbind(aob.meta.rh,ax1.scores.rh,ax2.scores.rh)
+ax1.aob.RS <- aob.rh_pcoa_bc$eig[1]/sum(aob.rh_pcoa_bc$eig)
+ax2.aob.RS <- aob.rh_pcoa_bc$eig[2]/sum(aob.rh_pcoa_bc$eig)
+aob.map.pcoa.rh <- cbind(aob.meta.rh,ax1.scores.aob.RS,ax2.scores.aob.RS)
 # Jaccard - Rhizosphere :
 ax1.j.rh <- aob.rh_pcoa_jac$eig[1]/sum(aob.rh_pcoa_jac$eig)
 ax2.j.rh <- aob.rh_pcoa_jac$eig[2]/sum(aob.rh_pcoa_jac$eig)
@@ -1028,26 +1251,27 @@ env.scores3.bc <- cbind(env.scores2.bc,Variable=rownames(env.scores2.bc))
 env.scores4.bc <- subset(env.scores3.bc,pvals.bc<0.05)
 set.seed(33)
 mult <-.53
+paletteMartin
 
-aob.pcoa_bulk.plot <- ggplot(data = aob.map.pcoa.bulk, aes(x=ax1.scores.bulk, y=ax2.scores.bulk, colour=Treatment))+
-                      theme_bw()+
-                      geom_point(aes(color = aob.map.pcoa.bulk$Treatment, shape = aob.map.pcoa.bulk$Irrigation), size = 2) +
+AOB.PCoA.BS <- ggplot(data = aob.map.pcoa.bulk, aes(x=ax1.scores.aob.BS, y=ax2.scores.aob.BS, colour=Treatment))+
+  theme_bw()+
+  geom_point(aes(color = aob.map.pcoa.bulk$Treatment, shape = aob.map.pcoa.bulk$Irrigation), size = 4,stroke=2) +
   scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
                      name = "Cropping system",
                      labels = c("BIODYN", "CONFYM", "CONMIN")) +
   scale_shape_manual(values = c(8, 1),
                      name = "Irrigation treatment",
                      labels = c("control", "drought")) + theme_classic() +
-  #scale_fill_manual(values = c("#E69F00","#E69F00","#009E73","#009E73","#FF618C","#FF618C","#FF618C","#FF618C",
-                            #"#E69F00","#E69F00","#009E73","#009E73","#009E73","#009E73","#E69F00","#E69F00",
-                            #"#FF618C","#FF618C","#FF618C","#FF618C","#009E73","#009E73","#E69F00","#E69F00")) +
- scale_fill_manual(values = c("#E69F00","#009E73","#FF618C","#FF618C",
-                             "#E69F00","#009E73","#009E73","#E69F00",
-                             "#FF618C","#FF618C","#009E73","#E69F00")) +
+  scale_fill_manual(values = c("#E69F00","#E69F00","#009E73","#009E73","#FF618C","#FF618C","#FF618C","#FF618C",
+                            "#E69F00","#E69F00","#009E73","#009E73","#009E73","#009E73","#E69F00","#E69F00",
+                            "#FF618C","#FF618C","#FF618C","#FF618C","#009E73","#009E73","#E69F00","#E69F00")) +
+ #scale_fill_manual(values = c("#E69F00","#009E73","#FF618C","#FF618C",
+                            # "#E69F00","#009E73","#009E73","#E69F00",
+                            # "#FF618C","#FF618C","#009E73","#E69F00")) +
   #geom_label(show.legend  = F,aes(label = Block))+
-  scale_x_continuous(name=paste("PCoA1:\n",round(ax1.bulk,3)*100,"% var. explained", sep=""))+
-  scale_y_continuous(name=paste("PCoA2:\n",round(ax2.bulk,3)*100,"% var. explained", sep=""))+
-  labs(title = "A. Bulk Soil")+
+  scale_x_continuous(name=paste("PCoA1:\n",round(ax1.aob.BS,3)*100,"% var. explained", sep=""))+
+  scale_y_continuous(name=paste("PCoA2:\n",round(ax2.aob.BS,3)*100,"% var. explained", sep=""))+
+  labs(title = "Bulk Soil", subtitle = "A. AOB")+
   theme(legend.position="none",
         #legend.title = element_blank(),
         #legend.text=element_text(size=12),
@@ -1055,17 +1279,19 @@ aob.pcoa_bulk.plot <- ggplot(data = aob.map.pcoa.bulk, aes(x=ax1.scores.bulk, y=
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        plot.title = element_text(size = 20, face="bold"),
-        axis.text=element_text(size=13), 
-        axis.title=element_text(size=14,face="bold"))+
+        plot.title = element_text(size = 40, face="bold"),
+        plot.subtitle = element_text(size = 35, face="bold"),
+        axis.text=element_text(size=25), 
+        axis.title=element_text(size=30))+
   guides(colour=guide_legend(override.aes = list(size=4)))+
-  geom_mark_ellipse(aes(fill = aob.map.pcoa.bulk$Block), 
+  geom_mark_ellipse(aes(fill = aob.map.pcoa.bulk$PlotID, label = aob.map.pcoa.bulk$Block),label.fontsize = 20, 
                     expand = 0, linewidth = NA, show.legend = FALSE)
-aob.pcoa_bulk.plot
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
-ggsave("aob.bray.plotid.tiff",
-       aob.pcoa_bulk.plot, device = "tiff",
-       width = 12, height = 8, 
+AOB.PCoA.BS
+#setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
+ggsave("AOB.PCoA.BS.tiff",
+       AOB.PCoA.BS, device = "tiff",
+       width = 15, height = 15, 
        units= "in", dpi = 600)
 
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
@@ -1074,27 +1300,20 @@ ggsave("aob.bray.plotid_block.tiff",
        width = 6, height =5, 
        units= "in", dpi = 600)
 
-
-# B. Bray-Curtis - Rhizosphere :
-aob.pcoa_rh.plot <- ggplot(data = aob.map.pcoa.rh, aes(x=ax1.scores.rh, y=ax2.scores.rh, colour=Treatment))+
-  theme_bw()+
-  geom_point(aes(color = aob.map.pcoa.rh$Treatment, shape = aob.map.pcoa.rh$Irrigation), size = 2) +
+AOB.PCoA.BS.fert <- ggplot(data = aob.map.pcoa.bulk, aes(x=ax1.scores.aob.BS, y=ax2.scores.aob.BS, colour=Treatment))+
+  theme_classic()+
+  geom_point(aes(color = aob.map.pcoa.bulk$Treatment, shape = aob.map.pcoa.bulk$Irrigation), size = 4,stroke=1) +
   scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
                      name = "Cropping system",
                      labels = c("BIODYN", "CONFYM", "CONMIN")) +
   scale_shape_manual(values = c(8, 1),
                      name = "Irrigation treatment",
                      labels = c("control", "drought")) + theme_classic() +
-  #scale_fill_manual(values = c("#E69F00","#E69F00","#009E73","#009E73","#FF618C","#FF618C","#FF618C","#FF618C",
-                            #"#E69F00","#E69F00","#009E73","#009E73","#009E73","#009E73","#E69F00","#E69F00",
-                            #"#FF618C","#FF618C","#FF618C","#FF618C","#009E73","#009E73","#E69F00","#E69F00")) +
- scale_fill_manual(values = c("#E69F00","#009E73","#FF618C","#FF618C",
-                             "#E69F00","#009E73","#009E73","#E69F00",
-                             "#FF618C","#FF618C","#009E73","#E69F00")) +
+  #scale_fill_manual(values = c("#009E73","#FF618C","#E69F00")) +
   #geom_label(show.legend  = F,aes(label = Block))+
-  scale_x_continuous(name=paste("PCoA1:\n",round(ax1.rh,3)*100,"% var. explained", sep=""))+
-  scale_y_continuous(name=paste("PCoA2:\n",round(ax2.rh,3)*100,"% var. explained", sep=""))+
-  labs(title = "B. Rhizosphere")+
+  scale_x_continuous(name=paste("PCoA1:\n",round(ax1.aob.BS,3)*100,"% var. explained", sep=""))+
+  scale_y_continuous(name=paste("PCoA2:\n",round(ax2.aob.BS,3)*100,"% var. explained", sep=""))+
+  labs(title="Bulk Soil", subtitle = "A. AOB")+
   theme(legend.position="none",
         #legend.title = element_blank(),
         #legend.text=element_text(size=12),
@@ -1102,13 +1321,49 @@ aob.pcoa_rh.plot <- ggplot(data = aob.map.pcoa.rh, aes(x=ax1.scores.rh, y=ax2.sc
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        plot.title = element_text(size = 20, face="bold"),
-        axis.text=element_text(size=13), 
-        axis.title=element_text(size=14,face="bold"))+
+        plot.title = element_text(size = 25, face="bold"),
+        plot.subtitle = element_text(size = 20, face="bold"),
+        axis.text=element_text(size=18), 
+        axis.title=element_text(size=19))+
   guides(colour=guide_legend(override.aes = list(size=4)))+
-  geom_mark_ellipse(aes(fill = aob.map.pcoa.rh$Block), 
+  stat_ellipse(aes(colour = aob.map.pcoa.bulk$Treatment))
+AOB.PCoA.BS.fert
+
+# B. Bray-Curtis - Rhizosphere :
+AOB.PCoA.RS <- ggplot(data = aob.map.pcoa.rh, aes(x=ax1.scores.aob.RS, y=ax2.scores.aob.RS, colour=Treatment))+
+  theme_bw()+
+  geom_point(aes(color = aob.map.pcoa.rh$Treatment, shape = aob.map.pcoa.rh$Irrigation), size = 4, stroke=2) +
+  scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
+                     name = "Cropping system",
+                     labels = c("BIODYN", "CONFYM", "CONMIN")) +
+  scale_shape_manual(values = c(8, 1),
+                     name = "Irrigation treatment",
+                     labels = c("control", "drought")) + theme_classic() +
+  scale_fill_manual(values = c("#E69F00","#E69F00","#009E73","#009E73","#FF618C","#FF618C","#FF618C","#FF618C",
+                            "#E69F00","#E69F00","#009E73","#009E73","#009E73","#009E73","#E69F00","#E69F00",
+                            "#FF618C","#FF618C","#FF618C","#FF618C","#009E73","#009E73","#E69F00","#E69F00")) +
+ #scale_fill_manual(values = c("#E69F00","#009E73","#FF618C","#FF618C",
+                            # "#E69F00","#009E73","#009E73","#E69F00",
+                            # "#FF618C","#FF618C","#009E73","#E69F00")) +
+  #geom_label(show.legend  = F,aes(label = Block))+
+  scale_x_continuous(name=paste("PCoA1:\n",round(ax1.aob.RS,3)*100,"% var. explained", sep=""))+
+  scale_y_continuous(name=paste("PCoA2:\n",round(ax2.aob.RS,3)*100,"% var. explained", sep=""))+
+  labs(title = "Rhizosphere", subtitle="B. AOB")+
+  theme(legend.position="none",
+        #legend.title = element_blank(),
+        #legend.text=element_text(size=12),
+        #legend.spacing.x = unit(0.05, 'cm'),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 40, face="bold"),
+        plot.subtitle = element_text(size = 35, face="bold"),
+        axis.text=element_text(size=25), 
+        axis.title=element_text(size=30))+
+  guides(colour=guide_legend(override.aes = list(size=4)))+
+  geom_mark_ellipse(aes(fill = aob.map.pcoa.rh$PlotID, label = aob.map.pcoa.rh$Block),label.fontsize = 20, 
                     expand = 0, linewidth = NA, show.legend = FALSE)
-aob.pcoa_rh.plot
+AOB.PCoA.RS
 
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("aob.bray.plotid.rh_block.tiff",
@@ -1127,16 +1382,67 @@ ggsave("aob.bray.tiff",
        aob.bray.plot, device = "tiff",
        width = 12, height = 5, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
-ggsave("aob.bray.tiff",
-       aob.bray.plot, device = "tiff",
-       width = 12, height = 5, 
-       units= "in", dpi = 600)
-ggsave("aob.bray.envfit.tiff",
-       aob.bray.plot.envfit, device = "tiff",
-       width = 16, height = 6, 
-       units= "in", dpi = 600)
 
+
+AOB.PCoA.RS.fert <- ggplot(data = aob.map.pcoa.rh, aes(x=ax1.scores.aob.RS, y=ax2.scores.aob.RS, colour=Treatment))+
+  theme_classic()+
+  geom_point(aes(color = aob.map.pcoa.rh$Treatment, shape = aob.map.pcoa.rh$Irrigation), size = 4,stroke=1) +
+  scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
+                     name = "Cropping system",
+                     labels = c("BIODYN", "CONFYM", "CONMIN")) +
+  scale_shape_manual(values = c(8, 1),
+                     name = "Irrigation treatment",
+                     labels = c("control", "drought")) + theme_classic() +
+  #scale_fill_manual(values = c("#009E73","#FF618C","#E69F00")) +
+  #geom_label(show.legend  = F,aes(label = Block))+
+  scale_x_continuous(name=paste("PCoA1:\n",round(ax1.aob.RS,3)*100,"% var. explained", sep=""))+
+  scale_y_continuous(name=paste("PCoA2:\n",round(ax2.aob.RS,3)*100,"% var. explained", sep=""))+
+  labs(title="Rhizosphere", subtitle = "B. AOB")+
+  theme(legend.position="none",
+        #legend.title = element_blank(),
+        #legend.text=element_text(size=12),
+        #legend.spacing.x = unit(0.05, 'cm'),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 25, face="bold"),
+        plot.subtitle = element_text(size = 20, face="bold"),
+        axis.text=element_text(size=18), 
+        axis.title=element_text(size=19))+
+  guides(colour=guide_legend(override.aes = list(size=4)))+
+  stat_ellipse(aes(colour = aob.map.pcoa.rh$Treatment))
+                    #expand = 0, linewidth = NA, show.legend = FALSE)
+AOB.PCoA.RS.fert
+
+#setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
+##############################################################################################################################
+
+# Combines all PCoA figures
+PCoA.All <- ((AOB.PCoA.BS / AOA.PCoA.BS / COM.PCoA.BS) | (AOB.PCoA.RS / AOA.PCoA.RS / COM.PCoA.RS)) +
+ plot_layout(guides = "collect") & theme(legend.position = 'bottom',legend.title = element_blank(),
+                                         legend.text = element_text(size=25))
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
+ggsave("Supp.Fig.3x.tiff",
+       PCoA.All, device = "tiff",
+       width = 27, height = 30, 
+       units= "in", dpi = 600,compression = "lzw")
+ggsave("Supp.Fig.3dpi300.tiff",
+       PCoA.All, device = "tiff",
+       width = 27, height = 30, 
+       units= "in", dpi =300,compression = "lzw")
+
+# Combines all PCoA figures
+PCoA.Fert.All <- ((AOB.PCoA.BS.fert / AOA.PCoA.BS.fert / COM.PCoA.BS.fert) | (AOB.PCoA.RS.fert / AOA.PCoA.RS.fert / COM.PCoA.RS.fert)) +
+ plot_layout(guides = "collect") & theme(legend.position = 'bottom',legend.title = element_blank(),
+                                         legend.text = element_text(size=17))
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
+ggsave("Supp.Fig.6dpi300.tiff",
+       PCoA.Fert.All, device = "tiff",
+       width = 12, height = 14, 
+       units= "in", dpi =300,compression = "lzw")
+
+
+###############################################################################################################################
 # A. Jaccard - Bulk Soil :
 aob.pcoa_bulk.jac <- ggplot(data = aob.map.pcoa.j.bulk, aes(x=ax1.scores.j.bulk, y=ax2.scores.j.bulk, colour=Treatment))+
   theme_bw()+
@@ -1370,7 +1676,7 @@ hsd.aob.bs.irri
 
 # 1. Using adonis2 package with defined perm to restrict the permutation 
 set.seed(13)
-aob.adonis.bulk.bc <- adonis2(aob.bulk_dist_bc ~ Irrigation, strata=block.aob, data=aob.meta.bulk, 
+aob.adonis.bulk.bc <- adonis2(aob.bulk_dist_bc ~ Irrigation*Treatment, strata=block.aob, data=aob.meta.bulk, 
                               permutations = 999) # significant
 aob.adonis.bulk.bc
 
@@ -1411,14 +1717,14 @@ aob.adonis.bulk.wUF.CTRL.t2 <- adonis2(aob.bulk_dist_wUF ~ Irrigation, data=aob.
 aob.adonis.bulk.wUF.CTRL.t2
 # 2. Using ANOSIM package and define the strata
 set.seed(13)
-aob.bc.anosim <- anosim(aob.bulk_dist_wUF,
-                        grouping = irri.aob, permutations = 999, strata = block.aob)
+aob.bc.anosim <- anosim(aob.bulk_dist_bc,
+                        grouping = aob.meta.bulk$x, permutations = 999, strata = block.aob)
 summary(aob.bc.anosim) # NOT SIGNIFICANT
 
 
 # test the permanova for farming system
 set.seed(13)
-aob.adonis.bulk <- adonis2(aob.bulk_dist_bc ~ Irrigation*Treatment*Date, data=aob.meta.bulk, 
+aob.adonis.bulk <- adonis2(aob.bulk_dist_bc ~ Treatment*Irrigation*Date+Block, data=aob.meta.bulk, 
                            permutation=999) # only treatment is significant
 aob.adonis.bulk
 ####################################################################################################
@@ -1451,7 +1757,7 @@ aob.bc.anosim.rh <- anosim(aob.rh_dist_wUF,
 summary(aob.bc.anosim.rh) # SIGNIFICANT
 
 set.seed(13)
-aob.adonis.rh <- adonis2(aob.rh_dist_bc ~ Irrigation*Treatment*Date, data=aob.meta.rh, 
+aob.adonis.rh <- adonis2(aob.rh_dist_bc ~ Irrigation*Treatment*Date+Block, data=aob.meta.rh,#strata=block.aob.rh,
                          permutation=999) # only treatment is significant
 aob.adonis.rh
 
@@ -1882,7 +2188,7 @@ k09dist_bc <- vegdist(t(k09.asv1), method = "bray")
 # Phyloseq object of rarefied data and unrarefied data:
 # 1. rarefied data
 aob.rare.1282.seq
-tax_table(aob.rare.1282.seq)
+phyloseq::tax_table(aob.rare.1282.seq)
 # merge taxa by species
 aob.sp <- tax_glom(aob.rare.1282.seq, taxrank = "Species", NArm = F)
 aob.sp.ra <- transform_sample_counts(aob.sp, function(x) x/sum(x))
@@ -1898,13 +2204,6 @@ test.df <- psmelt(aob.sp.ra) %>%
   summarize(Mean = mean(Abundance)) %>%
   arrange(-Mean)
 
-aob.gen <- tax_glom(aob.rare.1282.seq, taxrank = "Genus", NArm = F)
-aob.gen.ra <- transform_sample_counts(aob.gen, function(x) x/sum(x))
-aob.abund.trt <- psmelt(aob.gen.ra) %>%
-  group_by(Type, Treatment, Genus) %>%
-  summarize(Mean = mean(Abundance)) %>%
-  arrange(-Mean)
-
 aob.abund.trt.subcla <- psmelt(aob.gen.ra) %>%
   group_by(Type,Genus) %>%
   summarize(Mean = mean(Abundance)) %>%
@@ -1917,6 +2216,7 @@ colours
 #install.packages("colorBlindness")
 library(colorBlindness)
 library(Polychrome)
+
 # build-in color palette
 mycol = glasbey.colors(21)
 mycol=c("#FE8F42","#FFFFFF","#0000FF","#FF0000","#009FFF","#00FF00","#000033",
@@ -1979,29 +2279,104 @@ aob.sp.plot <- ggplot(aob.sp.df, aes(x=interaction(Date, Irrigation), y=Mean, fi
              #color = "blue", linewidth=1.5)
 aob.sp.plot
 
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("AOB_meanRA_barplot2.eps",
        aob.sp.plot, device = "eps",
        width = 15, height =6, 
        units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
-ggsave("AOB_meanRA_barplot.tiff",
-       aob.sp.plot, device = "tiff",
-       width = 15, height =6, 
-       units= "in", dpi = 600)
+
+#________________________________________________________________________________________________________________________________-
+# genus level
+
+aob.gen <- tax_glom(aob.rare.1282.seq, taxrank = "Genus", NArm = F)
+aob.gen.ra <- transform_sample_counts(aob.gen, function(x) x/sum(x))
+aob.genus.df <- psmelt(aob.gen.ra) %>%
+  group_by(var2, Type, Date, Treatment, Irrigation, Genus) %>%
+  summarize(Mean = mean(Abundance)) %>%
+  arrange(-Mean)
+
+str(aob.genus.df)
+view(aob.genus.df)
+aob.genus.df$Type <- factor(aob.genus.df$Type, levels = c("BS", "RS"),
+                         labels = c("Bulk Soil", "Rhizosphere"))
+aob.genus.df$Treatment <- factor(aob.genus.df$Treatment, levels = c("D", "K", "M"),
+                              labels = c("BIODYN", "CONFYM", "CONMIN"))
+aob.genus.df$Irrigation <- factor(aob.genus.df$Irrigation, levels = c("Rainout", "Control"),
+                         labels = c("Drought", "Control"))
+aob.genus.df$Date <- factor(aob.genus.df$Date, levels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"),
+                          labels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
+
+library(RColorBrewer)
+
+brewer.pal(12, "Paired")
+display.brewer.pal(n, name)
+display.brewer.all(n=NULL, type="all", select=NULL, exact.n=TRUE, 
+colorblindFriendly=T)
+
+set.seed(13)
+aob.genus.plot <- ggplot(aob.genus.df, aes(x=interaction(Date, Irrigation), y=Mean, fill=Genus)) + 
+  geom_bar(aes(), stat="identity", position="fill") + 
+  theme_bw()+
+  #scale_fill_manual(legend, values=c("#1B9E77","#D95F02","#7570B3","#E7298A"))+
+  scale_fill_manual(values=c("#33A02C","#FF7F00","#6A3D9A","#1F78B4"))+
+  facet_nested(~Type+Treatment, 
+               #nest_line = element_line(linetype = 1, linewidth = 0.5), 
+               scales="free")+
+               #resect = unit(5, "cm"))+
+  theme(legend.direction = "vertical",legend.position="right") + 
+  guides(fill=guide_legend(ncol=1))+
+  labs(y= "Mean Relative Abundance", title = "A. AOB")+
+  theme(plot.title = element_text(size = 25, face="bold"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text=element_text(size=14),
+        axis.line.x = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 0.5, vjust=0.5),
+        #axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y =element_text(size=18),
+        legend.text=element_text(size = 16),
+        legend.title = element_text(size=17, face="bold"),
+        panel.grid = element_blank(), 
+        panel.background = element_blank(),
+        #strip.background = element_blank(),
+        strip.background=element_rect(color="grey30", fill="white"),
+        strip.text.x = element_text(size = 20),
+        #panel.border = element_rect(colour = "black", fill = NA,linewidth= 0.2),
+        panel.border=element_rect(color="grey30",fill = NA))+
+  scale_y_continuous(expand = c(0,0))+ guides(x="axis_nested")
+  #geom_vline(xintercept = 5, linetype="dotted", 
+             #color = "blue", linewidth=1.5)
+aob.genus.plot
+
+# Combine All Relative Abundance Figures
+Composition.All <- (aob.genus.plot / aoa.clade.plot / com.clade.plot) & 
+ theme(legend.justification = "left")
+Composition.All
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
+ggsave("Supp.Fig.4dpi300.tiff",
+       Composition.All, device = "tiff",
+       width = 14, height = 15, 
+       units= "in", dpi = 300, compression="lzw")
+
+#________________________________________________________________________________________________________________________________
+#setwd('D:/Fina/INRAE_Project/microservices_fig/AOB'
 
 # 2. unrarefied data
 head(aob.tax)
-aob.tax.physeq = tax_table(as.matrix(aob.tax)) # taxonomy table
-
+aob.tax.physeq = phyloseq::tax_table(as.matrix(aob.tax)) # taxonomy table
+dim(aob.tax.physeq)
 # phyloseq object of the metadata
 str(meta_micro)
-aob.meta.physeq <- sample_data(meta_micro)# meta data
+meta_micro.row <- column_to_rownames(meta_micro, var = "SampleID")
+
+aob.meta.physeq <- sample_data(meta_micro.row)# meta data
 sample_names(aob.meta.physeq)
 
 # read the rooted tree
+setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB-rooted-tree/')
 AOB_rooted_tree <- ape::read.tree("tree.nwk")
-
+AOB_rooted_tree
 # make phyloseq object
 aob.physeq.unrare <- merge_phyloseq(aob.asv.physeq,aob.tax.physeq,aob.meta.physeq,AOB_rooted_tree)
 aob.physeq.unrare

@@ -107,7 +107,7 @@ aob.tax <- column_to_rownames(aob.tax, var = "ASVid")
 aob.tax.physeq = tax_table(as.matrix(aob.tax)) # taxonomy table
 # phyloseq object of the metadata
 str(meta_micro)
-meta_micro$Date <- factor(meta_micro$Date, levels = c("4/28/22", "06/01/2022", "07/05/2022", "7/20/22", "9/13/22"),
+meta_micro$Date <- factor(meta_micro$Date, levels = c("4/28/22", "6/1/22", "7/5/22", "7/20/22", "9/13/22"),
                           labels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"))
 rownames(meta_micro) <- sample_names(aob.asv.physeq)
 aob.meta.physeq <- sample_data(meta_micro)# meta data
@@ -182,7 +182,8 @@ aob.meta.df.sub2$PlotID<-as.factor(aob.meta.df.sub2$PlotID)
 aob.meta.df.sub2$Irrigation<-as.factor(aob.meta.df.sub2$Irrigation)
 aob.meta.df.sub2$Block<-as.factor(aob.meta.df.sub2$Block)
 aob.meta.df.sub2$x<-as.factor(aob.meta.df.sub2$x)
-aob.meta.df.sub2$var<-as.factor(aob.meta.df.sub2$var)
+aob.meta.df.sub2$rep<-as.factor(aob.meta.df.sub2$rep)
+aob.meta.df.sub2$rep2<-as.factor(aob.meta.df.sub2$rep2)
 aob.meta.df.sub2$var2<-as.factor(aob.meta.df.sub2$var2)
 aob.meta.df.sub2$var3<-as.factor(aob.meta.df.sub2$var3)
 aob.meta.df.sub2[sapply(aob.meta.df.sub2, is.character)] <- 
@@ -268,3 +269,109 @@ aob.BS.sha.afex <- aov_ez("PlotID", "AOB_Shannon", aob.meta.bulk2,
              anova_table = list(correction = "none"))
 aob.BS.sha.afex
 
+# BETA DIVERSITY ANALYSIS #
+# 1. Calculating dissimilarity indices for community ecologist to make a distance structure (Bray-Curtis distance between samples)
+
+# Bray-Curtis - Bulk Soil :
+aob.asv.rare.df <- as.data.frame(otu_table(aob.rare.nolast))
+aob.asv4.BS <- aob.asv.rare.df[,1:95]
+aob.asv4.BS1 <- aob.asv4.BS[rowSums(aob.asv4.BS)>0,]
+sort(rowSums(aob.asv4.BS1, na.rm = FALSE, dims = 1), decreasing = FALSE)
+setwd('D:/Fina/INRAE_Project/microservices/070623_AOB_out/')
+#write.csv(aob.asv.bulk1, file = "aob.bulk1.otutab.csv")
+aob4.BS_dist_bc <- vegdist(t(aob.asv4.BS1), method = "bray")
+
+# 2. CMD/classical multidimensional scaling (MDS) of a data matrix. Also known as principal coordinates analysis
+# Bray-Curtis - Bulk Soil:
+aob4.BS_pcoa_bc <- cmdscale(aob4.BS_dist_bc, eig=T)
+
+# 3. scores of PC1 and PC2
+# Bray-Curtis - Bulk Soil:
+ax1.scores4.BS <- aob4.BS_pcoa_bc$points[,1]
+ax2.scores4.BS <- aob4.BS_pcoa_bc$points[,2] 
+
+# 4. calculate percent variance explained, then add to plot
+aob.meta.bulk2 <- aob.meta.df.sub2[1:95,]
+# Bray-curtis - Bulk Soil:
+ax1.aob.BS4 <- aob4.BS_pcoa_bc$eig[1]/sum(aob4.BS_pcoa_bc$eig)
+ax2.aob.BS4 <- aob4.BS_pcoa_bc$eig[2]/sum(aob4.BS_pcoa_bc$eig)
+aob.map.pcoa.BS4 <- cbind(aob.meta.bulk2,ax1.scores4.BS,ax2.scores4.BS)
+#################################################################################################
+
+# RHIZOSPHERE
+
+# Bray-Curtis - Rhizosphere :
+aob.asv.rare.df <- as.data.frame(otu_table(aob.rare.nolast))
+aob.asv4.RS <- aob.asv.rare.df[,96:167]
+aob.asv4.RS1 <- aob.asv4.RS[rowSums(aob.asv4.RS)>0,]
+sort(rowSums(aob.asv4.RS1, na.rm = FALSE, dims = 1), decreasing = FALSE)
+dim(aob.asv4.RS1) #847 72
+aob4.RS_dist_bc <- vegdist(t(aob.asv4.RS1), method = "bray")
+
+# 2. CMD/classical multidimensional scaling (MDS) of a data matrix. Also known as principal coordinates analysis
+# Bray-Curtis - Rhizosphere :
+aob4.RS_pcoa_bc <- cmdscale(aob4.RS_dist_bc, eig=T)
+
+# 3. scores of PC1 and PC2
+# Bray-Curtis - Rhizosphere :
+ax1.scores4.RS <- aob4.RS_pcoa_bc$points[,1]
+ax2.scores4.RS <- aob4.RS_pcoa_bc$points[,2] 
+
+# 4. calculate percent variance explained, then add to plot
+aob.meta.rh2 <- aob.meta.df.sub2[96:167,]
+view(aob.meta.rh2)
+# Bray-curtis - Rhizosphere :
+ax1.aob.RS4 <- aob4.RS_pcoa_bc$eig[1]/sum(aob4.RS_pcoa_bc$eig)
+ax2.aob.RS4 <- aob4.RS_pcoa_bc$eig[2]/sum(aob4.RS_pcoa_bc$eig)
+aob.map.pcoa.RS4 <- cbind(aob.meta.rh2,ax1.scores4.RS,ax2.scores4.RS)
+
+###############################################################################
+# Adonis
+# 1. Using adonis2 package with defined perm to restrict the permutation 
+str(aob.meta.bulk2)
+set.seed(13)
+aob.adonis.BS4.bc <- adonis2(aob4.BS_dist_bc ~ Irrigation, strata=aob.meta.bulk2$Block, data=aob.meta.bulk2, 
+                              permutations = 999) # significant
+aob.adonis.BS4.bc
+
+# similar with below:
+perm1.aob = how(within = Within(type="free"), 
+            plots = Plots(type = "none"),
+            blocks = aob.meta.bulk2$Block,
+            nperm = 999,
+            observed = TRUE)
+set.seed(13)
+aob.adonis.BS.bc.perm1 <- adonis2(aob4.BS_dist_bc ~ Irrigation, data=aob.meta.bulk2, 
+                                    permutations = perm1.aob)
+aob.adonis.BS.bc.perm1 
+
+# another way to use how()
+
+# Since our intent is to focus on the variation among treatments, 
+# we need to restrict the permutations so that plots are permuted within each block, but plots are not permuted across blocks.
+# these two ways are equivalent:
+CTRL.t1.aob <- how(within = Within(type = "free"),
+               plots = Plots(type = "none"),
+               blocks = aob.meta.bulk2$Block,
+               nperm = 999,
+               observed = TRUE)
+# and
+CTRL.t2.aob <- how(within = Within(type = "free"),
+               plots = Plots(strata = aob.meta.bulk2$Block, type = "none"),
+               nperm = 999,
+               observed = TRUE)
+#they specify that plots are to be freely permuted within blocks but that blocks are not allowed to permute
+set.seed(13)
+aob.adonis.BS.bc.CTRL.t2 <- adonis2(aob4.BS_dist_bc ~ Irrigation, data=aob.meta.bulk2, 
+                                      permutations = CTRL.t2.aob)
+aob.adonis.BS.bc.CTRL.t2
+# 2. Using ANOSIM package and define the strata
+set.seed(13)
+aob.BS.bc.anosim <- anosim(aob4.BS_dist_bc,
+                        grouping = aob.meta.bulk2$Irrigation, permutations = 999, strata = aob.meta.bulk2$Block)
+summary(aob.BS.bc.anosim) # almost 0.054
+# test the permanova for whole plot
+set.seed(13)
+aob.adonis.BS4 <- adonis2(aob4.BS_dist_bc ~ Irrigation*Treatment*Date, data=aob.meta.bulk2, 
+                           permutation=999) # only treatment is significant
+aob.adonis.BS4

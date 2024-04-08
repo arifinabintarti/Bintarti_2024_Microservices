@@ -1,5 +1,6 @@
 BiocManager::install("MicrobiotaProcess")
-
+install.packages("file2meco")
+install.packages("paletteer")
 library(file2meco)
 library(microeco)
 library(magrittr)
