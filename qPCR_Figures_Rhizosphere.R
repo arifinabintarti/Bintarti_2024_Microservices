@@ -437,64 +437,59 @@ ggsave("ComB_16S.All.tiff",
 
 
 # 9. Rhizosphere - AOA/AOB RATIO
-
+AOB_AOB.stat_text.RS <- data.frame(sampling.date = 0.5, AOA_AOB_ratio_percent = 40 , fertilization="D", label="C *\nD x T *")
 AOA_AOB.rat.rh.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=AOA_AOB_ratio_percent)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('control (D)', 'drought (D)', 'control (K)', 
-                             'drought (K)', 'control (M)', 'drought (M)'))+
-  #labs(fill='Farming system', alpha= 'Drought')+
-  #ylab(bquote('Comammox B'~italic(amoA)~'gene'~(copies~g^-1~dry~soil)))+
+                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
+                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+  labs(title="B. Rhizosphere")+
   ylab('AOA/AOB (%)')+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
-  theme(legend.title = element_blank(),
-        #strip.background = element_blank(),
-        #strip.text.x = element_blank(),
-        plot.title = element_text(size = 20, face='bold'),
+  theme(legend.position = "none",
+        legend.title = element_text(size=15, face='bold'),
         legend.text = element_text(size=15),
-        strip.text = element_blank(),
-        axis.text.y = element_text(size = 14),
+        strip.text = element_text(size=18),
+        #strip.text = element_blank(),
+        axis.text.y = element_text(size = 18),
+        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
         #axis.text.x = element_blank(),
         #axis.ticks.x = element_blank(),
-        axis.text.x = element_text(size = 14,angle = 45, hjust = 1),
-        axis.title.y = element_text(size=15,face="bold"),
+        axis.title.y = element_markdown(size=19),
+        plot.title = element_text(size=25, face="bold"),
+        plot.subtitle = element_text(size=20, face="bold"),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())+
-  guides(fill="none", alpha="none")+ggtitle("B. Rhizosphere")
+ geom_label(data = AOB_AOB.stat_text.RS,label=AOB_AOB.stat_text.RS$label,hjust=0, colour="black", size=4, fontface="bold")
 AOA_AOB.rat.rh.plot
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
-AOA_AOB.rat.rh.emm.rstat <- qPCR.RS.ed %>%
+AOA_AOB_rh_emm <- qPCR.RS.ed %>%
   group_by(sampling.date, fertilization) %>%
-  emmeans_test(AOA_AOB_ratio_percent  ~ irrigation, 
+  emmeans_test(AOA_AOB_ratio_percent ~ irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = t.AOA_AOB_arcsin.rh)
-AOA_AOB.rat.rh.emm.rstat
-# add x y position
-AOA_AOB.rat.rh.emm.xy <- AOA_AOB.rat.rh.emm.rstat  %>% 
+               conf.level = 0.95, model =  AOA_AOB.RS.arc.aov2)
+AOA_AOB_rh_emm
+AOA_AOB_rh.xy <- AOA_AOB_rh_emm %>% 
   add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
 # plotting the pairwise comparisons among treatments (emmeans results)
 AOA_AOB.rat.rh.plot2 <- AOA_AOB.rat.rh.plot + 
-  stat_pvalue_manual(AOA_AOB.rat.rh.emm.xy ,
-                     #step.increase = 1,
-                     #label = "p.adj.signif",size=3.5,
-                     label = "p = {scales::pvalue(p.adj)}",size=3, 
-                     bracket.size = 0.6,#bracket.nudge.y = -0.05,
-                     bracket.shorten = 1, color = "black",
-                     tip.length = 0.005, hide.ns = TRUE)+
-  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
-AOA_AOB.rat.rh.plot3 <- AOA_AOB.rat.rh.plot2 +   ylim(0,180)
-AOA_AOB.rat.rh.plot3 
+  stat_pvalue_manual(AOA_AOB_rh.xy,x = "sampling.date", y.position = 165,
+                     label = "p.adj.signif",size=5,
+                     tip.length = 0.01, hide.ns = F)
+AOA_AOB.rat.rh.plot2 
 
-AOA_AOB.All <-  AOA_AOB.rat.plot3  / AOA_AOB.rat.rh.plot3 
+AOA_AOB.All <- (AOA_AOB.rat.plot2  / AOA_AOB.rat.rh.plot2)+
+ plot_layout(guides = "collect") & 
+ theme(legend.position = 'bottom',legend.title = element_blank())
 AOA_AOB.All
-setwd('D:/Fina/INRAE_Project/microservices_fig/qPCR')
+setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("AOA_AOB.All.tiff",
        AOA_AOB.All, device = "tiff",
-       width = 9, height =7, 
-       units= "in", dpi = 600)
+       width = 10, height =12, 
+       units= "in", dpi = 300, compression="lzw")
 
 # 9. Rhizosphere - comA/comB RATIO
 

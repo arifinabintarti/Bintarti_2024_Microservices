@@ -101,31 +101,32 @@ view(RA.comp.BS.df2)
 RA.comp.BS.df2 <- column_to_rownames(RA.comp.BS.df2, var="ASV")
 str(RA.comp.BS.df2)
 
+library(ComplexHeatmap)
 # SET LEGEND
-lgd1.BS <- Legend(labels = c("Nitrosolobus-multiformis-Nl1_2667636517",
-                              "Nitrosomonas-communis-Nm44_2676397764",
-                              "Nitrosospira-sp-17Nsp14_2671457573",
-                              "Nitrosospira-sp_2630434854",
-                              "Nitrosospira-sp_2636913388"),
-               legend_gp = gpar(fill=c("#33A02C","#FF7F00","#6A3D9A","#6A3D9A","#6A3D9A")),
+lgd1.BS <- Legend(labels = c("Nitrosolobus multiformis",
+                              "Nitrosomonas communis",
+                              "Nitrosospira sp."),
+                              #"Nitrosospira sp",
+                              #"Nitrosospira sp"),
+               legend_gp = gpar(fill=c("#33A02C","#FF7F00","#6A3D9A")), #"#6A3D9A","#6A3D9A")),
                title= "AOB", labels_gp = gpar(fontsize=18),title_gp = gpar(fontsize = 20,fontface='bold'))
 
-lgd2.BS <- Legend(labels = c("NS-Beta-1.3_OTU1_1-EU885554",
-                          "NS-Delta-1.Incertae_sedis.2_OTU1_1-EU885561",
-                          "NS-Delta-1.Incertae_sedis.2_OTU2_1-EU885632",
-                          "NS-Gamma-1.2_OTU1_1-EU671146",
-                          "NS-Gamma-1.Incertae_sedis_OTU1_1-EU651089",
-                          "NS-Gamma-2.3.1_OTU2_1-KC469632",
-                          "NT-Alpha-1.1.2.2-JN179533"),
-               legend_gp = gpar(fill=c("#DD701E","#E1823A","#E1823A","#E9A672","#E9A672","#E9A672","#7570B3")),
+lgd2.BS <- Legend(labels = c("NS-Beta",
+                          "NS-Delta",
+                          #"NS-Delta",
+                          "NS-Gamma",
+                          #"NS-Gamma",
+                          #"NS-Gamma",
+                          "NT-Alpha"),
+               legend_gp = gpar(fill=c("#DD701E","#E1823A","#E9A672","#7570B3")),
                title= "AOA",labels_gp = gpar(fontsize=18),title_gp = gpar(fontsize = 20,fontface='bold'))
 
-lgd3.BS <- Legend(labels = c("Clade A-Nitrospira-sp.CTRL-LIN-TMP1",
-                                 "Clade B-Nitrospira-sp.GGF-bin22",
-                                 "Clade B-Nitrospira-sp.LM-bin98",
-                                 "Clade B-Nitrospira-sp.LPPL-bin249",
-                                 "Clade B-Nitrospira-sp.Smid-bin44"),
-               legend_gp = gpar(fill=c("#66C2A5","#FC8D62","#FC8D62","#FC8D62","#FC8D62")),
+lgd3.BS <- Legend(labels = c("Clade A-Nitrospira sp.",
+                                 "Clade B-Nitrospira sp."),
+                                 #"Clade B-Nitrospira-sp.LM-bin98",
+                                 #"Clade B-Nitrospira-sp.LPPL-bin249",
+                                 #"Clade B-Nitrospira-sp.Smid-bin44"),
+               legend_gp = gpar(fill=c("#66C2A5","#FC8D62")),#"#FC8D62","#FC8D62","#FC8D62")),
                title= "COMAMMOX",labels_gp = gpar(fontsize=18),title_gp = gpar(fontsize = 20, fontface='bold'))
 pd.BS = packLegend(lgd,lgd1.BS, lgd2.BS, lgd3.BS, direction = "vertical")
 draw(pd.BS)
@@ -213,6 +214,7 @@ colFert.Ann.BS <- columnAnnotation(df=ann.fert.BS,
                                 annotation_name_gp= gpar(fontsize = 20),
                                 gap=unit(1, "mm"))
 
+library(colorRamp2)
 col_fun = colorRamp2(c(10, 0, -10), c("blue", "white", "red"))
 lgd = Legend(title="Log2-ratio",col_fun = col_fun, labels_gp = gpar(fontsize=18),
              direction = "horizontal", 
@@ -262,7 +264,7 @@ comp.BS.HM2 <- draw(comp.BS.HM,
 comp.BS.HM2
 
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
-png("Fig.comp.BS.HM.tiff",width=17,height=12,units="in",res=300)
+png("Fig.comp.BS.HM.tiff",width=12.6,height=11,units="in",res=300)
 comp.BS.HM2
 dev.off()
 

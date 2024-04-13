@@ -106,10 +106,10 @@ rarecurve(t(aob.asv), step=50, cex=0.5, lwd=2, ylab="ASV", label=F)
 # re-order the rownames of the asv table to match the colnames of the metadata.
 re_order <- match(rownames(meta_micro), colnames(aob.asv))
 aob.asv.ord  <- aob.asv[ ,re_order]
-aob.asv.physeq = otu_table(aob.asv.ord, taxa_are_rows = TRUE) # asv table
-sample_names(aob.asv.physeq)
+aob.asv.physeq = phyloseq::otu_table(aob.asv.ord, taxa_are_rows = TRUE) # asv table
+phyloseq::sample_names(aob.asv.physeq)
 # adding "S" for sample names to avoid possible problem later on
-sample_names(aob.asv.physeq) <- paste0("S", sample_names(aob.asv.physeq))
+phyloseq::sample_names(aob.asv.physeq) <- paste0("S", phyloseq::sample_names(aob.asv.physeq))
 
 
 # phyloseq object of the taxonomy table
@@ -120,9 +120,9 @@ aob.tax.physeq = phyloseq::tax_table(as.matrix(aob.tax)) # taxonomy table
 str(meta_micro)
 meta_micro$Date <- factor(meta_micro$Date, levels = c("4/28/22", "6/1/22", "7/5/22", "7/20/22", "9/13/22"),
                           labels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"))
-rownames(meta_micro) <- sample_names(aob.asv.physeq)
-aob.meta.physeq <- sample_data(meta_micro)# meta data
-sample_names(aob.meta.physeq)
+rownames(meta_micro) <- phyloseq::sample_names(aob.asv.physeq)
+aob.meta.physeq <- phyloseq::sample_data(meta_micro)# meta data
+phyloseq::sample_names(aob.meta.physeq)
 
 # read the rooted tree
 setwd('/Users/arifinabintarti/Documents/France/microservices/070623_AOB_out/AOB-rooted-tree/')
@@ -138,6 +138,7 @@ p
 
 
 # make phyloseq object
+library(phyloseq)
 aob.physeq <- merge_phyloseq(aob.asv.physeq,aob.tax.physeq,aob.meta.physeq,AOB_rooted_tree)
 aob.physeq
 aob.asv.ord <- as.data.frame(otu_table(aob.physeq))

@@ -37,6 +37,17 @@ gwc.sum.ave <- soilprop %>%
   group_by(Irrigation, Fertilization) %>%
   get_summary_stats(GWC, type = "mean_sd")
 View(gwc.sum.ave)
+
+gwc.sum.ave4 <- soilprop.4 %>%
+  group_by(Irrigation, Fertilization) %>%
+  get_summary_stats(GWC, type = "mean_sd")
+View(gwc.sum.ave4)
+
+gwc.sum.ave3 <- soilprop.3 %>%
+  group_by(Irrigation, Fertilization) %>%
+  get_summary_stats(GWC, type = "mean_sd")
+View(gwc.sum.ave3)
+
 gwc.sum <- soilprop %>%
   group_by(Date, Irrigation, Fertilization) %>%
   get_summary_stats(GWC, type = "mean_sd")
@@ -110,9 +121,19 @@ gwc.pwc.irr <- soilprop %>%
                p.adjust.method = "BH", 
                conf.level = 0.95, model = gwc.3rmaov2)
 View(gwc.pwc.irr)
+
+# Two-way ANOVA at each fertilization level
+gwc.pwc.fer.4 <- soilprop.3 %>%
+  group_by(Irrigation) %>%
+  emmeans_test(GWC ~ Fertilization, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = gwc.3rmaov.4)
+get_anova_table(gwc.pwc.fer.4)
+
+
 # Test only 4 time points:
 soilprop.4 <- soilprop[1:96,]
-str(soilprop.4)
+view(soilprop.4)
 soilprop.4$SampleID<-factor(soilprop.4$SampleID)
 soilprop.4$PlotID<-factor(soilprop.4$PlotID)
 soilprop.4$Irrigation<-factor(soilprop.4$Irrigation)
@@ -122,11 +143,33 @@ soilprop.4$rep<-factor(soilprop.4$rep)
 soilprop.4$rep2<-factor(soilprop.4$rep2)
 soilprop.4$var3<-factor(soilprop.4$var3)
 soilprop.4$Date<-factor(soilprop.4$Date)
+
+# Test only 4 time points:
+soilprop.3 <- soilprop[1:72,]
+view(soilprop.3)
+soilprop.3$SampleID<-factor(soilprop.3$SampleID)
+soilprop.3$PlotID<-factor(soilprop.3$PlotID)
+soilprop.3$Irrigation<-factor(soilprop.3$Irrigation)
+soilprop.3$Block<-factor(soilprop.3$Block)
+soilprop.3$x<-factor(soilprop.3$x)
+soilprop.3$rep<-factor(soilprop.3$rep)
+soilprop.3$rep2<-factor(soilprop.3$rep2)
+soilprop.3$var3<-factor(soilprop.3$var3)
+soilprop.3$Date<-factor(soilprop.3$Date)
+
 # Three-Way Repeated-Measures ANOVA
 gwc.3rmaov.4 <- anova_test(
   data = soilprop.4, type=3,dv = GWC, wid = rep2,
   within = c(Irrigation, Fertilization, Date))
 get_anova_table(gwc.3rmaov.4)
+# Three-Way Repeated-Measures ANOVA
+gwc.3rmaov.3 <- anova_test(
+  data = soilprop.3, type=3,dv = GWC, wid = rep2,
+  within = c(Irrigation, Fertilization, Date))
+get_anova_table(gwc.3rmaov.3)
+
+gwc.3rmaov.4 <- aov(GWC ~ Irrigation*Fertilization*Date + Error(rep2/(Irrigation*Fertilization*Date)), data=soilprop.4)
+summary(gwc.3rmaov.4)
 # Model Fit
 set.seed(13)
 gwc.lmer.4 <- lmerTest::lmer(soilprop.4$GWC ~ Irrigation*Fertilization*Date +(1|Block)+(1|Block:Date), 
@@ -134,6 +177,7 @@ gwc.lmer.4 <- lmerTest::lmer(soilprop.4$GWC ~ Irrigation*Fertilization*Date +(1|
 anova(gwc.lmer.4, type = 3)
 car::Anova(gwc.lmer.4, test="F", type="III") 
 
+library("viridis")
 # GWC: plotting the significance between irrigation within treatment and date
 gwc.pwc.plot <- ggplot(soilprop, aes(x=Date, y=GWC)) +
   geom_boxplot(aes(fill = Fertilization))+
@@ -374,7 +418,7 @@ stat_text.gwc <- data.frame(Date = 0.5, GWC = 0.05,Fertilization="BIODYN", label
 
 gwc.plot <- ggplot(soilprop , aes(x=Date, y=GWC)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('Biodyn-control','Biodyn-drought', 'Confym-control','Confym-drought',
                              'Conmin-control', 'Conmin-drought'))+
@@ -426,9 +470,9 @@ ggsave("Fig.3dpi300.tiff",
        gwc.plot2, device = "tiff",bg="white",
        width = 11.5, height = 6.5, 
        units= "in", dpi = 300, compression="lzw")
-ggsave("Fig.3.2dpi300.tiff",
+ggsave("Fig.3.3.dpi300.tiff",
        gwc.plot2, device = "tiff",bg="white",
-       width = 11.5, height = 8, 
+       width = 11.5, height = 7.3, 
        #width = 11.5, height = 6.5,
        units= "in", dpi = 300, compression="lzw")
 
@@ -441,7 +485,7 @@ stat_text.NH4 <- data.frame(Date = 0.5, NH4 = 20,Fertilization="BIODYN", label="
 
 NH4.plot <- ggplot(soilprop , aes(x=Date, y=NH4)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('Biodyn-control','Biodyn-drought', 'Confym-control','Confym-drought',
                              'Conmin-control', 'Conmin-drought'))+
@@ -481,7 +525,7 @@ nh4.pwc.xy <- nh4.irri.emm  %>%
   add_xy_position(x = "Date", dodge = 0.8) 
 # plotting the pairwise comparisons among treatments (emmeans results)
 NH4.plot2 <-  NH4.plot + 
-  stat_pvalue_manual(nh4.pwc.xy,x = "Date", y.position = 33,
+  stat_pvalue_manual(nh4.pwc.xy,x = "Date", y.position = 32.8,
                      #step.increase = 1,
                      #label = "p = {scales::pvalue(p.adj)}",size=3, 
                      label = "p.adj.signif",size=5,
@@ -497,7 +541,7 @@ stat_text.NO3 <- data.frame(Date = 0.5, NO3 = 40,Fertilization="BIODYN", label="
 
 NO3.plot <- ggplot(soilprop , aes(x=Date, y=NO3)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('Biodyn-control','Biodyn-drought', 'Confym-control','Confym-drought',
                              'Conmin-control', 'Conmin-drought'))+
@@ -537,7 +581,7 @@ no3.pwc.xy <- no3.irri.emm  %>%
   add_xy_position(x = "Date", dodge = 0.8) 
 # plotting the pairwise comparisons among treatments (emmeans results)
 NO3.plot2 <-  NO3.plot + 
-  stat_pvalue_manual(no3.pwc.xy,x = "Date", y.position = 65,
+  stat_pvalue_manual(no3.pwc.xy,x = "Date", y.position = 64.8,
                      #step.increase = 1,
                      #label = "p = {scales::pvalue(p.adj)}",size=3, 
                      label = "p.adj.signif",size=5,
@@ -584,7 +628,7 @@ N2O.dat.sub.mean <- N2O.dat.sub %>%
   summarise(Mean.N2O = mean(flux_nmol_m2_per_s, na.rm = TRUE)) %>%
   arrange(Date, PLOT)
 N2O.dat.sub.mean <- N2O.dat.sub.mean %>% 
-  rename(PlotID = PLOT)
+  dplyr::rename(PlotID = PLOT)
 view(N2O.dat.sub.mean)
 N2O.dat.sub.mean <- as.data.frame(N2O.dat.sub.mean)
 str(N2O.dat.sub.mean)
@@ -647,7 +691,7 @@ view(soilprop)
 view(soilprop.n2o)
 soilprop <- rownames_to_column(soilprop, var = "SampleID")
 soilprop.n2o <- rownames_to_column(soilprop.n2o, var = "SampleID")
-just.n2o <- soilprop.n2o[,c(1,31)]
+just.n2o <- soilprop.n2o[,c(1,30:31)]
 head(just.n2o)
 # left_join
 soilprop.comp <- left_join(soilprop,just.n2o, by="SampleID")
@@ -728,7 +772,7 @@ stat_text.n2o <- data.frame(Date = 0.5, mean.N2Oflux = 2,Fertilization="BIODYN",
 
 n2o.plot <- ggplot(soilprop.comp , aes(x=Date, y=mean.N2Oflux)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('Biodyn-control','Biodyn-drought', 'Confym-control','Confym-drought',
                              'Conmin-control', 'Conmin-drought'))+
@@ -760,13 +804,13 @@ n2o.pwc.irr <- soilprop.n2o %>%
   group_by(Date, Fertilization) %>%
   emmeans_test(mean.N2Oflux ~ Irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = n2o.3rmaov2.cbrt2) 
+               conf.level = 0.95, model = n2o.3rmaov2.cbrt2) #n2o.3rmaov2.cbrt2
 # add x y position
 n2o.pwc.xy <- n2o.pwc.irr  %>% 
   add_xy_position(x = "Date", dodge = 0.8) 
 # plotting the pairwise comparisons among treatments (emmeans results)
 n2o.plot2 <-  n2o.plot + 
-  stat_pvalue_manual(n2o.pwc.xy,x = "Date", y.position = 3.2,
+  stat_pvalue_manual(n2o.pwc.xy,x = "Date", y.position = 3.18,
                      label = "p.adj.signif",size=5,
                      tip.length = 0.01, hide.ns = F)
 n2o.plot2 # this one is using lmer

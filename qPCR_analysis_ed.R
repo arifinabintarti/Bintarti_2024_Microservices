@@ -146,7 +146,7 @@ library(lmerTest)
 #1.the computation of the model fit with random slope returned a convergence warning
 #2.model comparison suggested that a model with the random slope was too complex given the data. A useful statistic for comparing models with different random effects specifications is the AIC
 aoa.dws <- lmerTest::lmer(AOA_nbc_per_g_DW_soil ~ irrigation*fertilization*sampling.date+
-                       (1|block)+(1|block:sampling.date), data=qPCR.BS) #Model may not have converged with 1 eigenvalue close to zero: 7.1e-14
+                       (1|block)+(1|block:sampling.date), data=qPCR.BS.ed) #Model may not have converged with 1 eigenvalue close to zero: 7.1e-14
 anova(aoa.dws)
 # test assumptions:
 library(DHARMa)
@@ -154,19 +154,19 @@ shapiro.test(resid(aoa.dws)) # not normal
 plot(simulateResiduals(aoa.dws)) # okay
 #*** Need to transform the data
 # anova test for transformed AOA: 5 time points (balanced data)
-aoa.log.dws <- lme4::lmer(AOA_logDWS ~ irrigation*fertilization*sampling.date + (1|block)+(1|block:sampling.date), data=qPCR.BS,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
+aoa.log.dws <- lme4::lmer(AOA_logDWS ~ irrigation*fertilization*sampling.date + (1|block)+(1|block:sampling.date), data=qPCR.BS.ed,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
 anova(aoa.log.dws,ddf="Kenward-Roger", type = 1) # there is no significant interaction effects
 car::Anova(aoa.log.dws, test="F", type="III") #similar conclusion (use type II)
 
 # almost similar as below:
 aoa.log.dws2 <- aov(AOA_logDWS~irrigation*fertilization*sampling.date+
-             Error(rep2/(irrigation*fertilization*sampling.date)), data=qPCR.BS)
+             Error(rep2/(irrigation*fertilization*sampling.date)), data=qPCR.BS.ed)
 
 summary(aoa.log.dws2)
 # three-way repeated with rstatix package
 # checkin with aov
 aoa.dws.aov <- anova_test(
-  data = qPCR.BS, type=3, dv = AOA_logDWS, wid = rep2,
+  data = qPCR.BS.ed, type=3, dv = AOA_logDWS, wid = rep2,
   #between=sampling.date,
   within = c(irrigation, fertilization, sampling.date))
 get_anova_table(aoa.dws.aov)
@@ -188,7 +188,7 @@ summary(aoa.log.dws.4.2)
 
 # ANOVA
 aoa.dws.aov.4 <- anova_test(
-  data = qPCR.BS.4, type=3, dv = AOA_logDWS, wid = rep,
+  data = qPCR.BS.4, type=3, dv = AOA_logDWS, wid = rep2,
   within = c(irrigation, fertilization, sampling.date))
 get_anova_table(aoa.dws.aov.4)
 # test assumptions:
@@ -207,12 +207,12 @@ aoa.logdws.2way <- qPCR.BS.4 %>%
   anova_test(dv = AOA_logDWS, wid = rep2, within = c(irrigation, sampling.date))
 get_anova_table(aoa.logdws.2way)
 # Effect of drought at each fert X date
-aoa.logdws.drought.effect <- qPCR.BS %>%
+aoa.logdws.drought.effect <- qPCR.BS.ed %>%
   group_by(sampling.date, fertilization) %>%
   anova_test(dv = AOA_logDWS, wid = rep2, within = irrigation)
 aoa.logdws.drought.effect
 # 1. between fertilization treatment:
-aoa.dws.pwc.trt <- qPCR.BS %>%
+aoa.dws.pwc.trt <- qPCR.BS.ed %>%
   group_by(sampling.date,irrigation) %>%
   emmeans_test(AOA_logDWS ~ fertilization, 
                p.adjust.method = "BH", 
@@ -226,11 +226,11 @@ aoa.dws.pwc.irr <- qPCR.BS.4 %>%
                conf.level = 0.95, model=aoa.log.dws.4.2)
 View(aoa.dws.pwc.irr)
 # AOA log DWS Summary
-aoa.dws.sum <- qPCR.BS %>%
+aoa.dws.sum <- qPCR.BS.ed %>%
   group_by(irrigation, fertilization) %>%
   get_summary_stats(AOA_nbc_per_g_DW_soil, type = "mean_sd")
 View(aoa.dws.sum)
-aoa.dws.sum.date <- qPCR.BS %>%
+aoa.dws.sum.date <- qPCR.BS.ed %>%
   group_by(irrigation, fertilization) %>%
   get_summary_stats(AOA_nbc_per_g_DW_soil, type = "mean_sd")
 View(aoa.dws.sum.date)
@@ -241,7 +241,7 @@ setwd('/Users/arifinabintarti/Documents/France/microservices/qPCR_stat/')
 
 # anova test for non transformed AOB DWS
 aob.dws <- lmerTest::lmer(AOB_nbc_per_g_DW_soil ~ irrigation*fertilization*sampling.date+(1|block)+
-                       (1|sampling.date:block), data=qPCR.BS, na.action=na.omit)
+                       (1|sampling.date:block), data=qPCR.BS.ed, na.action=na.omit)
 anova(aob.dws)
 # test assumptions:
 shapiro.test(resid(aob.dws)) # normal
@@ -249,13 +249,13 @@ plot(simulateResiduals(aob.dws)) # not that okay
 #*** Need to transform the data
 # anova test for transformed AOB : 5 time points(balanced)
 aob.log.dws <- lme4::lmer(AOB_logDWS ~ irrigation*fertilization*sampling.date+(1|block)+
-                       (1|sampling.date:block), data=qPCR.BS,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
+                       (1|sampling.date:block), data=qPCR.BS.ed,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
 anova(aob.log.dws,ddf="Kenward-Roger", type = 1) # there is significant interaction effects, but drought effect is also important 
 anova(aob.log.dws,ddf="Kenward-Roger", type = 3) 
 car::Anova(aob.log.dws, test="F", type="III") # So, Use Type II
 # checkin with aov
 aob.dws.aov <- anova_test(
-  data = qPCR.BS, type=3, dv = AOB_logDWS, wid = rep2,
+  data = qPCR.BS.ed, type=3, dv = AOB_logDWS, wid = rep2,
   #between=sampling.date,
   within = c(irrigation, fertilization, sampling.date))
 get_anova_table(aob.dws.aov)
@@ -302,19 +302,19 @@ aob.logdws.2way <- qPCR.BS.4 %>%
   anova_test(dv = AOB_logDWS, wid = rep2, within = c(irrigation, sampling.date))
 get_anova_table(aob.logdws.2way)
 # Effect of drought at each fert X date
-aob.logdws.drought.effect <- qPCR.BS %>%
+aob.logdws.drought.effect <- qPCR.BS.ed %>%
   group_by(sampling.date, fertilization) %>%
   anova_test(dv = AOB_logDWS, wid = rep2, within = irrigation)
 aob.logdws.drought.effect
 # 1. between fertilization treatment:
-aob.dws.pwc.trt <- qPCR.BS %>%
+aob.dws.pwc.trt <- qPCR.BS.ed %>%
   group_by(sampling.date,irrigation) %>%
   emmeans_test(AOB_logDWS ~ fertilization, 
                p.adjust.method = "BH", 
                conf.level = 0.95)
 View(aob.dws.pwc.trt) # nothing ssignificant
 # 2. between irrigation:
-aob.dws.pwc.irr <- qPCR.BS %>%
+aob.dws.pwc.irr <- qPCR.BS.ed %>%
   group_by(sampling.date, fertilization) %>%
   emmeans_test(AOB_logDWS ~ irrigation, 
                p.adjust.method = "BH", 
@@ -322,11 +322,11 @@ aob.dws.pwc.irr <- qPCR.BS %>%
 View(aob.dws.pwc.irr)
 
 # AOB log DWS Summary
-aob.dws.sum <- qPCR.BS %>%
+aob.dws.sum <- qPCR.BS.ed %>%
   group_by(irrigation, fertilization) %>%
   get_summary_stats(AOB_nbc_per_g_DW_soil, type = "mean_sd")
 View(aob.dws.sum)
-aob.dws.sum.date <- qPCR.BS %>%
+aob.dws.sum.date <- qPCR.BS.ed %>%
   group_by(irrigation, fertilization, sampling.date) %>%
   get_summary_stats(AOB_nbc_per_g_DW_soil, type = "mean_sd")
 View(aob.dws.sum.date)
@@ -343,7 +343,7 @@ aob.dws.sum.plot
 
 # anova test for non-transformed Comammox A DWS
 comA.dws <- lmerTest::lmer(ComA_nbc_per_g_DW_soil ~ irrigation * fertilization * sampling.date + (1|block)+
-                          (1|sampling.date:block), data = qPCR.BS, contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
+                          (1|sampling.date:block), data = qPCR.BS.ed, contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
 anova(comA.dws) # not working
 # test assumptions:
 shapiro.test(resid(comA.dws)) # very not normal
@@ -351,29 +351,25 @@ plot(simulateResiduals(comA.dws)) # not good
 #*** Need to transform the data
 # anova test for transformed Comammox A : 5 time points (balanced)
 comA.log.dws <- lme4::lmer(ComA_logDWS ~ irrigation*fertilization*sampling.date+(1|block)+
-                       (1|sampling.date:block), data=qPCR.BS,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
+                       (1|sampling.date:block), data=qPCR.BS.ed,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
 summary(comA.log.dws)
 anova(comA.log.dws,ddf="Kenward-Roger", type = 1) # there is almost significant interaction effects
 car::Anova(comA.log.dws, test="F", type="III")
 
-test1 <- lme4::lmer(ComA_logDWS ~ irrigation*fertilization*sampling.date+(1|block/plot)
-                       , data=qPCR.BS,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
-car::Anova(test1, test="F", type="III")
-
 # similar as below:
 ComA.dws.aov1 <- aov(ComA_logDWS~irrigation*fertilization*sampling.date+
-             Error(rep2/(irrigation*fertilization*sampling.date)), data=qPCR.BS)
+             Error(rep2/(irrigation*fertilization*sampling.date)), data=qPCR.BS.ed)
 summary(ComA.dws.aov1)
 
 # ANOVA
 ComA.dws.aov <- anova_test(
-  data = qPCR.BS, type=3, dv = ComA_logDWS, wid = rep2,
+  data = qPCR.BS.ed, type=3, dv = ComA_logDWS, wid = rep2,
  # between=sampling.date,
   within = c(irrigation, fertilization, sampling.date))
 get_anova_table(ComA.dws.aov)
 
 # anova test for transformed Comammox A: 4 time points (balanced data)
-comA.log.dws.4 <- lmerTest::lmer(ComA_logDWS ~ irrigation*fertilization*sampling.date+(1|block/plot)+
+comA.log.dws.4 <- lmerTest::lmer(ComA_logDWS ~ irrigation*fertilization*sampling.date+(1|block)+
                        (1|sampling.date:block), contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"),data=qPCR.BS.4)
 anova(comA.log.dws.4) # there is significant interaction effects
 car::Anova(comA.log.dws.4, test="F",type = "III") #If there is interaction, type II is good
@@ -400,14 +396,14 @@ comA.log.dws.pair.DF <- as.data.frame(summary(comA.log.dws.pair))
 #write.csv(comA.log.dws.pair.DF, file = "ComA_log_dws_pair.csv")
 # try with anova
 summary(aov(ComA_logDWS~irrigation*fertilization*sampling.date+
-             Error(block/(irrigation*fertilization*sampling.date)), data=qPCR.BS)) # results almost similar
+             Error(block/(irrigation*fertilization*sampling.date)), data=qPCR.BS.ed)) # results almost similar
 # Two-way ANOVA at each fertilization level
 comA.logdws.2way <- qPCR.BS.4 %>%
   group_by(fertilization) %>%
   anova_test(dv = ComA_logDWS, wid = rep2, within = c(irrigation, sampling.date))
 get_anova_table(comA.logdws.2way)
 # Effect of drought at each fert X date
-comA.logdws.drought.effect <- qPCR.BS %>%
+comA.logdws.drought.effect <- qPCR.BS.ed %>%
   group_by(sampling.date, fertilization) %>%
   anova_test(dv = ComA_logDWS, wid = rep2, within = irrigation)
 comA.logdws.drought.effect
@@ -419,7 +415,7 @@ comA.dws.pwc.trt <- qPCR.BS.ed %>%
                conf.level = 0.95, model=comA.log.dws)
 View(comA.dws.pwc.trt) # nothing ssignificant
 # 2. between irrigation:
-comA.dws.pwc.irr <- qPCR.BS %>%
+comA.dws.pwc.irr <- qPCR.BS.ed %>%
   group_by(sampling.date, fertilization) %>%
   emmeans_test(ComA_logDWS ~ irrigation, 
                p.adjust.method = "BH", 
@@ -431,11 +427,11 @@ comA.drought.effect <- qPCR.BS.ed %>%
   anova_test(dv = ComA_logDWS, wid = rep2, within = irrigation)
 comA.drought.effect
 # AOA log DWS Summary
-comA.dws.sum <- qPCR.BS %>%
+comA.dws.sum <- qPCR.BS.ed %>%
   group_by(irrigation, fertilization) %>%
   get_summary_stats(ComA_nbc_per_g_DW_soil, type = "mean_sd")
 View(comA.dws.sum)
-comA.dws.sum.date <- qPCR.BS %>%
+comA.dws.sum.date <- qPCR.BS.ed %>%
   group_by(irrigation, fertilization) %>%
   get_summary_stats(ComA_nbc_per_g_DW_soil, type = "mean_sd")
 View(comA.dws.sum.date)
@@ -447,7 +443,7 @@ setwd('/Users/arifinabintarti/Documents/France/microservices/qPCR_stat/')
 
 # anova test for non-transformed Comammox B DWS
 comB.dws <- lmerTest::lmer(ComB_nbc_per_g_DW_soil ~ irrigation * fertilization * sampling.date + (1|block)+
-                          (1|sampling.date:block), data = qPCR.BS)
+                          (1|sampling.date:block), data = qPCR.BS.ed)
 anova(comB.dws)
 # test assumptions:
 shapiro.test(resid(comB.dws)) # very not normal
@@ -455,20 +451,14 @@ plot(simulateResiduals(comB.dws)) # okay
 #*** Need to transform the data
 # anova test for transformed Comammox B : 5 Time points (balanced)
 comB.log.dws <- lme4::lmer(ComB_logDWS ~ irrigation*fertilization*sampling.date+(1|block)+
-                       (1|sampling.date:block), data=qPCR.BS,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
+                       (1|sampling.date:block), data=qPCR.BS.ed,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
 anova(comB.log.dws) # there is significant interaction effects
 anova(comB.log.dws,ddf="Kenward-Roger", type = 3) 
 car::Anova(comB.log.dws, test="F", type="III")
 
-comB.log.dws2 <- lmerTest::lmer(ComB_logDWS ~ irrigation*fertilization*sampling.date+(1|block/plot)
-                      , data=qPCR.BS,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
-anova(comB.log.dws2)
-car::Anova(comB.log.dws2, test="F", type="III")
-#car::Anova(comA.log.dws, test="F", type="III")
-
 # ANOVA
 ComB.dws.aov <- anova_test(
-  data = qPCR.BS, type=3, dv = ComB_logDWS, wid = rep2,
+  data = qPCR.BS.ed, type=3, dv = ComB_logDWS, wid = rep2,
   #between=sampling.date,
   within = c(irrigation, fertilization, sampling.date))
 get_anova_table(ComB.dws.aov)
@@ -508,7 +498,7 @@ comB.logdws.2way <- qPCR.BS.4 %>%
   anova_test(dv = ComB_logDWS, wid = rep2, within = c(irrigation, sampling.date))
 get_anova_table(comB.logdws.2way)
 # Effect of drought at each fert X date
-comB.logdws.drought.effect <- qPCR.BS %>%
+comB.logdws.drought.effect <- qPCR.BS.ed %>%
   group_by(sampling.date, fertilization) %>%
   anova_test(dv = ComB_logDWS, wid = rep2, within = irrigation)
 comB.logdws.drought.effect
@@ -527,11 +517,11 @@ comB.dws.pwc.irr <- qPCR.BS.ed %>%
                conf.level = 0.95, model=ComB.dws.aov2)
 View(comB.dws.pwc.irr)
 # Comammox B log DWS Summary
-comB.dws.sum <- qPCR.BS %>%
+comB.dws.sum <- qPCR.BS.ed %>%
   group_by(irrigation, fertilization) %>%
   get_summary_stats(ComB_nbc_per_g_DW_soil, type = "mean_sd")
 View(comB.dws.sum)
-comB.dws.sum.date <- qPCR.BS %>%
+comB.dws.sum.date <- qPCR.BS.ed %>%
   group_by(irrigation, fertilization) %>%
   get_summary_stats(ComB_nbc_per_g_DW_soil, type = "mean_sd")
 View(comB.dws.sum.date)
@@ -967,35 +957,53 @@ plot(simulateResiduals(AOA_AOB_rat)) # very not okay
 #** I need data transformation
 ### anova test for AOA/AOB Ratio arcsin sqrt transformed: 5 Time points (balanced)
 t.AOA_AOB <- lme4::lmer(AOA_AOB.arc.ratio ~ irrigation*fertilization*sampling.date+(1|block)+
-                          (1|block:sampling.date), data=qPCR.BS,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
+                          (1|block:sampling.date), data=qPCR.BS.ed,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
 # interactions are not significant
 anova(t.AOA_AOB,ddf="Kenward-Roger", type = 2)
 car::Anova(t.AOA_AOB, test="F", type="III")
 # ANOVA
 t.AOA_AOB.aov <- anova_test(
-  data = qPCR.BS, type=3, dv = AOA_AOB.arc.ratio, wid = rep2,
-  #between=sampling.date,
+  data = qPCR.BS.ed, type=3, dv = AOA_AOB.arc.ratio, wid = rep2,
   within = c(irrigation, fertilization, sampling.date))
 get_anova_table(t.AOA_AOB.aov)
+# using aov()
+t.AOA_AOB.aov.2 <- aov(AOA_AOB.arc.ratio~irrigation*fertilization*sampling.date+
+             Error(rep2/(irrigation*fertilization*sampling.date)), data=qPCR.BS.ed)
+summary(t.AOA_AOB.aov.2)
 # anova test for AOA/AOB Ratio arcsin: 4 time points (balanced data)
 t.AOA_AOB.4 <- lmerTest::lmer(AOA_AOB.arc.ratio ~ irrigation*fertilization*sampling.date+(1|block)+
-                                         (1|block:sampling.date),data=qPCR.BS.4) 
+                                         (1|block:sampling.date),data=qPCR.BS.4,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
 anova(t.AOA_AOB.4,ddf="Kenward-Roger", type = 1) # there are no significant interaction effects
 anova(t.AOA_AOB.4,ddf="Kenward-Roger", type = 2)
 car::Anova(t.AOA_AOB.4, test="F", type="III")
 # ANOVA
 t.AOA_AOB.aov.4 <- anova_test(
   data = qPCR.BS.4, type=3, dv = AOA_AOB.arc.ratio, wid = rep2,
-  #between=sampling.date,
   within = c(irrigation, fertilization, sampling.date))
 get_anova_table(t.AOA_AOB.aov.4)
+# using aov()
+t.AOA_AOB.aov.4.2 <- aov(AOA_AOB.arc.ratio~irrigation*fertilization*sampling.date+
+             Error(rep2/(irrigation*fertilization*sampling.date)), data=qPCR.BS.4)
+summary(t.AOA_AOB.aov.4.2)
 # test assumptions:
-shapiro.test(resid(t.AOA_AOB)) # normal
-plot(simulateResiduals(t.AOA_AOB)) # slightly not okay
+shapiro.test(resid(t.AOA_AOB.4)) # normal
+plot(simulateResiduals(t.AOA_AOB.4)) # slightly not okay
 # Pairwise comparison:
-AOA_AOB.arc.ratio.emm <- emmeans(t.AOA_AOB, ~ irrigation | fertilization*sampling.date)
-AOA_AOB.arc.ratio.pair <- pairs(AOA_AOB.arc.ratio.emm)
-AOA_AOB.arc.ratio.pair.DF <- as.data.frame(summary(AOA_AOB.arc.ratio.pair))
+# 2. between irrigation (Usse the arc ratio becausse the assumption was met)
+AOA_AOB.pwc.irr <- qPCR.BS.ed %>%
+  group_by(sampling.date, fertilization) %>%
+  emmeans_test(AOA_AOB.arc.ratio ~ irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model=t.AOA_AOB.aov.2)
+View(AOA_AOB.pwc.irr)
+
+
+AOA_AOB.pwc.irr.lm <- qPCR.BS.ed %>%
+  group_by(sampling.date, fertilization) %>%
+  emmeans_test(AOA_AOB.arc.ratio ~ irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model=t.AOA_AOB)
+View(AOA_AOB.pwc.irr.lm)
 #setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat')
 #write.csv(AOA_AOB.arc.ratio.pair.DF, file = "AOA_AOB_arc_ratio_pair.csv")
 
@@ -1059,7 +1067,7 @@ aoa.stat_text.BS.dws <- data.frame(sampling.date = 0.5, AOA_nbc_per_g_DW_soil = 
 
 AOA.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOA_nbc_per_g_DW_soil)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_y_continuous(limits = c(0, 7e+08))+
   #ylim(0,7e+08)+
   #labs(title = "B")+
@@ -1106,7 +1114,7 @@ aob.stat_text.BS.dws <- data.frame(sampling.date = 0.5, AOB_nbc_per_g_DW_soil = 
 
 AOB.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOB_nbc_per_g_DW_soil)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_y_continuous(limits = c(0, 7e+08))+
   #ylim(0,7e+08)+
   #labs(title = "A")+
@@ -1162,11 +1170,11 @@ ggsave("AOB_gDWS.BS.tiff",
 
 # 3. Bulk Soil - Comammox A
 
-ComA.stat_text.BS.dws <- data.frame(sampling.date = 0.5, ComA_nbc_per_g_DW_soil = 230000000 , fertilization="D", label="C *\nT **\nD x T *")
+ComA.stat_text.BS.dws <- data.frame(sampling.date = 0.5, ComA_nbc_per_g_DW_soil = 210000000 , fertilization="D", label="C *\nT **\nD x T *")
 
 ComA.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComA_nbc_per_g_DW_soil)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_y_continuous(limits = c(0, 2.7E+08))+
   #ylim(0,7e+08)+
   #labs(title = "C")+
@@ -1208,11 +1216,11 @@ ggsave("COM_A_gDWS.BS.tiff",
 
 # 4. Bulk Soil - Comammox B
 
-ComB.stat_text.BS.dws <- data.frame(sampling.date = 0.5, ComB_nbc_per_g_DW_soil = 23000000 , fertilization="D", label="D *\nC **\nT ***\nD x C x T *")
+ComB.stat_text.BS.dws <- data.frame(sampling.date = 0.5, ComB_nbc_per_g_DW_soil = 22000000 , fertilization="D", label="D *\nC **\nT ***\nD x C x T *")
 
 ComB.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComB_nbc_per_g_DW_soil)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_y_continuous(limits = c(0, 2.7E+07))+
   #ylim(0,7e+08)+
   #labs(title = "D")+
@@ -1269,6 +1277,7 @@ ggsave("COM_B_gDWS.BS.tiff",
 
 #########################################################################################################
 # Compile all figures
+library(patchwork)
 dws.all <- ((AOB.dws.plot2 / ComA.dws.plot) | (AOA.dws.plot / ComB.dws.plot2))+
  plot_layout(guides = "collect") & 
  theme(legend.position = 'bottom',legend.title = element_blank())
@@ -1612,55 +1621,53 @@ ggsave("comB_16S_ratio_BS.tiff",
 
 # 9. Bulk Soil - AOA/AOB RATIO
 
+
+AOA_AOB.stat_text.BS <- data.frame(sampling.date = 0.5, AOA_AOB_ratio_percent = 50 , fertilization="D", label="C ***\nT **")
 AOA_AOB.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOA_AOB_ratio_percent)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('control (D)', 'drought (D)', 'control (K)', 
-                             'drought (K)', 'control (M)', 'drought (M)'))+
-  #labs(fill='Farming system', alpha= 'Drought')+
-  #ylab(bquote('Comammox B'~italic(amoA)~'gene'~(copies~g^-1~dry~soil)))+
+                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
+                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
   ylab('AOA/AOB (%)')+
-  facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
-  theme(legend.title = element_blank(),
-        #strip.background = element_blank(),
-        #strip.text.x = element_blank(),
-        plot.title = element_text(size = 20, face='bold'),
+  labs(title = "A. Bulk Soil")+
+  facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
+  theme(legend.position = "none",
+        legend.title = element_text(size=15, face='bold'),
         legend.text = element_text(size=15),
-        strip.text = element_text(size=15),
-        axis.text.y = element_text(size = 14),
+        strip.text = element_text(size=18),
+        #strip.text = element_blank(),
+        axis.text.y = element_text(size = 18),
+        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
         #axis.text.x = element_blank(),
         #axis.ticks.x = element_blank(),
-        axis.text.x = element_text(size = 14,angle = 45, hjust = 1),
-        axis.title.y = element_text(size=15,face="bold"),
+        axis.title.y = element_markdown(size=19),
+        plot.title = element_text(size=25, face="bold"),
+        plot.subtitle = element_text(size=20, face="bold"),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())+
-  guides(fill="none", alpha="none")+ggtitle("A. Bulk Soil")
+ geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
+ geom_label(data = AOA_AOB.stat_text.BS,label=AOA_AOB.stat_text.BS$label,hjust=0, colour="black", size=4, fontface="bold")+
+ annotate(geom = "text", x = 3.6, y = 0, hjust = 0, size = 4, label = "Rewetting", color = "gray25")
 AOA_AOB.rat.plot
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
 AOA_AOB.rat.emm.rstat <- qPCR.BS.ed %>%
   group_by(sampling.date, fertilization) %>%
   emmeans_test(AOA_AOB_ratio_percent  ~ irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = t.AOA_AOB)
+               conf.level = 0.95, model = t.AOA_AOB.aov.2)
 AOA_AOB.rat.emm.rstat 
 # add x y position
 AOA_AOB.rat.emm.xy <- AOA_AOB.rat.emm.rstat  %>% 
   add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
 # plotting the pairwise comparisons among treatments (emmeans results)
-AOA_AOB.rat.emm.pwc.plot2 <- AOA_AOB.rat.plot + 
-  stat_pvalue_manual(AOA_AOB.rat.emm.xy,
-                     #step.increase = 1,
-                     #label = "p.adj.signif",size=3.5,
-                     label = "p = {scales::pvalue(p.adj)}",size=3, 
-                     bracket.size = 0.6,#bracket.nudge.y = -0.05,
-                     bracket.shorten = 1, color = "black",
-                     tip.length = 0.005, hide.ns = TRUE)+
-  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
-AOA_AOB.rat.plot3 <- AOA_AOB.rat.emm.pwc.plot2 +   ylim(0,500)
-AOA_AOB.rat.plot3 
+AOA_AOB.rat.plot2 <- AOA_AOB.rat.plot + 
+  stat_pvalue_manual(AOA_AOB.rat.emm.xy,x = "sampling.date", y.position = 450,
+                     label = "p.adj.signif",size=5,
+                     tip.length = 0.01, hide.ns = F)
+AOA_AOB.rat.plot2
 setwd('D:/Fina/INRAE_Project/microservices_fig/qPCR')
 ggsave("AOA_AOB_ratio_BS.tiff",
        AOA_AOB.rat.plot3, device = "tiff",
@@ -2555,39 +2562,32 @@ view(t.ComB.RS.arc.irri)
 #### 9. AOA/AOB Ratio in Rhizosphere ####
 
 # Linear mixed model test for AOA/AOB Ratio on non transformed data
-t.AOA_AOB_percent.rh <- lmerTest::lmer(AOA_AOB_ratio ~ irrigation*fertilization*sampling.date+
-                        (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
+t.AOA_AOB_percent.rh <- lmerTest::lmer(AOA_AOB_ratio_percent ~ irrigation*fertilization*sampling.date+(1|block)+
+                        (1|block:sampling.date), data=qPCR.RS.ed, contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
 
-anova(t.AOA_AOB_percent.rh)
+car::Anova(t.AOA_AOB_percent.rh, test="F", type="III") 
 # test assumption
 shapiro.test(resid(t.AOA_AOB_percent.rh)) # normal
 plot(simulateResiduals(t.AOA_AOB_percent.rh)) # okay
 #***No need data transformation
-# Pairwise comparison:
-AOA_AOB.ratio.rh.emm <- emmeans(t.AOA_AOB_percent.rh, ~ irrigation | fertilization*sampling.date)
-AOA_AOB.ratio.rh.pair <- pairs(AOA_AOB.ratio.rh.emm)
-AOA_AOB.ratio.rh.DF <- as.data.frame(summary(AOA_AOB.ratio.rh.pair))
-AOA_AOB.ratio.rh.DF
-#setwd('D:/Fina/INRAE_Project/microservices/qPCR_stat/Rhizosphere')
-#write.csv(AOA_AOB.ratio.rh.DF, file = "AOA_AOB_ratio.pair.rh.csv")
-# Just Checking
+
 # Linear mixed model test for AOA/AOB Ratio on arcsin square root transformed data
-t.AOA_AOB_arcsin.rh <- lmerTest::lmer(AOA_AOB.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
-                       (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
-anova(t.AOA_AOB_arcsin.rh)
+t.AOA_AOB_arcsin.rh <- lmerTest::lmer(AOA_AOB.arc.ratio.rh ~ irrigation*fertilization*sampling.date+(1|block)+
+                       (1|block:sampling.date), data=qPCR.RS.ed, contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
+car::Anova(t.AOA_AOB_arcsin.rh, test="F", type="III") 
 # test assumption
 shapiro.test(resid(t.AOA_AOB_arcsin.rh)) # normal
 plot(simulateResiduals(t.AOA_AOB_arcsin.rh)) # okay
 
 # Three-Way Repeated-Measured ANOVA 
 t.AOA_AOB.RS.arc.aov <- anova_test(
-  data = qPCR.RS, dv = AOA_AOB.arc.ratio.rh, wid = rep2, type = 3,
+  data = qPCR.RS.ed, dv = AOA_AOB.arc.ratio.rh, wid = rep2, type = 3,
   within = c(irrigation, fertilization, sampling.date))
 get_anova_table(t.AOA_AOB.RS.arc.aov)
 # anova
-AOA_AOB.RS.arc.aov2 <- aov(qPCR.RS$AOA_AOB.arc.ratio.rh~irrigation*fertilization*sampling.date+
-             Error(rep2/(irrigation*fertilization*sampling.date)), data=qPCR.RS)
-summary(t.AOA_AOB.RS.arc.aov2)
+AOA_AOB.RS.arc.aov2 <- aov(AOA_AOB.arc.ratio.rh~irrigation*fertilization*sampling.date+
+             Error(rep2/(irrigation*fertilization*sampling.date)), data=qPCR.RS.ed)
+summary(AOA_AOB.RS.arc.aov2)
 # Test Method 3 
 t.AOA_AOB.RS.arc.lmer <- lmerTest::lmer(AOA_AOB.arc.ratio.rh ~ irrigation*fertilization*sampling.date +(1|block)+(1|block:sampling.date), 
                            data=qPCR.RS,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
@@ -2600,12 +2600,21 @@ shapiro.test(qPCR.RS$AOA_AOB_ratio_percent)  # NOT GOOD
 shapiro.test(resid(t.ComB.RS.arc.lmer)) # normal
 plot(simulateResiduals(t.ComB.RS.arc.lmer)) # good
 # 2. between irrigation:
-AOA_AOB.RS.arc.irri <- qPCR.RS %>%
+AOA_AOB.RS.arc.irri <- qPCR.RS.ed %>%
   group_by(sampling.date, fertilization) %>%
   emmeans_test(AOA_AOB.arc.ratio.rh ~ irrigation, 
                p.adjust.method = "BH", 
                conf.level = 0.95, model = AOA_AOB.RS.arc.aov2)
 view(AOA_AOB.RS.arc.irri)
+
+AOA_AOB.RS.arc.irri.lm <- qPCR.RS.ed %>%
+  group_by(sampling.date, fertilization) %>%
+  emmeans_test(AOA_AOB.arc.ratio.rh ~ irrigation, 
+               p.adjust.method = "BH", 
+               conf.level = 0.95, model = t.AOA_AOB_arcsin.rh)
+view(AOA_AOB.RS.arc.irri.lm)
+
+
 
 #### 9. ComA/ComB Ratio in Rhizosphere ####
 
@@ -2722,9 +2731,9 @@ pwc.aoa.ngDNA.rhizo # significant if only i grouped by fertilization not signifi
 qPCR.RS$x
 qPCR.RS.ed <- qPCR.RS %>%
   mutate(x = factor(x,levels = c("cont.D","rain.D","cont.K","rain.K","cont.M","rain.M")))
-label <- c(`D` ="BIODYN (D)", 
-           `K` ="CONFYM (K)", 
-           `M` ="CONMIN (M)")
+label <- c(`D` ="BIODYN", 
+           `K` ="CONFYM", 
+           `M` ="CONMIN")
 # plot
 aoa.ngDNA.rhizo.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=AOA_nbc_per_ngDNA)) +
   geom_boxplot(aes(group = var3, fill = fertilization, alpha=irrigation))+
