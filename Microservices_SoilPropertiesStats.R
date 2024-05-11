@@ -108,11 +108,11 @@ plot(gwc.lmer, which = 3)
 # Fit pairwise comparisons
 # Performs pairwise comparisons between groups using the estimated marginal means. Pipe-friendly wrapper around the functions emmeans() + contrast() from the emmeans package,
 # 1. between fertilization treatment:
-gwc.pwc.trt <- soilprop %>%
+gwc.pwc.trt <- soilprop.4 %>%
   group_by(Date, Irrigation) %>%
   emmeans_test(GWC ~ Fertilization, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = gwc.lmer)
+               conf.level = 0.95)
 View(gwc.pwc.trt)
 # 2. between irrigation:
 gwc.pwc.irr <- soilprop %>%
