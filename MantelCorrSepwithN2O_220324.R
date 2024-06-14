@@ -974,6 +974,7 @@ com.dro_microdata$cal_betadiv(method = "bray",
 # perform mantel test DROUGHT
 set.seed(13)
 com.t1.dro <- trans_env$new(dataset = com.dro_microdata, env_cols = c(17:18,20:21,23:24,27,31:33,51:60))
+?trans_env
 set.seed(13)
 com.t1.dro$cal_mantel(use_measure = "bray", 
                   partial_mantel = F,

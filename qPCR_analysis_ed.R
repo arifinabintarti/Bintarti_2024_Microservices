@@ -38,6 +38,7 @@ BiocManager::install("phyloseq")
 install.packages("datarium")
 install.packages("rstatix")
 install.packages("export")
+ggresidpaanel
 library(devtools)
 library(multcomp)
 library(car)
@@ -108,8 +109,9 @@ qPCR.BS$rep <- as.factor(qPCR.BS$rep)
 qPCR.BS$rep2 <- as.factor(qPCR.BS$rep2)
 
 qPCR.BS$sampling.date <- factor(qPCR.BS$sampling.date, levels = c("28/04/2022", "1/6/22", "5/7/22", "20/07/2022", "13/09/2022"),
-                                labels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"))
+                                labels = c("Apr-28", "Jun-01", "Jul-05", "Jul-20", "Sep-13"))
 str(qPCR.BS)
+view(qPCR.BS)
 
 # perform log transformation
 qPCR.BS$AOA_logDWS <- log10(qPCR.BS$AOA_nbc_per_g_DW_soil)
@@ -129,7 +131,12 @@ setwd('/Users/arifinabintarti/Documents/France/microservices/')
 #write.csv(qPCR.BS, file = "qPCR.BS.csv")
 #qPCR.BS$AOA_logngDNA <- log10(qPCR.BS$AOA_nbc_per_ngDNA)
 #qPCR.BS$AOB_logngDNA <- log10(qPCR.BS$AOB_nbc_per_ngDNA)
-
+qPCR.BS$x
+qPCR.BS.ed <- qPCR.BS %>%
+  mutate(x = factor(x,levels = c("cont.D","rain.D","cont.K","rain.K","cont.M","rain.M")))
+label.fert <- c(`D` ="BIODYN", 
+           `K` ="CONFYM", 
+           `M` ="CONMIN")
 ########################################################################################
 
 #### 1. AOA Abundance per gram DWS ####
@@ -219,12 +226,23 @@ aoa.dws.pwc.trt <- qPCR.BS.ed %>%
                conf.level = 0.95, model=aoa.log.dws)
 View(aoa.dws.pwc.trt) # nothing ssignificant
 # 2. between irrigation:
-aoa.dws.pwc.irr <- qPCR.BS.4 %>%
+aoa.dws.pwc.irr <- qPCR.BS.ed %>%
   group_by(sampling.date, fertilization) %>%
   emmeans_test(AOA_logDWS ~ irrigation, 
                p.adjust.method = "BH", 
                conf.level = 0.95, model=aoa.log.dws.4.2)
 View(aoa.dws.pwc.irr)
+# 2. between irrigation- t test:
+aoa.dws.pwc.t <- qPCR.BS.ed %>%
+  group_by(sampling.date, fertilization) %>%
+  pairwise_t_test(AOA_logDWS ~ irrigation, paired=T,
+               p.adjust.method = "BH") %>%
+  select(-df, -statistic) # Remove details
+View(aoa.dws.pwc.t)
+
+
+
+
 # AOA log DWS Summary
 aoa.dws.sum <- qPCR.BS.ed %>%
   group_by(irrigation, fertilization) %>%
@@ -248,8 +266,8 @@ shapiro.test(resid(aob.dws)) # normal
 plot(simulateResiduals(aob.dws)) # not that okay
 #*** Need to transform the data
 # anova test for transformed AOB : 5 time points(balanced)
-aob.log.dws <- lme4::lmer(AOB_logDWS ~ irrigation*fertilization*sampling.date+(1|block)+
-                       (1|sampling.date:block), data=qPCR.BS.ed,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
+aob.log.dws <- lme4::lmer(AOB_logDWS ~ irrigation*fertilization*sampling.date+(1|block)+ (1|sampling.date:block), 
+                          data=qPCR.BS.ed,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
 anova(aob.log.dws,ddf="Kenward-Roger", type = 1) # there is significant interaction effects, but drought effect is also important 
 anova(aob.log.dws,ddf="Kenward-Roger", type = 3) 
 car::Anova(aob.log.dws, test="F", type="III") # So, Use Type II
@@ -320,6 +338,18 @@ aob.dws.pwc.irr <- qPCR.BS.ed %>%
                p.adjust.method = "BH", 
                conf.level = 0.95, model=aob.BS.aov)
 View(aob.dws.pwc.irr)
+
+# 2. between irrigation- t test:
+aob.log.plot <- lme4::lmer(AOB_logDWS ~ irrigation*fertilization*sampling.date+(1|plot), 
+                          data=qPCR.BS.ed)#contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
+aob.log.block <- lme4::lmer(AOB_logDWS ~ irrigation*fertilization*sampling.date+(1|block/plot)+(1|block:sampling.date), 
+                          data=qPCR.BS.ed)#contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
+
+aob.dws.pwc.t <- qPCR.BS.ed %>%
+  group_by(sampling.date, fertilization) %>%
+  pairwise_t_test(AOB_logDWS ~ irrigation, paired=F,
+               p.adjust.method = "BH")
+View(aob.dws.pwc.t)
 
 # AOB log DWS Summary
 aob.dws.sum <- qPCR.BS.ed %>%
@@ -421,6 +451,13 @@ comA.dws.pwc.irr <- qPCR.BS.ed %>%
                p.adjust.method = "BH", 
                conf.level = 0.95)
 View(comA.dws.pwc.irr)
+
+comA.pwc.t <- qPCR.BS.ed %>%
+  group_by(sampling.date, fertilization) %>%
+  pairwise_t_test(ComA_logDWS ~ irrigation, paired = TRUE, p.adjust.method = "BH") %>%
+  select(-df, -statistic) # Remove details
+View(comA.pwc.t)
+
 # Effect of drought at each fert X date
 comA.drought.effect <- qPCR.BS.ed %>%
   group_by(sampling.date, fertilization) %>%
@@ -1060,19 +1097,20 @@ label.fert <- c(`D` ="BIODYN",
 #### 1. Bulk Soil - AOA Abundance per gram DWS ####
 str(qPCR.BS.ed)
 
-qPCR.BS.ed$sampling.date <- factor(qPCR.BS.ed$sampling.date, levels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"),
-                          labels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
+qPCR.BS.ed$sampling.date <- factor(qPCR.BS.ed$sampling.date, levels = c("Apr-28", "Jun-01", "Jul-05", "Jul-20", "Sep-13"))
+                          #labels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
 
 aoa.stat_text.BS.dws <- data.frame(sampling.date = 0.5, AOA_nbc_per_g_DW_soil = 600000000 , fertilization="D", label="C *\nT **\nD x T *")
 
 AOA.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOA_nbc_per_g_DW_soil)) +
-  geom_boxplot(aes(group = var3, fill = x))+
+  geom_boxplot(aes(group = var3, fill = x))+ #outlier.shape = NA)+
+  #geom_jitter(position=position_jitter(width=0.3, height=0.2), aes(colour=factor(x)), alpha=0.9) +
   theme_bw() +
   scale_y_continuous(limits = c(0, 7e+08))+
   #ylim(0,7e+08)+
   #labs(title = "B")+
   #ylab('AOA abundance<br>(copies g<sup>-1</sup>dry soil)')+
-  labs(title = "B. AOA")+
+  labs(title = "B. AOA", subtitle ="C*, T**, D x T*")+
   ylab('*amoA* gene (copies g<sup>-1</sup>dry soil)')+
   #ylab(bquote(bold('AOA abundance'~(copies~g^-1~dry~soil))))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
@@ -1080,24 +1118,48 @@ AOA.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOA_nbc_per_g_DW_soil)
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
-        strip.text = element_text(size=18),
+        legend.title = element_text(size=25, face='bold'),
+        legend.text = element_text(size=25),
+        strip.text = element_text(size=25),
         #strip.text = element_blank(),
-        axis.text.y = element_text(size = 18),
+        axis.text.y = element_text(size = 23),
         #axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         #axis.title.y = element_markdown(size=19),
         axis.title.y =element_blank(),
-        plot.title = element_text(size=20, face="bold"),
+        plot.title = element_text(size=32, face="bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
- geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
- geom_label(data = aoa.stat_text.BS.dws,label=aoa.stat_text.BS.dws$label,hjust=0, colour="black", size=4, fontface="bold")
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))+
+ geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") 
+ #geom_label(data = aoa.stat_text.BS.dws,label=aoa.stat_text.BS.dws$label,hjust=0, colour="black", size=5, fontface="bold")
 AOA.dws.plot
+
+# adding xy position for the pairwise comparisons among treatments (emmeans results)
+# pairwise t-test
+aoa.pwc.t <- qPCR.BS.ed %>%
+  group_by(fertilization,sampling.date) %>%
+  pairwise_t_test(AOA_logDWS ~ irrigation, paired = T, p.adjust.method = "BH") %>%
+  select(-df, -statistic) # Remove details
+aoa.pwc.t
+# add x y position
+aoa.log.dws.xy <- aoa.pwc.t  %>% 
+  add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
+# plotting the pairwise comparisons among treatments (emmeans results)
+AOA.dws.plot2 <- AOA.dws.plot + 
+  stat_pvalue_manual(aoa.log.dws.xy, x = "sampling.date", y.position = 7E+08,
+                     label = "p.adj.signif",size=9,
+                     tip.length = 0.01, hide.ns = F)
+AOA.dws.plot2
 
 #setwd('D:/Fina/INRAE_Project/microservices_fig/')
 setwd('/Users/arifinabintarti/Documents/France/Figures')
@@ -1112,14 +1174,15 @@ ggsave("AOA_gDWS.BS.tiff",
 
 aob.stat_text.BS.dws <- data.frame(sampling.date = 0.5, AOB_nbc_per_g_DW_soil = 600000000 , fertilization="D", label="D *\nT **\nD x C **")
 
-AOB.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOB_nbc_per_g_DW_soil)) +
+AOB.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOB_nbc_per_g_DW_soil))+ #y=AOB_nbc_per_g_DW_soil)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
-  scale_y_continuous(limits = c(0, 7e+08))+
+  #scale_y_continuous(limits = c(0, 7e+08))+
   #ylim(0,7e+08)+
   #labs(title = "A")+
   #ylab('AOB abundance<br>(copies g<sup>-1</sup>dry soil)')+
-  labs(title = "A. AOB")+
+  labs(title = "A. AOB", subtitle="D*, T**, D x C**")+
+  #ylab('*amoA* gene (log10)')+
   ylab('*amoA* gene (copies g<sup>-1</sup>dry soil)')+
   #ylab(bquote(bold('AOB abundance'~(copies~g^-1~dry~soil))))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
@@ -1127,50 +1190,65 @@ AOB.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOB_nbc_per_g_DW_soil)
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
-        strip.text = element_text(size=18),
+        legend.title = element_text(size=25, face='bold'),
+        legend.text = element_text(size=25),
+        strip.text = element_text(size=25),
         #strip.text = element_blank(),
-        axis.text.y = element_text(size = 18),
+        axis.text.y = element_text(size = 23),
         #axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.title.y = element_markdown(size=19),
-        plot.title = element_text(size=20, face="bold"),
+        axis.title.y = element_markdown(size=25),
+        plot.title = element_text(size=32, face="bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
- geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
- geom_label(data = aob.stat_text.BS.dws,label=aob.stat_text.BS.dws$label,hjust=0, colour="black", size=4, fontface="bold")
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))
+ #geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
+ #geom_label(data = aob.stat_text.BS.dws,label=aob.stat_text.BS.dws$label,hjust=0, colour="black", size=5, fontface="bold")
 AOB.dws.plot
 
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
-aob.dws.emm.rstat <- qPCR.BS.ed %>%
-  group_by(sampling.date, fertilization) %>%
-  emmeans_test(AOB_nbc_per_g_DW_soil  ~ irrigation, 
-               p.adjust.method = "BH", 
-               conf.level = 0.95, model = aob.BS.aov)
-aob.dws.emm.rstat
+#aob.dws.emm.rstat <- qPCR.BS.ed %>%
+  #group_by(sampling.date, fertilization) %>%
+  #emmeans_test(AOB_logDWS  ~ irrigation, 
+               #p.adjust.method = "BH", 
+               #conf.level = 0.95, model = aob.BS.aov)
+#aob.dws.emm.rstat
+
+# pairwise t-test
+aob.pwc.t <- qPCR.BS.ed %>%
+  group_by(fertilization,sampling.date) %>%
+  pairwise_t_test(AOB_logDWS ~ irrigation, paired = T, p.adjust.method = "BH") %>%
+  select(-df, -statistic) # Remove details
+aob.pwc.t
+
 # add x y position
-aob.log.dws.xy <- aob.dws.emm.rstat  %>% 
+aob.log.dws.xy <- aob.pwc.t  %>% 
   add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
 # plotting the pairwise comparisons among treatments (emmeans results)
 AOB.dws.plot2 <- AOB.dws.plot + 
-  stat_pvalue_manual(aob.log.dws.xy, x = "sampling.date", y.position = 7E+08,
-                     label = "p.adj.signif",size=5,
+  stat_pvalue_manual(aob.log.dws.xy, x = "sampling.date", y.position = 7E+08,#y.position = 8.80, 
+                     label = "p.adj.signif",size=9,
                      tip.length = 0.01, hide.ns = F)
 AOB.dws.plot2
 
 setwd('/Users/arifinabintarti/Documents/France/Figures')
-ggsave("AOB_gDWS.BS.tiff",
-       aob.cop.pwc.plot2, device = "tiff",
+ggsave("AOB_logDWS.BS.tiff",
+       AOB.dws.plot2, device = "tiff",
        width = 11, height =6, 
        units= "in", dpi = 600)
 
 # 3. Bulk Soil - Comammox A
 
-ComA.stat_text.BS.dws <- data.frame(sampling.date = 0.5, ComA_nbc_per_g_DW_soil = 210000000 , fertilization="D", label="C *\nT **\nD x T *")
+ComA.stat_text.BS.dws <- data.frame(sampling.date = 0.5, ComA_nbc_per_g_DW_soil = 219000000 , fertilization="D", label="C *\nT **\nD x T *")
 
 ComA.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComA_nbc_per_g_DW_soil)) +
   geom_boxplot(aes(group = var3, fill = x))+
@@ -1179,7 +1257,7 @@ ComA.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComA_nbc_per_g_DW_soi
   #ylim(0,7e+08)+
   #labs(title = "C")+
   #ylab('Comammox A abundance<br>(copies g<sup>-1</sup>dry soil)')+
-  labs(title = "C. Comammox Clade A")+
+  labs(title = "C. Comammox clade A", subtitle = "C*, T**, D x T*")+
   ylab('*amoA* gene (copies g<sup>-1</sup>dry soil)')+
   #ylab(bquote(bold('Comammmox A abundance'~(copies~g^-1~dry~soil))))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
@@ -1187,23 +1265,30 @@ ComA.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComA_nbc_per_g_DW_soi
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
+        legend.title = element_text(size=25, face='bold'),
+        legend.text = element_text(size=25),
         #strip.text = element_text(size=18),
         strip.text = element_blank(),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 23),
+        axis.text.x = element_text(size = 23,angle = 45, hjust = 1),
         #axis.text.x = element_blank(),
         #axis.ticks.x = element_blank(),
-        axis.title.y = element_markdown(size=19),
-        plot.title = element_text(size=20, face="bold"),
+        axis.title.y = element_markdown(size=25),
+        plot.title = element_text(size=32, face="bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))+
  geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
- annotate(geom = "text", x = 3.6, y = 0, hjust = 0, size = 4, label = "Rewetting", color = "gray25")+
- geom_label(data = ComA.stat_text.BS.dws,label=ComA.stat_text.BS.dws$label,hjust=0, colour="black", size=4, fontface="bold")
+ annotate(geom = "text", x = 3.6, y = 0, hjust = 0, size = 6, label = "Rewetting", color = "gray25")
+# geom_label(data = ComA.stat_text.BS.dws,label=ComA.stat_text.BS.dws$label,hjust=0, colour="black", size=5, fontface="bold")
 ComA.dws.plot
 
 
@@ -1215,70 +1300,88 @@ ggsave("COM_A_gDWS.BS.tiff",
 
 
 # 4. Bulk Soil - Comammox B
+library(gridExtra)
+library(ggtext)
+ComB.stat_text.BS.dws <- data.frame(sampling.date = 0.5, ComB_nbc_per_g_DW_soil = 22000000 , fertilization="D", label="D*\nC**\nT***\nD x C x T*")
 
-ComB.stat_text.BS.dws <- data.frame(sampling.date = 0.5, ComB_nbc_per_g_DW_soil = 22000000 , fertilization="D", label="D *\nC **\nT ***\nD x C x T *")
-
-ComB.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComB_nbc_per_g_DW_soil)) +
+ComB.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComB_nbc_per_g_DW_soil))+ #y=ComB_nbc_per_g_DW_soil)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_y_continuous(limits = c(0, 2.7E+07))+
   #ylim(0,7e+08)+
   #labs(title = "D")+
-  #ylab('Comammmox B abundance<br>(copies g<sup>-1</sup>dry soil)')+
-  labs(title = "D. Comammox Clade B")+
-  ylab('*amoA* gene (copies g<sup>-1</sup>dry soil)')+
+  ylab('Comammmox B abundance<br>(copies g<sup>-1</sup>dry soil)')+
+  #ylab('*amoA* gene (log10)')+
+  labs(title = "D. Comammox clade B", subtitle = "D*, C**, T***, D x C x T*")+#subtitle = (expression(paste(bolditalic("D *, C **, T ***, D x C x T*")))))+
+  #ylab('*amoA* gene (copies g<sup>-1</sup>dry soil)')+
   #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
+        legend.title = element_text(size=25, face='bold'),
+        legend.text = element_text(size=25),
         #strip.text = element_text(size=18),
         strip.text = element_blank(),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 23),
+        axis.text.x = element_text(size = 23,angle = 45, hjust = 1),
         #axis.text.x = element_blank(),
         #axis.ticks.x = element_blank(),
         #axis.title.y = element_markdown(size=19),
         axis.title.y =element_blank(),
-        plot.title = element_text(size=20, face="bold"),
+        plot.title = element_text(size=32, face="bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
- geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
- annotate(geom = "text", x = 3.6, y = 0, hjust = 0, size = 4, label = "Rewetting", color = "gray25")+
- geom_label(data = ComB.stat_text.BS.dws,label=ComB.stat_text.BS.dws$label,hjust=0, colour="black", size=4, fontface="bold")
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))+
+ geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") 
+ #annotate(geom = "text", x = 3.6, y = 0, hjust = 0, size = 6, label = "Rewetting", color = "gray25")
+ #geom_label(data = ComB.stat_text.BS.dws,label=ComB.stat_text.BS.dws$label,hjust=0, colour="black", size=5, fontface="bold")
 ComB.dws.plot
+
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
-comB.dws.emm.rstat <- qPCR.BS.ed %>%
+#comB.dws.emm.rstat <- qPCR.BS.ed %>%
+ # group_by(sampling.date, fertilization) %>%
+  #emmeans_test(ComB_logDWS  ~ irrigation, 
+               #p.adjust.method = "BH", 
+               #conf.level = 0.95, model = comB.log.dws)#ComB.dws.aov2)
+#comB.dws.emm.rstat
+
+# pairwise t-test
+ComB.pwc <- qPCR.BS.ed %>%
   group_by(sampling.date, fertilization) %>%
-  emmeans_test(ComB_nbc_per_g_DW_soil  ~ irrigation, 
-               p.adjust.method = "BH", 
-               conf.level = 0.95, model = ComB.dws.aov2)
-comB.dws.emm.rstat
+  pairwise_t_test(ComB_logDWS ~ irrigation, paired = T, p.adjust.method = "BH") %>%
+  select(-df, -statistic) # Remove details
+ComB.pwc
+
 # add x y position
-comB.log.dws.xy <- comB.dws.emm.rstat  %>% 
+comB.log.dws.xy <- ComB.pwc  %>% 
   add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
 # plotting the pairwise comparisons among treatments (emmeans results)
 ComB.dws.plot2 <- ComB.dws.plot + 
-  stat_pvalue_manual(comB.log.dws.xy,x = "sampling.date", y.position = 2.7E+07,
-                     label = "p.adj.signif",size=5,
+  stat_pvalue_manual(comB.log.dws.xy,x = "sampling.date", y.position = 2.7E+07, #y.position = 7.5 
+                     label = "p.adj.signif",size=9,
                      tip.length = 0.01, hide.ns = F)
 ComB.dws.plot2
 
 setwd('/Users/arifinabintarti/Documents/France/Figures')
-ggsave("COM_B_gDWS.BS.tiff",
-       comB.cop.pwc.plot2, device = "tiff",
+ggsave("COM_B_logDWS.BS.tiff",
+       ComB.dws.plot2, device = "tiff",
        width = 11, height =6, 
        units= "in", dpi = 600)
 
 #########################################################################################################
 # Compile all figures
 library(patchwork)
-dws.all <- ((AOB.dws.plot2 / ComA.dws.plot) | (AOA.dws.plot / ComB.dws.plot2))+
+dws.all <- ((AOB.dws.plot2 / ComA.dws.plot) | (AOA.dws.plot2 / ComB.dws.plot2))+
  plot_layout(guides = "collect") & 
  theme(legend.position = 'bottom',legend.title = element_blank())
 dws.all
@@ -1286,9 +1389,9 @@ dws.all
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("Fig.6.dpi300.tiff",
        dws.all, device = "tiff",bg="white",
-       #width = 17, height = 10, 
-       width = 18, height = 12, 
-       units= "in", dpi = 300, compression="lzw")
+       width = 19.6, height = 16, 
+       #width = 19.6, height = 15, 
+       units= "in", dpi = 600, compression="lzw")
 
 ggsave("Fig.6.3.dpi300.tiff",
        dws.all, device = "tiff",bg="white",
@@ -1307,7 +1410,7 @@ setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("Supp.Fig.5dpi300.tiff",
        Rat.all, device = "tiff",bg="white",
        #width = 18, height = 14, 
-       width = 18, height = 18, 
+       width = 19, height = 22, 
        units= "in", dpi = 300, compression="lzw")
 
 ##############################################################################################################
@@ -1416,6 +1519,7 @@ AOA_16S.rat.emm.rstat <- qPCR.BS.ed %>%
                p.adjust.method = "BH", 
                conf.level = 0.95, model = t.aoa)
 AOA_16S.rat.emm.rstat 
+
 # add x y position
 AOA_16S.rat.emm.xy <- AOA_16S.rat.emm.rstat  %>% 
   add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
@@ -1445,10 +1549,10 @@ AOB_16S.stat_text.BS.dws <- data.frame(sampling.date = 0.5, AOB_16S_ratio_percen
 
 AOB_16S.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOB_16S_ratio_percent)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_y_continuous(limits = c(0, 5))+
   #ylim(0,5)+
-  labs(title = "Bulk Soil", subtitle = "A")+
+  labs(title = "Bulk Soil\nA", subtitle = "D**, C*")+
   ylab('AOB/16S (%)')+
   #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
@@ -1456,23 +1560,29 @@ AOB_16S.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOB_16S_ratio_perc
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
-        strip.text = element_text(size=18),
+        #legend.title = element_text(size=15, face='bold'),
+        legend.text = element_text(size=22),
+        strip.text = element_text(size=23),
         #strip.text = element_blank(),
-        axis.text.y = element_text(size = 18),
-        #axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 22),
+        #axis.text.x = element_text(size = 22,angle = 45, hjust = 1),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.title.y = element_markdown(size=19),
-        plot.title = element_text(size=25, face="bold"),
-        plot.subtitle = element_text(size=20, face="bold"),
+        axis.title.y = element_markdown(size=23),
+        plot.title = element_text(size=27, face="bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
- geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
- geom_label(data = AOB_16S.stat_text.BS.dws,label=AOB_16S.stat_text.BS.dws$label,hjust=0, colour="black", size=4, fontface="bold")
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))+
+ geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") 
+ #geom_label(data = AOB_16S.stat_text.BS.dws,label=AOB_16S.stat_text.BS.dws$label,hjust=0, colour="black", size=6, fontface="bold")
 AOB_16S.rat.plot
 
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
@@ -1482,13 +1592,14 @@ aob_16S_percent_rat_emm <- qPCR.BS.ed %>%
                p.adjust.method = "BH", 
                conf.level = 0.95, model=t.aob.16.rat.percent)
 view(aob_16S_percent_rat_emm)
+
 # add x y position
 aob_16S_percent.xy <- aob_16S_percent_rat_emm %>% 
   add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
 # plotting the pairwise comparisons among treatments (emmeans results)
 AOB_16S.rat.plot2 <- AOB_16S.rat.plot + 
   stat_pvalue_manual(aob_16S_percent.xy,x = "sampling.date", y.position = 4.8,
-                     label = "p.adj.signif",size=5,
+                     label = "p.adj.signif",size=9,
                      tip.length = 0.01, hide.ns = F)
 AOB_16S.rat.plot2
 
@@ -1505,10 +1616,10 @@ comA_16S.stat_text.BS.dws <- data.frame(sampling.date = 0.5, ComA_16S_ratio_perc
 
 comA_16S.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComA_16S_ratio_percent)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_y_continuous(limits = c(0, 1.2))+
   #ylim(0,5)+
-  labs(subtitle = "C")+
+  labs(title = "C", subtitle = "D*, T**")+
   ylab('Comammox A/16S (%)')+
   #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
@@ -1516,29 +1627,35 @@ comA_16S.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComA_16S_ratio_pe
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
+        #legend.title = element_text(size=15, face='bold'),
+        legend.text = element_text(size=22),
         #strip.text = element_text(size=18),
         strip.text = element_blank(),
-        axis.text.y = element_text(size = 18),
-        #axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 22),
+        #axis.text.x = element_text(size = 22,angle = 45, hjust = 1),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.title.y = element_markdown(size=19),
-        #plot.title = element_text(size=25, face="bold"),
-        plot.subtitle = element_text(size=20, face="bold"),
+        axis.title.y = element_markdown(size=23),
+        plot.title = element_text(size=27, face="bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
- geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
- geom_label(data = comA_16S.stat_text.BS.dws,label=comA_16S.stat_text.BS.dws$label,hjust=0, colour="black", size=4, fontface="bold")
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))+
+ geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") 
+ #geom_label(data = comA_16S.stat_text.BS.dws,label=comA_16S.stat_text.BS.dws$label,hjust=0, colour="black", size=6, fontface="bold")
 comA_16S.rat.plot
 
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
 comA_16S.rat.emm.rstat <- qPCR.BS.ed %>%
   group_by(sampling.date, fertilization) %>%
-  emmeans_test(ComA_16S_ratio_percent  ~ irrigation, 
+  emmeans_test(ComA_16.arc.ratio ~ irrigation, 
                p.adjust.method = "BH", 
                conf.level = 0.95, model = t.comA)
 comA_16S.rat.emm.rstat 
@@ -1548,7 +1665,7 @@ comA_16S.rat.emm.xy <- comA_16S.rat.emm.rstat  %>%
 # plotting the pairwise comparisons among treatments (emmeans results)
 comA_16S.rat.plot2 <- comA_16S.rat.plot + 
   stat_pvalue_manual(comA_16S.rat.emm.xy,x = "sampling.date", y.position = 1.2,
-                     label = "p.adj.signif",size=5,
+                     label = "p.adj.signif",size=9,
                      tip.length = 0.01, hide.ns = F)
 comA_16S.rat.plot2
 
@@ -1561,14 +1678,14 @@ ggsave("comA_16S_ratio_BS.tiff",
 
 # 8. Bulk Soil - ComammoxB/16S RATIO
 
-comB_16S.stat_text.BS.dws <- data.frame(sampling.date = 3.6, ComB_16S_ratio_percent = 0.15 , fertilization="M", label="D ***\nC *\nT *\nD x C **\nD x C x T **")
+comB_16S.stat_text.BS.dws <- data.frame(sampling.date = 0.5, ComB_16S_ratio_percent = 0.15 , fertilization="M", label="D ***\nC *\nT *\nD x C **\nD x C x T **")
 
 comB_16S.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComB_16S_ratio_percent)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_y_continuous(limits = c(0, 0.22))+
   #ylim(0,5)+
-  labs(subtitle = "E")+
+  labs(title = "E", subtitle ="D***, C*, T*, D x C**, D x C x T**")+
   ylab('Comammox B/16S (%)')+
   #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
@@ -1576,30 +1693,36 @@ comB_16S.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComB_16S_ratio_pe
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
+        #legend.title = element_text(size=15, face='bold'),
+        legend.text = element_text(size=22),
         #strip.text = element_text(size=18),
         strip.text = element_blank(),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 22),
+        axis.text.x = element_text(size = 22,angle = 45, hjust = 1),
         #axis.text.x = element_blank(),
         #axis.ticks.x = element_blank(),
-        axis.title.y = element_markdown(size=19),
-        #plot.title = element_text(size=25, face="bold"),
-        plot.subtitle = element_text(size=20, face="bold"),
+        axis.title.y = element_markdown(size=23),
+        plot.title = element_text(size=27, face="bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))+
  geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
- geom_label(data = comB_16S.stat_text.BS.dws,label=comB_16S.stat_text.BS.dws$label,hjust=0, colour="black", size=4, fontface="bold")+
- annotate(geom = "text", x = 3.6, y = 0, hjust = 0, size = 4, label = "Rewetting", color = "gray25")
+ #geom_label(data = comB_16S.stat_text.BS.dws,label=comB_16S.stat_text.BS.dws$label,hjust=0, colour="black", size=6, fontface="bold")+
+ annotate(geom = "text", x = 3.6, y = 0, hjust = 0, size = 6, label = "Rewetting", color = "gray25")
 comB_16S.rat.plot
 
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
 comB_16S.rat.emm.rstat <- qPCR.BS.ed %>%
   group_by(sampling.date, fertilization) %>%
-  emmeans_test(ComB_16S_ratio_percent  ~ irrigation, 
+  emmeans_test(ComB_16.arc.ratio  ~ irrigation, 
                p.adjust.method = "BH", 
                conf.level = 0.95, model = t.comB)
 comB_16S.rat.emm.rstat 
@@ -1609,7 +1732,7 @@ comB_16S.rat.emm.xy <- comB_16S.rat.emm.rstat  %>%
 # plotting the pairwise comparisons among treatments (emmeans results)
 comB_16S.rat.plot2 <- comB_16S.rat.plot + 
   stat_pvalue_manual(comB_16S.rat.emm.xy,x = "sampling.date", y.position = 0.22,
-                     label = "p.adj.signif",size=5,
+                     label = "p.adj.signif",size=9,
                      tip.length = 0.01, hide.ns = F)
 comB_16S.rat.plot2   
 
@@ -1630,32 +1753,38 @@ AOA_AOB.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOA_AOB_ratio_perc
                     labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
   ylab('AOA/AOB (%)')+
-  labs(title = "A. Bulk Soil")+
+  labs(title = "A. Bulk Soil", subtitle = "C***, T**")+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
   theme(legend.position = "none",
         legend.title = element_text(size=15, face='bold'),
         legend.text = element_text(size=15),
-        strip.text = element_text(size=18),
+        strip.text = element_text(size=25),
         #strip.text = element_blank(),
         axis.text.y = element_text(size = 18),
         axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
         #axis.text.x = element_blank(),
         #axis.ticks.x = element_blank(),
         axis.title.y = element_markdown(size=19),
-        plot.title = element_text(size=25, face="bold"),
-        plot.subtitle = element_text(size=20, face="bold"),
+        plot.title = element_text(size=27, face="bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))+
  geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
- geom_label(data = AOA_AOB.stat_text.BS,label=AOA_AOB.stat_text.BS$label,hjust=0, colour="black", size=4, fontface="bold")+
- annotate(geom = "text", x = 3.6, y = 0, hjust = 0, size = 4, label = "Rewetting", color = "gray25")
+ #geom_label(data = AOA_AOB.stat_text.BS,label=AOA_AOB.stat_text.BS$label,hjust=0, colour="black", size=6, fontface="bold")+
+ annotate(geom = "text", x = 3.6, y = 0, hjust = 0, size = 6, label = "Rewetting", color = "gray25")
 AOA_AOB.rat.plot
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
 AOA_AOB.rat.emm.rstat <- qPCR.BS.ed %>%
   group_by(sampling.date, fertilization) %>%
-  emmeans_test(AOA_AOB_ratio_percent  ~ irrigation, 
+  emmeans_test(AOA_AOB.arc.ratio  ~ irrigation, 
                p.adjust.method = "BH", 
                conf.level = 0.95, model = t.AOA_AOB.aov.2)
 AOA_AOB.rat.emm.rstat 
@@ -1665,7 +1794,7 @@ AOA_AOB.rat.emm.xy <- AOA_AOB.rat.emm.rstat  %>%
 # plotting the pairwise comparisons among treatments (emmeans results)
 AOA_AOB.rat.plot2 <- AOA_AOB.rat.plot + 
   stat_pvalue_manual(AOA_AOB.rat.emm.xy,x = "sampling.date", y.position = 450,
-                     label = "p.adj.signif",size=5,
+                     label = "p.adj.signif",size=9,
                      tip.length = 0.01, hide.ns = F)
 AOA_AOB.rat.plot2
 setwd('D:/Fina/INRAE_Project/microservices_fig/qPCR')
@@ -1844,7 +1973,7 @@ qPCR.RS$x <- factor(qPCR.RS$x)
 qPCR.RS$rep <- factor(qPCR.RS$rep)
 qPCR.RS$rep2 <- factor(qPCR.RS$rep2)
 qPCR.RS$sampling.date <- factor(qPCR.RS$sampling.date, levels = c("28/04/2022", "1/6/22", "5/7/22"),
-                                labels = c("Apr 28th", "Jun 1st", "Jul 5th"))
+                                labels = c("Apr-28", "Jun-01", "Jul-05"))
 
 ##subset
 aoa.rh.M <- qPCR.RS[which(qPCR.RS$fertilization == "M"),]
@@ -2394,7 +2523,7 @@ view(t.aoa.RS.arc.irri)
 
 # linear mixed model test for AOB/16S Percent Ratio
 t.aob_16S_percent.rh <- lmerTest::lmer(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
-                        (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
+                        (1|block:sampling.date), data=qPCR.RS.ed, na.action=na.omit)
 anova(t.aob_16S_percent.rh)
 # test assumption
 shapiro.test(resid(t.aob_16S_percent.rh)) # normal
@@ -2409,7 +2538,7 @@ AOB_16S.percent.rat.rh.DF <- as.data.frame(summary(AOB_16S.percent.rat.rh.pair))
 # Just Checking
 # linear mixed model test for AOB/16S Arcsin 
 t.aob_16S_arcs.rh <- lmerTest::lmer(AOB_16.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
-                     (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
+                     (1|block:sampling.date), data=qPCR.RS.ed, na.action=na.omit)
 anova(t.aob_16S_arcs.rh)
 # test assumption
 shapiro.test(resid(t.aob_16S_arcs.rh)) # normal
@@ -2423,7 +2552,7 @@ get_anova_table(t.aob.RS.arc.aov)
 
 # using percent ratio
 t.aob.RS.perc.aov <- anova_test(
-  data = qPCR.RS, dv = AOB_16S_ratio_percent, wid = rep2, type = 3,
+  data = qPCR.RS.ed, dv = AOB_16S_ratio_percent, wid = rep2, type = 3,
   within = c(irrigation, fertilization,sampling.date))
 get_anova_table(t.aob.RS.perc.aov)
 
@@ -2433,7 +2562,7 @@ t.aob.RS.arc.aov2 <- aov(qPCR.RS.ed$AOB_16.arc.ratio.rh~irrigation*fertilization
 summary(t.aob.RS.arc.aov2)
 # Test Method 3 
 t.aob.RS.arc.lmer <- lmerTest::lmer(AOB_16.arc.ratio.rh ~ irrigation*fertilization*sampling.date +(1|block)+(1|block:sampling.date), 
-                           data=qPCR.RS,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
+                           data=qPCR.RS.ed,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
 car::Anova(t.aob.RS.arc.lmer, test="F", type="III") 
 # test assumptions:
 hist(qPCR.RS$AOB_16.arc.ratio.rh) # normal distributed
@@ -2470,7 +2599,7 @@ ComA_16S.ratio.rh.DF <- as.data.frame(summary(ComA_16S.ratio.rh.pair))
 # Just Checking
 # linear mixed model for arcsin square root transformed ComA/16S Ratio
 t.comA_16S_arcs.rh <- lmerTest::lmer(ComA_16.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
-                      (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
+                      (1|block:sampling.date), data=qPCR.RS.ed, na.action=na.omit)
 
 anova(t.comA_16S_arcs.rh)
 # test assumption
@@ -2488,7 +2617,7 @@ t.ComA.RS.arc.aov2 <- aov(qPCR.RS.ed$ComA_16.arc.ratio.rh~irrigation*fertilizati
 summary(t.ComA.RS.arc.aov2)
 # Test Method 3 
 t.ComA.RS.perc.lmer <- lmerTest::lmer(ComA_16S_ratio_percent ~ irrigation*fertilization*sampling.date +(1|block)+(1|block:sampling.date), 
-                           data=qPCR.RS,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
+                           data=qPCR.RS.ed,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
 car::Anova(t.ComA.RS.perc.lmer, test="F", type="III") 
 # test assumptions:
 hist(qPCR.RS$ComA_16.arc.ratio.rh) # normal distributed
@@ -2509,7 +2638,7 @@ view(t.ComA.RS.arc.irri)
 
 # Linear mixed model test for ComB/16S Ratio in percent
 t.comB_16S_percent.rh <- lmerTest::lmer(ComB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
-                         (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
+                         (1|block:sampling.date), data=qPCR.RS.ed, na.action=na.omit)
 anova(t.comB_16S_percent.rh)
 # test assumption
 shapiro.test(resid(t.comB_16S_percent.rh)) # normal
@@ -2524,7 +2653,7 @@ ComB_16S.ratio.rh.DF <- as.data.frame(summary(ComB_16S.ratio.rh.pair))
 # Just Checking
 # Linear mixed model test for ComB/16S Arcsin Ratio 
 t.comB_16S_arc.rh <- lmerTest::lmer(ComB_16.arc.ratio.rh ~ irrigation*fertilization*sampling.date+
-                         (1|block:sampling.date), data=qPCR.RS, na.action=na.omit)
+                         (1|block:sampling.date), data=qPCR.RS.ed, na.action=na.omit)
 
 anova(t.comB_16S_arc.rh)
 # test assumption
@@ -2590,7 +2719,7 @@ AOA_AOB.RS.arc.aov2 <- aov(AOA_AOB.arc.ratio.rh~irrigation*fertilization*samplin
 summary(AOA_AOB.RS.arc.aov2)
 # Test Method 3 
 t.AOA_AOB.RS.arc.lmer <- lmerTest::lmer(AOA_AOB.arc.ratio.rh ~ irrigation*fertilization*sampling.date +(1|block)+(1|block:sampling.date), 
-                           data=qPCR.RS,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
+                           data=qPCR.RS.ed,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
 car::Anova(t.AOA_AOB.RS.arc.lmer, test="F", type="III") 
 # test assumptions:
 hist(qPCR.RS$AOA_AOB.arc.ratio.rh) # normal distributed

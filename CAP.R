@@ -72,7 +72,7 @@ legend("bottomleft", legend = c("Control BIODYN (90%)", "Drought-induced BIODYN 
 # Plot with ggplot2
 
 aoa.cap.plot <- ggplot(as.data.frame(aoa.cap.bulk$x), aes(x = aoa.cap.bulk$x[,1], y = aoa.cap.bulk$x[,2])) +
-  geom_point(aes(color = aoa.meta.bulk.ed$Treatment, shape = aoa.meta.bulk.ed$Irrigation), size = 2) +
+  geom_point(aes(color = aoa.meta.bulk.ed$Treatment, shape = aoa.meta.bulk.ed$Irrigation), size = 3, stroke=1) +
   #geom_text(label=aoa.meta.bulk.ed$PlotID)+
   xlab(aoa.cap1.bulk) + ylab(aoa.cap2.bulk) +
   scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
@@ -84,8 +84,8 @@ aoa.cap.plot <- ggplot(as.data.frame(aoa.cap.bulk$x), aes(x = aoa.cap.bulk$x[,1]
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
   geom_mark_ellipse(aes(fill = aoa.meta.bulk.ed$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
-  #labs(subtitle = "C. AOA")+
-  labs(subtitle = "B. AOA")+
+  labs(subtitle = "C. AOA")+
+  #labs(subtitle = "B. AOA")+
   theme(axis.text.x = element_text(color = "grey20", size = 16, angle = 0, hjust = .5, vjust = .5, face = "plain"),
         axis.text.y = element_text(color = "grey20", size = 16, angle = 0, hjust = 1, vjust = 0, face = "plain"),
         axis.title.x = element_text(color = "grey20", size = 18, angle = 0, hjust = .5, vjust = .5, face = "plain"),
@@ -96,14 +96,14 @@ aoa.cap.plot <- ggplot(as.data.frame(aoa.cap.bulk$x), aes(x = aoa.cap.bulk$x[,1]
         legend.title = element_blank(),
         #legend.title = element_text(size=13),
         legend.text = element_text(size=20)) +
-  annotate("text",x=-9.5,y=-1,label= "90%", hjust = 0, size = 4,color="#009E73") +
-  annotate("text",x=-7.5,y=3,label= "95%", hjust = 0, size = 4,color="#009E73") +
-  annotate("text",x=-1.7,y=-7,label= "100%", hjust = 0, size = 4, color="#FF618C")+
-  annotate("text",x=-1.7,y=-1.5,label= "100%", hjust = 0, size = 4,color="#FF618C")+
-  annotate("text",x=2,y=6,label= "95%", hjust = 0, size = 4, color="#E69F00")+
-  annotate("text",x=6.5,y=0.4,label= "85%", hjust = 0, size = 4,color="#E69F00")+
-  annotate("text",x=-14,y=-10,label= "Overall reclassification rate: 94.2%", hjust = 0, size = 4) +
-  annotate("text", x=-14, y=-11.5, label= "Pillai's test=4.1***", hjust = 0, size = 4)+
+  #annotate("text",x=-9.5,y=-1,label= "90%", hjust = 0, size = 4,color="#009E73") +
+  #annotate("text",x=-7.5,y=3,label= "95%", hjust = 0, size = 4,color="#009E73") +
+  #annotate("text",x=-1.7,y=-7,label= "100%", hjust = 0, size = 4, color="#FF618C")+
+  #annotate("text",x=-1.7,y=-1.5,label= "100%", hjust = 0, size = 4,color="#FF618C")+
+  #annotate("text",x=2,y=6,label= "95%", hjust = 0, size = 4, color="#E69F00")+
+  #annotate("text",x=6.5,y=0.4,label= "85%", hjust = 0, size = 4,color="#E69F00")+
+  annotate("text",x=-14,y=-10,label= "Overall reclassification rate: 94.2%", hjust = 0, size = 6) +
+  annotate("text", x=-14, y=-11.5, label= "Pillai's test=4.1***", hjust = 0, size = 6)+
  guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
 aoa.cap.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
@@ -120,8 +120,8 @@ aoa.rh_dist_bc <- vegdist(t(aoa.asv.rh1), method = "bray")
 aoa.rh_dist_bc
 # metadata
 aoa.meta.rh
-#aoa.meta.rh.ed <- aoa.meta.rh[,c(-14:-29,-42:-45)]
-#aoa.meta.rh.ed$x <- as.factor(aoa.meta.rh.ed$x)
+aoa.meta.rh.ed <- aoa.meta.rh[,c(-14:-29,-42:-45)]
+aoa.meta.rh.ed$x <- as.factor(aoa.meta.rh.ed$x)
 # run CAP on increasing numbers of PCoA axes to check how many axes need to be included in the model (diagnostics).
 nc <- nrow(as.matrix(aoa.rh_dist_bc))
 success <- data.frame(m = numeric(nc), class.success = numeric(nc))
@@ -172,7 +172,7 @@ legend("bottomleft", legend = c("Control BIODYN (100%)", "Drought-induced BIODYN
 # Plot with ggplot2
 
 aoa.cap.rh.plot <- ggplot(as.data.frame(aoa.cap.rh$x), aes(x = aoa.cap.rh$x[,1], y = aoa.cap.rh$x[,2])) +
-  geom_point(aes(color = aoa.meta.rh.ed$Treatment, shape = aoa.meta.rh.ed$Irrigation), size = 2) +
+  geom_point(aes(color = aoa.meta.rh.ed$Treatment, shape = aoa.meta.rh.ed$Irrigation), size = 3, stroke=1) +
   #geom_text(label=aoa.meta.rh.ed$PlotID)+
   xlab(aoa.cap1.rh) + ylab(aoa.cap2.rh) +
   scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
@@ -194,14 +194,14 @@ aoa.cap.rh.plot <- ggplot(as.data.frame(aoa.cap.rh$x), aes(x = aoa.cap.rh$x[,1],
         legend.title = element_blank(),
         #legend.title = element_text(size=13),
         legend.text = element_text(size=20)) +
- annotate("text",x=-14,y=-1,label= "100%", hjust = 0, size = 4,color="#009E73") +
- annotate("text",x=-14,y=3,label= "83.3%", hjust = 0, size = 4,color="#009E73") +
- annotate("text",x=-3,y=-7,label= "91.7%", hjust = 0, size = 4, color="#FF618C")+
- annotate("text",x=1,y=-2,label= "75%", hjust = 0, size = 4,color="#FF618C")+
- annotate("text",x=3,y=6,label= "100%", hjust = 0, size = 4, color="#E69F00")+
- annotate("text",x=6,y=1,label= "91.7%", hjust = 0, size = 4,color="#E69F00")+
-annotate("text",x=-17,y=-9,label= "Overall reclassification rate: 90.3%", hjust = 0, size = 4) +
-annotate("text", x=-17, y=-10.5, label= "Pillai's test=4.4***", hjust = 0, size = 4)+
+ #annotate("text",x=-14,y=-1,label= "100%", hjust = 0, size = 4,color="#009E73") +
+ #annotate("text",x=-14,y=3,label= "83.3%", hjust = 0, size = 4,color="#009E73") +
+ #annotate("text",x=-3,y=-7,label= "91.7%", hjust = 0, size = 4, color="#FF618C")+
+ #annotate("text",x=1,y=-2,label= "75%", hjust = 0, size = 4,color="#FF618C")+
+ #annotate("text",x=3,y=6,label= "100%", hjust = 0, size = 4, color="#E69F00")+
+ #annotate("text",x=6,y=1,label= "91.7%", hjust = 0, size = 4,color="#E69F00")+
+annotate("text",x=-17,y=-9,label= "Overall reclassification rate: 90.3%", hjust = 0, size = 6) +
+annotate("text", x=-17, y=-10.5, label= "Pillai's test=4.4***", hjust = 0, size = 6)+
  guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
 aoa.cap.rh.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
@@ -245,9 +245,7 @@ set.seed(13)
 com.cap.bulk <- CAPdiscrim(com.bulk_dist_bc ~ x, data = com.meta.bulk.ed, m = 49, permutations = 9999, add = TRUE) # 78.81356% , Significance of this percentage was 0.0001
 com.cap.bulk
 
-
 dist_matrix.com <- dist(com.cap.bulk$x)
-
 
 success <- cbind(data.frame(com.cap.bulk$group), data.frame(com.cap.bulk$CV))
 colnames(success) <- c("source", "classified")
@@ -275,7 +273,7 @@ legend("bottomleft", legend = c("Control BIODYN (90%)", "Drought-induced BIODYN 
 # Plot with ggplot2
 
 com.cap.plot <- ggplot(as.data.frame(com.cap.bulk$x), aes(x = com.cap.bulk$x[,1], y = com.cap.bulk$x[,2])) +
-  geom_point(aes(color = com.meta.bulk.ed$Treatment, shape = com.meta.bulk.ed$Irrigation), size = 2) +
+  geom_point(aes(color = com.meta.bulk.ed$Treatment, shape = com.meta.bulk.ed$Irrigation), size = 3, stroke=1) +
   #geom_text(label=aoa.meta.bulk.ed$PlotID)+
   xlab(com.cap1.bulk) + ylab(com.cap2.bulk) +
   scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
@@ -287,8 +285,8 @@ com.cap.plot <- ggplot(as.data.frame(com.cap.bulk$x), aes(x = com.cap.bulk$x[,1]
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
   geom_mark_ellipse(aes(fill = com.meta.bulk.ed$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
- #labs(subtitle = "E. Comammox")+
-  labs(subtitle = "C. Comammox")+
+  labs(subtitle = "E. Comammox")+
+  #labs(subtitle = "C. Comammox")+
   theme(axis.text.x = element_text(color = "grey20", size = 16, angle = 0, hjust = .5, vjust = .5, face = "plain"),
         axis.text.y = element_text(color = "grey20", size = 16, angle = 0, hjust = 1, vjust = 0, face = "plain"),
         axis.title.x = element_text(color = "grey20", size = 18, angle = 0, hjust = .5, vjust = .5, face = "plain"),
@@ -298,14 +296,14 @@ com.cap.plot <- ggplot(as.data.frame(com.cap.bulk$x), aes(x = com.cap.bulk$x[,1]
         legend.title = element_blank(),
         #legend.title = element_text(size=13),
         legend.text = element_text(size=20)) +
-  annotate("text",x=-9,y=2.5,label= "90%", hjust = 0, size = 4,color="#009E73") +
-  annotate("text",x=-15,y=3,label= "89.5%", hjust = 0, size = 4,color="#009E73") +
-  annotate("text",x=1,y=-2,label= "85%", hjust = 0, size = 4, color="#FF618C")+
-  annotate("text",x=6,y=-7,label= "65%", hjust = 0, size = 4,color="#FF618C")+
-  annotate("text",x=6,y=5,label= "80%", hjust = 0, size = 4, color="#E69F00")+
-  annotate("text",x=-2.5,y=5,label= "63.2%", hjust = 0, size = 4,color="#E69F00")+
-  annotate("text",x=-17,y=-7,label= "Overall reclassification rate: 78.8%", hjust = 0, size = 4) +
-  annotate("text", x=-17, y=-8.5, label= "Pillai's test=3.7***", hjust = 0, size = 4)+
+  #annotate("text",x=-9,y=2.5,label= "90%", hjust = 0, size = 4,color="#009E73") +
+  #annotate("text",x=-15,y=3,label= "89.5%", hjust = 0, size = 4,color="#009E73") +
+  #annotate("text",x=1,y=-2,label= "85%", hjust = 0, size = 4, color="#FF618C")+
+  #annotate("text",x=6,y=-7,label= "65%", hjust = 0, size = 4,color="#FF618C")+
+  #annotate("text",x=6,y=5,label= "80%", hjust = 0, size = 4, color="#E69F00")+
+  #annotate("text",x=-2.5,y=5,label= "63.2%", hjust = 0, size = 4,color="#E69F00")+
+  annotate("text",x=-17,y=-7,label= "Overall reclassification rate: 78.8%", hjust = 0, size = 6) +
+  annotate("text", x=-17, y=-8.5, label= "Pillai's test=3.7***", hjust = 0, size = 6)+
  guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
 com.cap.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
@@ -322,8 +320,8 @@ com.rh_dist_bc <- vegdist(t(com.asv.rh1), method = "bray")
 com.rh_dist_bc
 # metadata
 str(com.meta.rh)
-#com.meta.rh.ed <- com.meta.rh[,c(-14:-29,-42:-45)]
-#com.meta.rh.ed$x <- as.factor(com.meta.rh.ed$x)
+com.meta.rh.ed <- com.meta.rh[,c(-14:-29,-42:-45)]
+com.meta.rh.ed$x <- as.factor(com.meta.rh.ed$x)
 # run CAP on increasing numbers of PCoA axes to check how many axes need to be included in the model (diagnostics).
 nc <- nrow(as.matrix(com.rh_dist_bc))
 success <- data.frame(m = numeric(nc), class.success = numeric(nc))
@@ -374,7 +372,7 @@ legend("bottomleft", legend = c("Control BIODYN (100%)", "Drought-induced BIODYN
 # Plot with ggplot2
 
 com.cap.rh.plot <- ggplot(as.data.frame(com.cap.rh$x), aes(x = com.cap.rh$x[,1], y = com.cap.rh$x[,2])) +
-  geom_point(aes(color = com.meta.rh$Treatment, shape = com.meta.rh$Irrigation), size = 2) +
+  geom_point(aes(color = com.meta.rh$Treatment, shape = com.meta.rh$Irrigation), size = 3, stroke=1) +
   #geom_text(label=com.meta.rh$PlotID)+
   xlab(com.cap1.rh) + ylab(com.cap2.rh) +
   scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
@@ -396,14 +394,14 @@ com.cap.rh.plot <- ggplot(as.data.frame(com.cap.rh$x), aes(x = com.cap.rh$x[,1],
         legend.title = element_blank(),
         #legend.title = element_text(size=13),
         legend.text = element_text(size=20))+
-  annotate("text",x=-16,y=-2.5,label= "100%", hjust = 0, size = 4,color="#009E73") +
-  annotate("text",x=-16,y=3,label= "91.7%", hjust = 0, size = 4,color="#009E73") +
-  annotate("text",x=0.5,y=-2,label= "75%", hjust = 0, size = 4, color="#FF618C")+
-  annotate("text",x=4.4,y=-8.3,label= "83.3%", hjust = 0, size = 4,color="#FF618C")+
-  annotate("text",x=0,y=7,label= "75%", hjust = 0, size = 4, color="#E69F00")+
-  annotate("text",x=-2,y=3,label= "75%", hjust = 0, size = 4,color="#E69F00")+
-  annotate("text",x=-17,y=-7,label= "Overall reclassification rate: 83.3%", hjust = 0, size = 4) +
-  annotate("text", x=-17, y=-8.5, label= "Pillai's test=3.4***", hjust = 0, size = 4)+
+  #annotate("text",x=-16,y=-2.5,label= "100%", hjust = 0, size = 4,color="#009E73") +
+  #annotate("text",x=-16,y=3,label= "91.7%", hjust = 0, size = 4,color="#009E73") +
+  #annotate("text",x=0.5,y=-2,label= "75%", hjust = 0, size = 4, color="#FF618C")+
+  #annotate("text",x=4.4,y=-8.3,label= "83.3%", hjust = 0, size = 4,color="#FF618C")+
+  #annotate("text",x=0,y=7,label= "75%", hjust = 0, size = 4, color="#E69F00")+
+  #annotate("text",x=-2,y=3,label= "75%", hjust = 0, size = 4,color="#E69F00")+
+  annotate("text",x=-17,y=-7,label= "Overall reclassification rate: 83.3%", hjust = 0, size = 6) +
+  annotate("text", x=-17, y=-8.5, label= "Pillai's test=3.4***", hjust = 0, size = 6)+
  guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
 com.cap.rh.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
@@ -476,7 +474,7 @@ legend("bottomleft", legend = c("Control BIODYN (57.9%)", "Drought-induced BIODY
 # Plot with ggplot2
 
 aob.cap.plot <- ggplot(as.data.frame(aob.cap.bulk$x), aes(x = aob.cap.bulk$x[,1], y = aob.cap.bulk$x[,2])) +
-  geom_point(aes(color = aob.meta.bulk$Treatment, shape = aob.meta.bulk$Irrigation), size = 2) +
+  geom_point(aes(color = aob.meta.bulk$Treatment, shape = aob.meta.bulk$Irrigation), size = 3, stroke=1) +
   #geom_text(label=aoa.meta.bulk$PlotID)+
   xlab(aob.cap1.bulk) + ylab(aob.cap2.bulk) +
   scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
@@ -488,8 +486,8 @@ aob.cap.plot <- ggplot(as.data.frame(aob.cap.bulk$x), aes(x = aob.cap.bulk$x[,1]
   scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
   geom_mark_ellipse(aes(fill = aob.meta.bulk$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
-  #labs(title = "Bulk Soil", subtitle = "A. AOB")+
-  labs(subtitle = "A. AOB")+
+  labs(title = "Bulk Soil", subtitle = "A. AOB")+
+  #labs(subtitle = "A. AOB")+
   theme(axis.text.x = element_text(color = "grey20", size = 16, angle = 0, hjust = .5, vjust = .5, face = "plain"),
         axis.text.y = element_text(color = "grey20", size = 16, angle = 0, hjust = 1, vjust = 0, face = "plain"),
         axis.title.x = element_text(color = "grey20", size = 18, angle = 0, hjust = .5, vjust = .5, face = "plain"),
@@ -501,14 +499,14 @@ aob.cap.plot <- ggplot(as.data.frame(aob.cap.bulk$x), aes(x = aob.cap.bulk$x[,1]
         legend.title = element_blank(),
         #legend.title = element_text(size=13),
         legend.text = element_text(size=20)) +
-  annotate("text",x=-3,y=1.6,label= "57.9%", hjust = 0, size = 4,color="#009E73") +
-  annotate("text",x=-5.5,y=3.5,label= "80%", hjust = 0, size = 4,color="#009E73") +
-  annotate("text",x=-2.2,y=-2.2,label= "45%", hjust = 0, size = 4, color="#FF618C")+
-  annotate("text",x=3.5,y=-2.6,label= "55%", hjust = 0, size = 4,color="#FF618C")+
-  annotate("text",x=3.6,y=5,label= "70%", hjust = 0, size = 4, color="#E69F00")+
-  annotate("text",x=-1,y=3,label= "55%", hjust = 0, size = 4,color="#E69F00")+
-  annotate("text",x=-6,y=-5.5,label= "Overall reclassification rate: 60.5%", hjust = 0, size = 4) +
-  annotate("text", x=-6, y=-6.5, label= "Pillai's test=2.7***", hjust = 0, size = 4)+
+  #annotate("text",x=-3,y=1.6,label= "57.9%", hjust = 0, size = 4,color="#009E73") +
+  #annotate("text",x=-5.5,y=3.5,label= "80%", hjust = 0, size = 4,color="#009E73") +
+  #annotate("text",x=-2.2,y=-2.2,label= "45%", hjust = 0, size = 4, color="#FF618C")+
+  #annotate("text",x=3.5,y=-2.6,label= "55%", hjust = 0, size = 4,color="#FF618C")+
+  #annotate("text",x=3.6,y=5,label= "70%", hjust = 0, size = 4, color="#E69F00")+
+  #annotate("text",x=-1,y=3,label= "55%", hjust = 0, size = 4,color="#E69F00")+
+  annotate("text",x=-6,y=-5.5,label= "Overall reclassification rate: 60.5%", hjust = 0, size = 6) +
+  annotate("text", x=-6, y=-6.5, label= "Pillai's test=2.7***", hjust = 0, size = 6)+
  guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
 aob.cap.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
@@ -526,8 +524,8 @@ aob.rh_dist_bc <- vegdist(t(aob.asv.rh1), method = "bray")
 aob.rh_dist_bc
 # metadata
 aob.meta.rh
-#aob.meta.rh.ed <- aob.meta.rh[,c(-14:-29,-42:-45)]
-#aob.meta.rh.ed$x <- as.factor(aob.meta.rh.ed$x)
+aob.meta.rh.ed <- aob.meta.rh[,c(-14:-29,-42:-45)]
+aob.meta.rh.ed$x <- as.factor(aob.meta.rh.ed$x)
 # run CAP on increasing numbers of PCoA axes to check how many axes need to be included in the model (diagnostics).
 nc <- nrow(as.matrix(aob.rh_dist_bc))
 success <- data.frame(m = numeric(nc), class.success = numeric(nc))
@@ -579,7 +577,7 @@ legend("bottomleft", legend = c("Control BIODYN (66.7%)", "Drought-induced BIODY
 # Plot with ggplot2
 
 aob.cap.rh.plot <- ggplot(as.data.frame(aob.cap.rh$x), aes(x = aob.cap.rh$x[,1], y = aob.cap.rh$x[,2])) +
-  geom_point(aes(color = aob.meta.rh$Treatment, shape = aob.meta.rh$Irrigation), size = 2) +
+  geom_point(aes(color = aob.meta.rh$Treatment, shape = aob.meta.rh$Irrigation), size = 3, stroke=1) +
   #geom_text(label=aob.meta.rh.ed$PlotID)+
   xlab(aob.cap1.rh) + ylab(aob.cap2.rh) +
   scale_color_manual(values = c("#009E73","#FF618C","#E69F00"),
@@ -602,14 +600,14 @@ aob.cap.rh.plot <- ggplot(as.data.frame(aob.cap.rh$x), aes(x = aob.cap.rh$x[,1],
         legend.title = element_blank(),
         #legend.title = element_text(size=13),
         legend.text = element_text(size=20))+
-  annotate("text",x=-5,y=2,label= "66.7%", hjust = 0, size = 4,color="#009E73") +
-  annotate("text",x=-5.5,y=-3,label= "58.3%", hjust = 0, size = 4,color="#009E73") +
-  annotate("text",x=-2.7,y=3,label= "66.7%", hjust = 0, size = 4, color="#FF618C")+
-  annotate("text",x=2.5,y=5,label= "50%", hjust = 0, size = 4,color="#FF618C")+
-  annotate("text",x=3.3,y=-3.5,label= "41.7%", hjust = 0, size = 4, color="#E69F00")+
-  annotate("text",x=-1.3,y=-2,label= "41.7%", hjust = 0, size = 4,color="#E69F00")+
-  annotate("text",x=-6,y=-5.5,label= "Overall reclassification rate: 54.2%", hjust = 0, size = 4) +
-  annotate("text", x=-6, y=-6.5, label= "Pillai's test=2.6***", hjust = 0, size = 4)+
+  #annotate("text",x=-5,y=2,label= "66.7%", hjust = 0, size = 4,color="#009E73") +
+  #annotate("text",x=-5.5,y=-3,label= "58.3%", hjust = 0, size = 4,color="#009E73") +
+  #annotate("text",x=-2.7,y=3,label= "66.7%", hjust = 0, size = 4, color="#FF618C")+
+  #annotate("text",x=2.5,y=5,label= "50%", hjust = 0, size = 4,color="#FF618C")+
+  #annotate("text",x=3.3,y=-3.5,label= "41.7%", hjust = 0, size = 4, color="#E69F00")+
+  #annotate("text",x=-1.3,y=-2,label= "41.7%", hjust = 0, size = 4,color="#E69F00")+
+  annotate("text",x=-6,y=-5.5,label= "Overall reclassification rate: 54.2%", hjust = 0, size =6) +
+  annotate("text", x=-6, y=-6.5, label= "Pillai's test=2.6***", hjust = 0, size = 6)+
  guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
 aob.cap.rh.plot
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
@@ -661,8 +659,8 @@ CAP.All
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("Fig.2dpi300.tiff",
        CAP.All, device = "tiff",
-       width = 10, height = 12, 
-       units= "in", dpi = 300, compression="lzw")
+       width = 13, height = 14, 
+       units= "in", dpi = 600, compression="lzw")
 
 ggsave("Fig.2.2dpi300.tiff",
        CAP.All, device = "tiff",

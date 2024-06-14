@@ -38,6 +38,7 @@ source activate AMOA-SEQ
 
 ./AMOA-SEQ.sh -e 030423_AOA_out -i /mnt/d/Bioinformaticss/AMOA-SEQ/030423_AOA_Fastq -f ATGGTCTGGCTWAGACG -r GCCATCCATCTGTATGTCCA -m 200 -l 200 -c TRUE -t 410 -n 2 -o AOA
 
+
 3) COMAMMOX
 
 ./AMOA-SEQ.sh -e 090623_COM_out -i /mnt/d/Bioinformaticss/AMOA-SEQ/050623_COMA_Fastq  -f AGGNGAYTGGGAYTTCTGG -r CGGACAWABRTGAABCCCAT -m 204 -l 210 -c FALSE -t 396 -n 1 -o COM

@@ -6,8 +6,8 @@ qPCR.RS.ed <- qPCR.RS %>%
 label <- c(`D` ="BIODYN", 
            `K` ="CONFYM", 
            `M` ="CONMIN")
-qPCR.RS.ed$sampling.date <- factor(qPCR.RS.ed$sampling.date, levels = c("Apr 28th", "Jun 1st", "Jul 5th"),
-                          labels = c("Apr", "Jun", "Jul"))
+qPCR.RS.ed$sampling.date <- factor(qPCR.RS.ed$sampling.date, levels = c("Apr-28", "Jun-01", "Jul-05"))
+                          #labels = c("Apr", "Jun", "Jul"))
 
 # 1. Rhizosphere - AOA
 
@@ -298,10 +298,10 @@ AOB_16S.stat_text.RS <- data.frame(sampling.date = 0.5, AOB_16S_ratio_percent = 
 
 AOB_16S.rat.RS.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=AOB_16S_ratio_percent)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_y_continuous(limits = c(0, 5))+
   #ylim(0,5)+
-  labs(title = "Rhizosphere", subtitle = "B")+
+  labs(title = "Rhizosphere\nB", subtitle = "D x C x T*")+
   ylab('AOB/16S (%)')+
   #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
@@ -309,36 +309,42 @@ AOB_16S.rat.RS.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=AOB_16S_ratio_p
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
-        strip.text = element_text(size=18),
+        #legend.title = element_text(size=15, face='bold'),
+        legend.text = element_text(size=22),
+        strip.text = element_text(size=23),
         #strip.text = element_blank(),
-        axis.text.y = element_text(size = 18),
-        #axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 22),
+        #axis.text.x = element_text(size = 22,angle = 45, hjust = 1),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.title.y = element_markdown(size=19),
-        plot.title = element_text(size=25, face="bold"),
-        plot.subtitle = element_text(size=20, face="bold"),
+        axis.title.y = element_markdown(size=23),
+        plot.title = element_text(size=27, face="bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
- geom_label(data = AOB_16S.stat_text.RS,label=AOB_16S.stat_text.RS$label,hjust=0, colour="black", size=4, fontface="bold")
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))
+ #geom_label(data = AOB_16S.stat_text.RS,label=AOB_16S.stat_text.RS$label,hjust=0, colour="black", size=6, fontface="bold")
 AOB_16S.rat.RS.plot
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
-aob_16S_percent_rat_rh_emm <- qPCR.RS.ed %>%
+aob_16S_arc_rat_rh_emm <- qPCR.RS.ed %>%
   group_by(sampling.date, fertilization) %>%
-  emmeans_test(AOB_16S_ratio_percent ~ irrigation, 
+  emmeans_test(AOB_16.arc.ratio.rh ~ irrigation, 
                p.adjust.method = "BH", 
                conf.level = 0.95, model =  t.aob.RS.arc.aov2)
-aob_16S_percent_rat_rh_emm 
-aob_16S_percent_rh.xy <- aob_16S_percent_rat_rh_emm %>% 
+aob_16S_arc_rat_rh_emm 
+aob_16S_arc_rh.xy <- aob_16S_arc_rat_rh_emm %>% 
   add_xy_position(x = "sampling.date", dodge = 0.8) # bulk soil
 # plotting the pairwise comparisons among treatments (emmeans results)
 AOB_16S.rat.RS.plot2 <- AOB_16S.rat.RS.plot + 
-  stat_pvalue_manual(aob_16S_percent_rh.xy,x = "sampling.date", y.position = 4.8,
-                     label = "p.adj.signif",size=5,
+  stat_pvalue_manual(aob_16S_arc_rh.xy,x = "sampling.date", y.position = 4.8,
+                     label = "p.adj.signif",size=9,
                      tip.length = 0.01, hide.ns = F)
 AOB_16S.rat.RS.plot2
 
@@ -356,10 +362,10 @@ ggsave("AOB_16S.All.tiff",
 
 comA_16S.rat.RS.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=ComA_16S_ratio_percent)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_y_continuous(limits = c(0, 1.2))+
   #ylim(0,5)+
-  labs(subtitle = "D")+
+  labs(title = "D", subtitle="ns")+
   ylab('Comammox A/16S (%)')+
   #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
@@ -367,21 +373,27 @@ comA_16S.rat.RS.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=ComA_16S_ratio
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
+        #legend.title = element_text(size=15, face='bold'),
+        legend.text = element_text(size=22),
         #strip.text = element_text(size=18),
         strip.text = element_blank(),
-        axis.text.y = element_text(size = 18),
-        #axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 22),
+        #axis.text.x = element_text(size = 22,angle = 45, hjust = 1),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.title.y = element_markdown(size=19),
-        #plot.title = element_text(size=25, face="bold"),
-        plot.subtitle = element_text(size=20, face="bold"),
+        axis.title.y = element_markdown(size=23),
+        plot.title = element_text(size=27, face="bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))
 comA_16S.rat.RS.plot
 
 setwd('D:/Fina/INRAE_Project/microservices_fig/qPCR')
@@ -398,10 +410,10 @@ comB_16S.stat_text.RS <- data.frame(sampling.date = 0.5, ComB_16S_ratio_percent 
 
 comB_16S.rat.RS.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=ComB_16S_ratio_percent)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_y_continuous(limits = c(0, 0.22))+
   #ylim(0,5)+
-  labs(subtitle = "F")+
+  labs(title = "F", subtitle = "C*")+
   ylab('Comammox B/16S (%)')+
   #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
@@ -409,22 +421,28 @@ comB_16S.rat.RS.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=ComB_16S_ratio
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
+        #legend.title = element_text(size=15, face='bold'),
+        legend.text = element_text(size=22),
         #strip.text = element_text(size=18),
         strip.text = element_blank(),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 22),
+        axis.text.x = element_text(size = 22,angle = 45, hjust = 1),
         #axis.text.x = element_blank(),
         #axis.ticks.x = element_blank(),
-        axis.title.y = element_markdown(size=19),
-        #plot.title = element_text(size=25, face="bold"),
-        plot.subtitle = element_text(size=20, face="bold"),
+        axis.title.y = element_markdown(size=23),
+        plot.title = element_text(size=27, face="bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
- geom_label(data = comB_16S.stat_text.RS,label=comB_16S.stat_text.RS$label,hjust=0, colour="black", size=4, fontface="bold")
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))
+ #geom_label(data = comB_16S.stat_text.RS,label=comB_16S.stat_text.RS$label,hjust=0, colour="black", size=6, fontface="bold")
 comB_16S.rat.RS.plot
 
 setwd('D:/Fina/INRAE_Project/microservices_fig/qPCR')
@@ -444,31 +462,37 @@ AOA_AOB.rat.rh.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=AOA_AOB_ratio_p
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
-  labs(title="B. Rhizosphere")+
+  labs(title="B. Rhizosphere", subtitle ="C*, D x T*")+
   ylab('AOA/AOB (%)')+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
   theme(legend.position = "none",
         legend.title = element_text(size=15, face='bold'),
         legend.text = element_text(size=15),
-        strip.text = element_text(size=18),
+        strip.text = element_text(size=25),
         #strip.text = element_blank(),
         axis.text.y = element_text(size = 18),
         axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
         #axis.text.x = element_blank(),
         #axis.ticks.x = element_blank(),
         axis.title.y = element_markdown(size=19),
-        plot.title = element_text(size=25, face="bold"),
-        plot.subtitle = element_text(size=20, face="bold"),
+        plot.title = element_text(size=27, face="bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
- geom_label(data = AOB_AOB.stat_text.RS,label=AOB_AOB.stat_text.RS$label,hjust=0, colour="black", size=4, fontface="bold")
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))
+ #geom_label(data = AOB_AOB.stat_text.RS,label=AOB_AOB.stat_text.RS$label,hjust=0, colour="black", size=6, fontface="bold")
 AOA_AOB.rat.rh.plot
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
 AOA_AOB_rh_emm <- qPCR.RS.ed %>%
   group_by(sampling.date, fertilization) %>%
-  emmeans_test(AOA_AOB_ratio_percent ~ irrigation, 
+  emmeans_test(AOA_AOB.arc.ratio.rh ~ irrigation, 
                p.adjust.method = "BH", 
                conf.level = 0.95, model =  AOA_AOB.RS.arc.aov2)
 AOA_AOB_rh_emm
@@ -477,7 +501,7 @@ AOA_AOB_rh.xy <- AOA_AOB_rh_emm %>%
 # plotting the pairwise comparisons among treatments (emmeans results)
 AOA_AOB.rat.rh.plot2 <- AOA_AOB.rat.rh.plot + 
   stat_pvalue_manual(AOA_AOB_rh.xy,x = "sampling.date", y.position = 165,
-                     label = "p.adj.signif",size=5,
+                     label = "p.adj.signif",size=9,
                      tip.length = 0.01, hide.ns = F)
 AOA_AOB.rat.rh.plot2 
 
@@ -488,7 +512,7 @@ AOA_AOB.All
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("AOA_AOB.All.tiff",
        AOA_AOB.All, device = "tiff",
-       width = 10, height =12, 
+       width = 10, height =16, 
        units= "in", dpi = 300, compression="lzw")
 
 # 9. Rhizosphere - comA/comB RATIO

@@ -83,6 +83,14 @@ aob.pwc.irr <- aob.meta.bulk %>%
                p.adjust.method = "BH", 
                conf.level = 0.95)
 View(aob.pwc.irr)
+
+# pairwise t-test
+aob.pwc.rich.t <- aob.meta.bulk %>%
+  group_by(Date, Treatment) %>%
+  pairwise_t_test(Richness ~ Irrigation, paired = F, p.adjust.method = "BH") #%>%
+  #select(-df, -statistic) # Remove details
+aob.pwc.rich.t
+
 # AOB Richness Summary
 aob.rich.sum <- aob.meta.bulk %>%
   group_by(Irrigation, Treatment) %>%

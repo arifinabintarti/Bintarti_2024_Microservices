@@ -3,7 +3,7 @@
 ################################################################################
 # Date : 26 March 2024
 # Author : Ari Fina Bintarti
-
+library(purrr)
 
 # 1. AOB-BS
 setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/log2fold/')
@@ -30,45 +30,45 @@ view(result.aob.BS)
 str(result.aob.BS)
 # adding column 'fertilization'
 result.aob.BS.ed <- result.aob.BS %>%
- mutate(fertilization = map_chr(treatment, ~unlist(strsplit(., ""))[4])) %>%
- mutate(fertilization = case_when(fertilization == "D" ~ "BIODYN",
- fertilization == "K" ~ "CONFYM",
- fertilization == "M" ~ "CONMIN"))
+ mutate(fertilization = map_chr(treatment, ~unlist(strsplit(., ""))[1])) %>%
+ mutate(fertilization = case_when(fertilization == "D" ~ "BIOD",
+ fertilization == "K" ~ "CONF",
+ fertilization == "M" ~ "CONM"))
 view(result.aob.BS.ed)
 # adding column 'date'
 result.aob.BS.ed2 <- result.aob.BS.ed %>%
- mutate(date = map_chr(treatment, ~unlist(strsplit(., ""))[9])) %>%
- mutate(date = case_when(date == "8" ~ "Apr",
- date == "1" ~ "Jun",
- date == "5" ~ "Jul5",
- date == "0" ~ "Jul20",
- date == "3" ~ "Sep"))
+ mutate(date = map_chr(treatment, ~unlist(strsplit(., ""))[6])) %>%
+ mutate(date = case_when(date == "8" ~ "Apr-28",
+ date == "1" ~ "Jun-01",
+ date == "5" ~ "Jul-05",
+ date == "0" ~ "Jul-20",
+ date == "3" ~ "Sep-13"))
 view(result.aob.BS.ed2)
 str(result.aob.BS.ed2)
 result.aob.BS.ed2$treatment <- factor(result.aob.BS.ed2$treatment)
 result.aob.BS.ed2$fertilization <- factor(result.aob.BS.ed2$fertilization)
 # change factor level for date
-result.aob.BS.ed2$date <- factor(result.aob.BS.ed2$date,levels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
+result.aob.BS.ed2$date <- factor(result.aob.BS.ed2$date,levels = c("Apr-28", "Jun-01", "Jul-05", "Jul-20", "Sep-13"))
 ## Make the graph regarding the % of OTUs that are postiively or negatively changing in the treatments
 abund_counts_response.AOB <- ggplot(result.aob.BS.ed2, aes(x = date, y = percentage*100, fill = response)) +
   geom_bar(stat = "identity")+geom_hline(yintercept =0,color="white")+ scale_fill_manual(values=c("#FF6666","#6666FF"))+geom_hline(yintercept=0, color="black")+
   facet_wrap(~ fertilization)+
-  #labs(title="Bulk Soil")+#subtitle="A. AOB")+
-  labs(title="A. AOB")+
+  labs(title="Bulk Soil")+#subtitle="A. AOB")+
+  #labs(title="A. AOB")+
   theme_bw() + theme(legend.position="none",
-                     plot.title = element_text(size=25, face="bold"),
+                     plot.title = element_text(size=18, face="bold"),
                      #plot.subtitle = element_text(size=20, face="bold"),
                      #axis.text.x = element_text(angle=90, size = 16, hjust=1, vjust=0.5),
-                     strip.text.x= element_text(size = 20),
+                     strip.text.x= element_text(size = 12.5),
                      strip.background = element_rect(fill="white"),
                      axis.text.y = element_text(size = 16),
                      axis.text.x = element_blank(),
                      axis.ticks.x = element_blank(),
-                     axis.title.y = element_text(size=18),
+                     axis.title.y = element_text(size=15, face = "bold"),
                      axis.title.x = element_blank(),
                      legend.text = element_text(size=16),
-                     legend.title = element_text(size=18),
-                     panel.grid = element_blank())+ylab("Drought-affected ASVs (%)")+
+                     legend.title = element_text(size=18),panel.spacing = unit(0.15, "lines"),
+                     panel.grid = element_blank())+ylab("AOB\naffected ASVs (%)")+
   scale_y_continuous(limits = c(-10,10),breaks = c(-10, -5, 0, 5, 10))
 abund_counts_response.AOB
 
@@ -97,16 +97,16 @@ str(result.aob.RS)
 # adding column 'fertilization'
 result.aob.RS.ed <- result.aob.RS %>%
  mutate(fertilization = map_chr(treatment, ~unlist(strsplit(., ""))[4])) %>%
- mutate(fertilization = case_when(fertilization == "D" ~ "BIODYN",
- fertilization == "K" ~ "CONFYM",
- fertilization == "M" ~ "CONMIN"))
+ mutate(fertilization = case_when(fertilization == "D" ~ "BIOD",
+ fertilization == "K" ~ "CONF",
+ fertilization == "M" ~ "CONM"))
 view(result.aob.RS.ed)
 # adding column 'date'
 result.aob.RS.ed2 <- result.aob.RS.ed %>%
  mutate(date = map_chr(treatment, ~unlist(strsplit(., ""))[7])) %>%
- mutate(date = case_when(date == "4" ~ "Apr",
- date == "6" ~ "Jun",
- date == "7" ~ "Jul"))
+ mutate(date = case_when(date == "4" ~ "Apr-28",
+ date == "6" ~ "Jun-01",
+ date == "7" ~ "Jul-05"))
  #date == "0" ~ "Jul20"))
  #date == "3" ~ "Sep"))
 view(result.aob.RS.ed2)
@@ -114,17 +114,17 @@ str(result.aob.RS.ed2)
 result.aob.RS.ed2$treatment <- factor(result.aob.RS.ed2$treatment)
 result.aob.RS.ed2$fertilization <- factor(result.aob.RS.ed2$fertilization)
 # change factor level for date
-result.aob.RS.ed2$date <- factor(result.aob.RS.ed2$date,levels = c("Apr", "Jun", "Jul"))
+result.aob.RS.ed2$date <- factor(result.aob.RS.ed2$date,levels = c("Apr-28", "Jun-01", "Jul-05"))
 ## Make the graph regarding the % of OTUs that are postiively or negatively changing in the treatments
 abund_counts_response.AOB.RS <- ggplot(result.aob.RS.ed2, aes(x = date, y = percentage*100, fill = response)) +
   geom_bar(stat = "identity")+geom_hline(yintercept =0,color="white")+ scale_fill_manual(values=c("#FF6666","#6666FF"))+geom_hline(yintercept=0, color="black")+
   facet_wrap(~ fertilization)+
   labs(title="Rhizosphere")+#subtitle="A. AOB")+
   theme_bw() + theme(legend.position="none",
-                     plot.title = element_text(size=25, face="bold"),
+                     plot.title = element_text(size=18, face="bold"),
                      #plot.subtitle = element_text(size=20, face="bold"),
                      #axis.text.x = element_text(angle=90, size = 16, hjust=1, vjust=0.5),
-                     strip.text.x= element_text(size = 20),
+                     strip.text.x= element_text(size = 12.5),
                      strip.background = element_rect(fill="white"),
                      axis.text.y = element_text(size = 16),
                      axis.text.x = element_blank(),
@@ -133,8 +133,8 @@ abund_counts_response.AOB.RS <- ggplot(result.aob.RS.ed2, aes(x = date, y = perc
                      axis.title.y = element_blank(),
                      axis.title.x = element_blank(),
                      legend.text = element_text(size=16),
-                     legend.title = element_text(size=18),
-                     panel.grid = element_blank())+ylab("AOB\nDrought-affected ASVs (%)")+
+                     legend.title = element_text(size=18),panel.spacing = unit(0.15, "lines"),
+                     panel.grid = element_blank())+#ylab("AOB\nDrought-affected ASVs (%)")+
   scale_y_continuous(limits = c(-10,10),breaks = c(-10, -5, 0, 5, 10))
 abund_counts_response.AOB.RS
 
@@ -171,22 +171,22 @@ view(result.aoa.BS.ed)
 # adding column 'date'
 result.aoa.BS.ed2 <- result.aoa.BS.ed %>%
  mutate(date = map_chr(treatment, ~unlist(strsplit(., ""))[9])) %>%
- mutate(date = case_when(date == "8" ~ "Apr",
- date == "1" ~ "Jun",
- date == "5" ~ "Jul5",
- date == "0" ~ "Jul20",
- date == "3" ~ "Sep"))
+ mutate(date = case_when(date == "8" ~ "Apr-28",
+ date == "1" ~ "Jun-01",
+ date == "5" ~ "Jul-05",
+ date == "0" ~ "Jul-20",
+ date == "3" ~ "Sep-13"))
 view(result.aoa.BS.ed2)
 str(result.aoa.BS.ed2)
 result.aoa.BS.ed2$treatment <- factor(result.aoa.BS.ed2$treatment)
 result.aoa.BS.ed2$fertilization <- factor(result.aoa.BS.ed2$fertilization)
 # change factor level for date
-result.aoa.BS.ed2$date <- factor(result.aoa.BS.ed2$date,levels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
+result.aoa.BS.ed2$date <- factor(result.aoa.BS.ed2$date,levels = c("Apr-28", "Jun-01", "Jul-05", "Jul-20", "Sep-13"))
 ## Make the graph regarding the % of OTUs that are postiively or negatively changing in the treatments
 abund_counts_response.AOA <- ggplot(result.aoa.BS.ed2, aes(x = date, y = percentage*100, fill = response)) +
   geom_bar(stat = "identity")+geom_hline(yintercept =0,color="white")+ scale_fill_manual(values=c("#FF6666","#6666FF"))+geom_hline(yintercept=0, color="black")+
   facet_wrap(~ fertilization)+
-  labs(title="B. AOA")+
+  #labs(title="B. AOA")+
   theme_bw() + theme(legend.position="none",
                      plot.title = element_text(size=25, face="bold"),
                      #plot.subtitle = element_text(size=20, face="bold"),
@@ -196,11 +196,11 @@ abund_counts_response.AOA <- ggplot(result.aoa.BS.ed2, aes(x = date, y = percent
                      axis.text.x = element_blank(),
                      axis.ticks.x = element_blank(),
                      axis.text.y = element_text(size = 16),
-                     axis.title.y = element_text(size=18),
+                     axis.title.y = element_text(size=15, face="bold"),
                      axis.title.x = element_blank(),
                      legend.text = element_text(size=16),
-                     legend.title = element_text(size=18),
-                     panel.grid = element_blank())+ylab("Drought-affected ASVs (%)")+
+                     legend.title = element_text(size=18),panel.spacing = unit(0.15, "lines"),
+                     panel.grid = element_blank())+ylab("AOA\naffected ASVs (%)")+
   scale_y_continuous(limits = c(-10,10),breaks = c(-10, -5, 0, 5, 10))
 abund_counts_response.AOA
 
@@ -236,9 +236,9 @@ view(result.aoa.RS.ed)
 # adding column 'date'
 result.aoa.RS.ed2 <- result.aoa.RS.ed %>%
  mutate(date = map_chr(treatment, ~unlist(strsplit(., ""))[7])) %>%
- mutate(date = case_when(date == "4" ~ "Apr",
- date == "6" ~ "Jun",
- date == "7" ~ "Jul"))
+ mutate(date = case_when(date == "4" ~ "Apr-28",
+ date == "6" ~ "Jun-01",
+ date == "7" ~ "Jul-05"))
  #date == "0" ~ "Jul20"))
  #date == "3" ~ "Sep"))
 view(result.aoa.RS.ed2)
@@ -246,7 +246,7 @@ str(result.aoa.RS.ed2)
 result.aoa.RS.ed2$treatment <- factor(result.aoa.RS.ed2$treatment)
 result.aoa.RS.ed2$fertilization <- factor(result.aoa.RS.ed2$fertilization)
 # change factor level for date
-result.aoa.RS.ed2$date <- factor(result.aoa.RS.ed2$date,levels = c("Apr", "Jun", "Jul"))
+result.aoa.RS.ed2$date <- factor(result.aoa.RS.ed2$date,levels = c("Apr-28", "Jun-01", "Jul-05"))
 ## Make the graph regarding the % of OTUs that are postiively or negatively changing in the treatments
 abund_counts_response.AOA.RS <- ggplot(result.aoa.RS.ed2, aes(x = date, y = percentage*100, fill = response)) +
   geom_bar(stat = "identity")+geom_hline(yintercept =0,color="white")+ scale_fill_manual(values=c("#FF6666","#6666FF"))+geom_hline(yintercept=0, color="black")+
@@ -266,8 +266,8 @@ abund_counts_response.AOA.RS <- ggplot(result.aoa.RS.ed2, aes(x = date, y = perc
                      axis.title.y = element_blank(),
                      axis.title.x = element_blank(),
                      legend.text = element_text(size=16),
-                     legend.title = element_text(size=18),
-                     panel.grid = element_blank())+ylab("AOA\nDrought-affected ASVs (%)")+
+                     legend.title = element_text(size=18),panel.spacing = unit(0.15, "lines"),
+                     panel.grid = element_blank())+#ylab("AOA\nDrought-affected ASVs (%)")+
   scale_y_continuous(limits = c(-10,10),breaks = c(-10, -5, 0, 5, 10))
 abund_counts_response.AOA.RS
 
@@ -304,34 +304,34 @@ view(result.com.BS.ed)
 # adding column 'date'
 result.com.BS.ed2 <- result.com.BS.ed %>%
  mutate(date = map_chr(treatment, ~unlist(strsplit(., ""))[9])) %>%
- mutate(date = case_when(date == "8" ~ "Apr",
- date == "1" ~ "Jun",
- date == "5" ~ "Jul5",
- date == "0" ~ "Jul20",
- date == "3" ~ "Sep"))
+ mutate(date = case_when(date == "8" ~ "Apr-28",
+ date == "1" ~ "Jun-01",
+ date == "5" ~ "Jul-05",
+ date == "0" ~ "Jul-20",
+ date == "3" ~ "Sep-13"))
 view(result.com.BS.ed2)
 str(result.com.BS.ed2)
 result.com.BS.ed2$treatment <- factor(result.com.BS.ed2$treatment)
 result.com.BS.ed2$fertilization <- factor(result.com.BS.ed2$fertilization)
 # change factor level for date
-result.com.BS.ed2$date <- factor(result.com.BS.ed2$date,levels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
+result.com.BS.ed2$date <- factor(result.com.BS.ed2$date,levels = c("Apr-28", "Jun-01", "Jul-05", "Jul-20", "Sep-13"))
 ## Make the graph regarding the % of OTUs that are postiively or negatively changing in the treatments
 abund_counts_response.COM <- ggplot(result.com.BS.ed2, aes(x = date, y = percentage*100, fill = response)) +
   geom_bar(stat = "identity")+geom_hline(yintercept =0,color="white")+ scale_fill_manual(values=c("#FF6666","#6666FF"))+geom_hline(yintercept=0, color="black")+
   facet_wrap(~ fertilization)+
-  labs(title="C. Comammox")+
+  #labs(title="C. Comammox")+
   theme_bw() + theme(legend.position="none",
                      plot.title = element_text(size=25, face="bold"),
                      #plot.subtitle = element_text(size=20, face="bold"),
-                     axis.text.x = element_text(angle=90, size = 16, hjust=1, vjust=0.5),
+                     axis.text.x = element_text(angle=90, size = 12, hjust=1, vjust=0.5),
                      strip.text= element_blank(),
                      #strip.background = element_blank(),
                      axis.text.y = element_text(size = 16),
-                     axis.title.y = element_text(size=18),
+                     axis.title.y = element_text(size=15, face="bold"),
                      axis.title.x = element_blank(),
                      legend.text = element_text(size=16),
-                     legend.title = element_text(size=18),
-                     panel.grid = element_blank())+ylab("Drought-affected ASVs (%)")+
+                     legend.title = element_text(size=18),panel.spacing = unit(0.15, "lines"),
+                     panel.grid = element_blank())+ylab("Comammox\naffected ASVs (%)")+
   scale_y_continuous(limits = c(-10,10),breaks = c(-10, -5, 0, 5, 10))
 abund_counts_response.COM
 
@@ -360,16 +360,16 @@ str(result.com.RS)
 # adding column 'fertilization'
 result.com.RS.ed <- result.com.RS %>%
  mutate(fertilization = map_chr(treatment, ~unlist(strsplit(., ""))[4])) %>%
- mutate(fertilization = case_when(fertilization == "D" ~ "BIODYN",
- fertilization == "K" ~ "CONFYM",
- fertilization == "M" ~ "CONMIN"))
+ mutate(fertilization = case_when(fertilization == "D" ~ "BIOD",
+ fertilization == "K" ~ "CONF",
+ fertilization == "M" ~ "CONM"))
 view(result.com.RS.ed)
 # adding column 'date'
 result.com.RS.ed2 <- result.com.RS.ed %>%
  mutate(date = map_chr(treatment, ~unlist(strsplit(., ""))[7])) %>%
- mutate(date = case_when(date == "4" ~ "Apr",
- date == "6" ~ "Jun",
- date == "7" ~ "Jul"))
+ mutate(date = case_when(date == "4" ~ "Apr-28",
+ date == "6" ~ "Jun-01",
+ date == "7" ~ "Jul-05"))
  #date == "0" ~ "Jul20"))
  #date == "3" ~ "Sep"))
 view(result.com.RS.ed2)
@@ -377,7 +377,7 @@ str(result.com.RS.ed2)
 result.com.RS.ed2$treatment <- factor(result.com.RS.ed2$treatment)
 result.com.RS.ed2$fertilization <- factor(result.com.RS.ed2$fertilization)
 # change factor level for date
-result.com.RS.ed2$date <- factor(result.com.RS.ed2$date,levels = c("Apr", "Jun", "Jul"))
+result.com.RS.ed2$date <- factor(result.com.RS.ed2$date,levels = c("Apr-28", "Jun-01", "Jul-05"))
 ## Make the graph regarding the % of OTUs that are postiively or negatively changing in the treatments
 abund_counts_response.COM.RS <- ggplot(result.com.RS.ed2, aes(x = date, y = percentage*100, fill = response)) +
   geom_bar(stat = "identity")+geom_hline(yintercept =0,color="white")+ scale_fill_manual(values=c("#FF6666","#6666FF"))+geom_hline(yintercept=0, color="black")+
@@ -386,7 +386,7 @@ abund_counts_response.COM.RS <- ggplot(result.com.RS.ed2, aes(x = date, y = perc
   theme_bw() + theme(legend.position="none",
                      plot.title = element_text(size=25, face="bold"),
                      #plot.subtitle = element_text(size=20, face="bold"),
-                     axis.text.x = element_text(angle=90, size = 16, hjust=1, vjust=0.5),
+                     axis.text.x = element_text(angle=90, size = 12, hjust=1, vjust=0.5),
                      strip.text= element_blank(),
                      #strip.text.x= element_text(size = 20),
                      strip.background = element_rect(fill="white"),
@@ -395,8 +395,8 @@ abund_counts_response.COM.RS <- ggplot(result.com.RS.ed2, aes(x = date, y = perc
                      axis.title.y = element_blank(),
                      axis.title.x = element_blank(),
                      legend.text = element_text(size=16),
-                     legend.title = element_text(size=18),
-                     panel.grid = element_blank())+ylab("Comammox\nDrought-affected ASVs (%)")+
+                     legend.title = element_text(size=18),panel.spacing = unit(0.15, "lines"),
+                     panel.grid = element_blank())+#ylab("Comammox\nDrought-affected ASVs (%)")+
   scale_y_continuous(limits = c(-10,10),breaks = c(-10, -5, 0, 5, 10))
 abund_counts_response.COM.RS
 
@@ -410,7 +410,7 @@ percentage.ASV.plot
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("Fig.8dpi600.tiff",
        percentage.ASV.plot, device = "tiff",bg="white",
-       width = 10, height = 12, 
+       width = 6, height = 10, 
        units= "in", dpi = 600) #compression="lzw")
 
 percentage.ASV.BS.plot <- (abund_counts_response.AOB / abund_counts_response.AOA / abund_counts_response.COM)+

@@ -2,15 +2,14 @@ library(dplyr)
 library(vegan)
 library(ggplot2)
 library(devtools)
-#install.packages("microeco")
 library(microeco)
 library(magrittr)
-###devtools::install_github("hannet91/ggcor")
+library(ggcor)
+#install.packages("microeco")
+#devtools::install_github("hannet91/ggcor")
 #devtools::install_github("houyunhuang/ggcor")
 #.rs.restartR()
 #install.packages("igraph")
-library(ggcor)
-
 
 # Preparing the microtable class
 
@@ -136,7 +135,10 @@ aob.x1[aob.x1=="All"] <- "AOB"
 # rename columns
 colnames(aob.x1)  <- c("spec", "env", "r", "p.value","p.adj")
 
-################################################################################
+
+############################################################################################################
+
+
 # rarefied AOA ASV table of bulk soil
 aoa.physeq_bulk <- subset_samples(aoa.rare.min.physeq, Type=="BS") #subset bulk soil from phyloseq object
 aoa.physeq_bulk1 <- prune_taxa(taxa_sums(aoa.physeq_bulk)>0, aoa.physeq_bulk)
@@ -225,28 +227,6 @@ aoa.asv.env.ed5 <- aoa.asv.env.ed5 %>%
 
 # create  a microtable
 aoa.microdata <- microtable$new(sample_table = aoa.asv.env.ed5, otu_table = aoa.asv.tab, tax_table = aoa.asv.tax)
-# create  a microtable for CONTROL
-#dim(aoa.cont_env.ed5)
-#aoa.cont_env.ed5 <- rownames_to_column(aoa.cont_env.ed5, var = "SampleID")
-#aoa.cont_env.ed6 <- aoa.cont_env.ed5 %>% filter(SampleID != "S11")# filter out S11 from the metadata
-#view(aoa.cont_env.ed6)
-#aoa.cont_env.ed6 <- column_to_rownames(aoa.cont_env.ed6, var = "SampleID")
-
-#aoa.BS.cont_df.ed <- aoa.BS.cont_df[,-6]
-#sort(rowSums(aoa.BS.cont_df.ed, na.rm = FALSE, dims = 1), decreasing = F)
-#aoa.BS.cont_df.ed1 <- aoa.BS.cont_df.ed[rowSums(aoa.BS.cont_df.ed)>0,]
-#head(aoa.BS.cont_df.ed1)
-#aoa.BS.cont_df.ed1 <- rownames_to_column(aoa.BS.cont_df.ed1, var = "ASV")
-#dim(aoa.BS.cont_df.ed1)
-#aoa.BS.cont_df.ed1 <- column_to_rownames(aoa.BS.cont_df.ed1, var = "ASV")
-
-#head(aoa.BS.cont_tax)
-#aoa.BS.cont_tax <- rownames_to_column(aoa.BS.cont_tax, var = "ASV")
-#aoa.BS.cont_tax2 <- aoa.BS.cont_tax %>% semi_join(aoa.BS.cont_df.ed1, by = "ASV")
-#dim(aoa.BS.cont_tax2)
-#aoa.BS.cont_tax2 <- column_to_rownames(aoa.BS.cont_tax2, var = "ASV")
-#head(aoa.BS.cont_tax2)
-
 
 # calculate beta diversity
 aoa.microdata$tidy_dataset()
@@ -270,7 +250,9 @@ aoa.x1[aoa.x1=="All"] <- "AOA"
 # rename columns
 colnames(aoa.x1)  <- c("spec", "env", "r", "p.value","p.adj")
 
-################################################################################
+
+#############################################################################################################
+
 # rarefied comammox ASV table of bulk soil
 com.physeq_bulk <- subset_samples(com.rare.min.physeq, Type=="BS") #subset bulk soil from phyloseq object
 com.physeq_bulk1 <- prune_taxa(taxa_sums(com.physeq_bulk)>0, com.physeq_bulk)
@@ -379,17 +361,20 @@ com.x1[com.x1=="All"] <- "comammox"
 colnames(com.x1)  <- c("spec", "env", "r", "p.value","p.adj")
 
 
-###############################################################################
-# generate interval data CONTROL
-aob.x1.cont %<>% dplyr::mutate(rd = cut(r, breaks = c(-Inf, 0.3, 0.6, Inf), labels = c("< 0.3", "0.3 - 0.6", ">= 0.6")),
+
+#############################################################################################################################
+
+
+# generate interval data 
+aob.x1 %<>% dplyr::mutate(rd = cut(r, breaks = c(-Inf, 0.3, 0.6, Inf), labels = c("< 0.3", "0.3 - 0.6", ">= 0.6")),
                       pd = cut(p.value, breaks = c(-Inf, 0.01, 0.05, Inf), labels = c("< 0.01", "0.01 - 0.05", ">= 0.05")))
-aoa.x1.cont %<>% dplyr::mutate(rd = cut(r, breaks = c(-Inf, 0.3, 0.6, Inf), labels = c("< 0.3", "0.3 - 0.6", ">= 0.6")),
+aoa.x1 %<>% dplyr::mutate(rd = cut(r, breaks = c(-Inf, 0.3, 0.6, Inf), labels = c("< 0.3", "0.3 - 0.6", ">= 0.6")),
                       pd = cut(p.value, breaks = c(-Inf, 0.01, 0.05, Inf), labels = c("< 0.01", "0.01 - 0.05", ">= 0.05")))
-com.x1.cont %<>% dplyr::mutate(rd = cut(r, breaks = c(-Inf, 0.3, 0.6, Inf), labels = c("< 0.3", "0.3 - 0.6", ">= 0.6")),
+com.x1 %<>% dplyr::mutate(rd = cut(r, breaks = c(-Inf, 0.3, 0.6, Inf), labels = c("< 0.3", "0.3 - 0.6", ">= 0.6")),
                       pd = cut(p.value, breaks = c(-Inf, 0.01, 0.05, Inf), labels = c("< 0.01", "0.01 - 0.05", ">= 0.05")))
-# combine three tables CONTROL
-plot_table.CONT <- rbind(aob.x1.cont, aoa.x1.cont,com.x1.cont)
-plot_table.CONT <- plot_table.CONT %>% 
+# combine three tables 
+plot_table <- rbind(aob.x1, aoa.x1,com.x1)
+plot_table <- plot_table %>% 
   mutate(spec= replace(spec, spec == "AOB", "AOB β diversity")) %>%
   mutate(spec= replace(spec, spec =="AOA","AOA β diversity")) %>%
   mutate(spec= replace(spec, spec=="comammox", "Comammox β diversity")) %>%# change column names
@@ -409,7 +394,7 @@ plot_table.CONT <- plot_table.CONT %>%
   mutate(env= replace(env, env =="Coma_Shannon","Coma Shannon")) 
 
 # plotting
-#setwd('D:/Fina/INRAE_Project/microservices/')
+
 setwd('/Users/arifinabintarti/Documents/France/microservices/')
 aoa.env <- aoa.t1$data_env
 aob.env <- aob.t1$data_env
@@ -421,19 +406,17 @@ com.env <- com.t1$data_env
 all.env <- read.csv("env.all.mantel.csv", row.names = 1)
 all.env.no.alpha <- all.env[,c(1:4,6:11)]
 colnames(all.env.no.alpha)
-
+# adding qPCR dataset
 qpcr.BS <- read.csv("qPCR.BS.csv", row.names = 1)
 colnames(qpcr.BS)
 #qpcr.BS.ed <- qpcr.BS[,c(11:12,14:15,19:20,22:23,27:33)]
 qpcr.BS.logdws <- qpcr.BS[,29:32]
 all.env.qpcr <- cbind(all.env.no.alpha,qpcr.BS.logdws)
-
+# Change into numeric
 all.env.qpcr$Mg_mgkg <- as.numeric(all.env.qpcr$Mg_mgkg)
+# re-name some variables
 all.env.qpcr.ed <- all.env.qpcr %>% 
-  dplyr::rename(#"COM_Richness" = "Richness",
-                #"COM_Shannon" = "Shannon",
-                #"COM_InvSimpson" = "InvSimpson",
-                "AOA abundance" = "AOA_logDWS",
+  dplyr::rename("AOA abundance" = "AOA_logDWS",
          "AOB abundance" = "AOB_logDWS",
          "Coma A abundance" = "ComA_logDWS",
          "Coma B abundance" = "ComB_logDWS",

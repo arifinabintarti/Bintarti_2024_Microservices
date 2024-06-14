@@ -11,6 +11,7 @@ aoa.asv.tab <- read.csv("aoa.asv.tab.csv",row.names = 1)
 aoa.asv.tab[] <- lapply(aoa.asv.tab, as.numeric)
 # Read the metadata
 aoa.metadat <- read.csv("aoa.metadat.csv",row.names = 1)
+# change the explanatory variables as factor
 aoa.metadat[sapply(aoa.metadat, is.integer)] <- lapply(aoa.metadat[sapply(aoa.metadat, is.integer)], as.factor)
 aoa.metadat[sapply(aoa.metadat, is.character)] <- lapply(aoa.metadat[sapply(aoa.metadat, is.character)], as.factor)
 str(aoa.metadat)

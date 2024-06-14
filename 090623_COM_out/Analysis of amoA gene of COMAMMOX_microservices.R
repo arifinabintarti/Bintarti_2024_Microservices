@@ -118,7 +118,7 @@ com.tax.physeq = phyloseq::tax_table(as.matrix(com.tax)) # taxonomy table
 
 # phyloseq object of the metadata
 meta_micro_sub$Date <- factor(meta_micro_sub$Date, levels = c("4/28/22", "6/1/22", "7/5/22", "7/20/22", "9/13/22"),
-                          labels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"))
+                          labels = c("Apr-28", "Jun-01", "Jul-05", "Jul-20", "Sep-13"))
 rownames(meta_micro_sub) <- sample_names(com.asv.physeq)
 com.meta.physeq <- sample_data(meta_micro_sub)# meta data
 sample_names(com.meta.physeq)
@@ -604,8 +604,8 @@ com.meta.bulk.edit <- com.meta.bulk
                           #labels = c("2022-04-28", "2022-06-01", "2022-07-05", "2022-07-20", "2022-09-13"))
 #com.meta.bulk.edit$Date <- as.Date(com.meta.bulk.edit$Date)
 
-com.meta.bulk.edit$Date <- factor(com.meta.bulk.edit$Date, levels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"),
-                          labels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
+#com.meta.bulk.edit$Date <- factor(com.meta.bulk.edit$Date, levels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"),
+                          #labels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
 com.meta.bulk.edit <- com.meta.bulk.edit %>%
   mutate(x = factor(x,levels = c("cont.D","rain.D","cont.K","rain.K","cont.M","rain.M")))
 label <- c(`D` ="BIODYN (D)", 
@@ -617,33 +617,39 @@ stat_text.BS2.com <- data.frame(Date = 0.5, Richness = 10,Treatment="BIODYN", la
 
 COM.BS.Richness.plot <- ggplot(com.meta.bulk.edit , aes(x=Date, y=Richness)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
-  labs(y="COMA Richness", subtitle = "C")+
+  labs(y="COMA Richness", title = "Bulk Soil\nC", subtitle = "C*, D x C*")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 120))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
-        strip.text = element_text(size=18),
-        #strip.text = element_blank(),
-        axis.text.y = element_text(size = 18),
+        legend.title = element_text(size=22, face='bold'),
+        legend.text = element_text(size=26),
+        axis.text.x  = element_blank(),
+        axis.ticks.x  = element_blank(),
+        strip.text = element_text(size=25),
+        axis.text.y = element_text(size = 23),
         #axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        axis.title.y = element_text(size=18),
-        plot.subtitle = element_text(size=20, face="bold"),
+        axis.title.y = element_text(size=24),
         axis.title.x =element_blank(),
+        plot.title = element_text(size = 27, face = "bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))+
  #geom_vline(data=filter(aob.meta.df.sub.ed2, Type=="Bulk Soil"),aes(xintercept = as.Date("2022-07-14")), linetype="dashed", colour="darkgrey") +
  #geom_vline(xintercept = as.Date("2022-07-14"), linetype="dashed", colour="darkgrey") +
- annotate(geom = "text", x = 3.5, y = 0, hjust = 0, size = 4, label = "Rewetting", color = "grey25")+
- geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
- geom_label(data = stat_text.BS2.com,label=stat_text.BS2.com$label,hjust=0, colour="black", size=4, fontface="bold")
+ #annotate(geom = "text", x = 3.5, y = 0, hjust = 0, size = 4, label = "Rewetting", color = "grey25")+
+ geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") 
+ #geom_label(data = stat_text.BS2.com,label=stat_text.BS2.com$label,hjust=0, colour="black", size=6, fontface="bold")
  
 COM.BS.Richness.plot
 
@@ -666,8 +672,8 @@ com.meta.rh$period<-factor(com.meta.rh$period)
 #com.meta.rh$period2<-factor(com.meta.rh$period2)
 
 com.meta.rh.edit <- com.meta.rh
-com.meta.rh.edit$Date <- factor(com.meta.rh.edit$Date, levels = c("Apr 28th", "Jun 1st", "Jul 5th"),
-                          labels = c("Apr", "Jun", "Jul"))
+com.meta.rh.edit$Date <- factor(com.meta.rh.edit$Date, levels = c("Apr-28", "Jun-01", "Jul-05"))
+                          #labels = c("Apr", "Jun", "Jul"))
 com.meta.rh.edit <- com.meta.rh.edit %>%
   mutate(x = factor(x,levels = c("cont.D","rain.D","cont.K","rain.K","cont.M","rain.M")))
 label <- c(`D` ="BIODYN (D)", 
@@ -678,30 +684,36 @@ com.stat_text.RS.rich <- data.frame(Date = 0.5, Richness = 10,Treatment="BIODYN"
 
 COM.RS.Richness.plot <- ggplot(com.meta.rh.edit , aes(x=Date, y=Richness)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
-  labs(y="COMA Richness", subtitle = "I")+
+  labs(y="COMA Richness", title = "Rhizosphere\nI", subtitle = "C*, T*")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 140))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
-        #strip.text = element_blank(),
-        strip.text = element_text(size=18),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
+        legend.title = element_text(size=22, face='bold'),
+        legend.text = element_text(size=26),
+        axis.text.x  = element_blank(),
+        axis.ticks.x  = element_blank(),
+        strip.text = element_text(size=25),
+        axis.text.y = element_text(size = 23),
         #axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
-        axis.title.y = element_text(size=18),
+        axis.title.y = element_text(size=24),
         axis.title.x =element_blank(),
-        plot.subtitle = element_text(size=20, face="bold"),
+        plot.title = element_text(size = 27, face = "bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))
  #annotate(geom = "text", x = as.Date("2022-07-15"), y = 0, hjust = 0, size = 4, label = "Rewetting", color = "grey25")+
- geom_label(data = com.stat_text.RS.rich,label=com.stat_text.RS.rich$label, hjust=0,colour="black", size=4, fontface="bold")
+ #geom_label(data = com.stat_text.RS.rich,label=com.stat_text.RS.rich$label, hjust=0,colour="black", size=6, fontface="bold")
 
 COM.RS.Richness.plot
 
@@ -712,32 +724,41 @@ com.Sha.stat_text.BS2 <- data.frame(Date = 0.5, Shannon = 0.36,Treatment="BIODYN
 
 COM.BS.Shannon.plot <- ggplot(com.meta.bulk.edit , aes(x=Date, y=Shannon)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
-  labs(y="COMA Shannon", subtitle = "F")+
+  labs(y="COMA Shannon", title = "F", subtitle = "C*, D x C*")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 4.5))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
+        legend.title = element_text(size=22, face='bold'),
+        legend.text = element_text(size=26),
+        #axis.text.x  = element_blank(),
+        #axis.ticks.x  = element_blank(),
+        #strip.text = element_text(size=25),
         strip.text = element_blank(),
-        #strip.text = element_text(size=18),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
-        axis.title.y = element_text(size=18),
-        plot.subtitle = element_text(size=20, face = "bold"),
+        axis.text.y = element_text(size = 23),
+        axis.text.x = element_text(size = 23,angle = 45, hjust = 1),
+        axis.title.y = element_text(size=24),
         axis.title.x =element_blank(),
+        plot.title = element_text(size = 27, face = "bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))+
  #geom_vline(data=filter(aob.meta.df.sub.ed2, Type=="Bulk Soil"),aes(xintercept = as.Date("2022-07-14")), linetype="dashed", colour="darkgrey") +
  geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
  #geom_vline(xintercept = as.Date("2022-07-14"), linetype="dashed", colour="darkgrey") +
  #annotate(geom = "text", x = as.Date("2022-07-15"), y = 2, hjust = 0, size = 4, label = "Rewetting", color = "slategray")+
- annotate(geom = "text", x = 3.6, y = 0, hjust = 0, size = 4, label = "Rewetting", color = "gray25")+
- geom_label(data = com.Sha.stat_text.BS2,label=com.Sha.stat_text.BS2$label,hjust=0, colour="black", size=4, fontface="bold")
+ annotate(geom = "text", x = 3.6, y = 0, hjust = 0, size = 4, label = "Rewetting", color = "gray25")
+ #geom_label(data = com.Sha.stat_text.BS2,label=com.Sha.stat_text.BS2$label,hjust=0, colour="black", size=6, fontface="bold")
  
 COM.BS.Shannon.plot
 
@@ -747,28 +768,37 @@ com.stat_text.RS.sha <- data.frame(Date = 0.5, Shannon = 0.36,Treatment="BIODYN"
 
 COM.RS.Shannon.plot <- ggplot(com.meta.rh.edit , aes(x=Date, y=Shannon)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
-  labs(y="COMA Shannon", subtitle="L")+
+  labs(y="COMA Shannon", title="L", subtitle = "C*, T**")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 4.5))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
+        legend.title = element_text(size=22, face='bold'),
+        legend.text = element_text(size=26),
+        #axis.text.x  = element_blank(),
+        #axis.ticks.x  = element_blank(),
+        #strip.text = element_text(size=25),
         strip.text = element_blank(),
-        #strip.text = element_text(size=18),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
-        axis.title.y = element_text(size=18),
+        axis.text.y = element_text(size = 23),
+        axis.text.x = element_text(size = 23,angle = 45, hjust = 1),
+        axis.title.y = element_text(size=24),
         axis.title.x =element_blank(),
-        plot.subtitle = element_text(size=20, face="bold"),
+        plot.title = element_text(size = 27, face = "bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))
  #annotate(geom = "text", x = as.Date("2022-07-15"), y = 0, hjust = 0, size = 4, label = "Rewetting", color = "grey25")+
- geom_label(data = com.stat_text.RS.sha,label=com.stat_text.RS.sha$label, hjust=0,colour="black", size=4, fontface="bold")
+ #geom_label(data = com.stat_text.RS.sha,label=com.stat_text.RS.sha$label, hjust=0,colour="black", size=6, fontface="bold")
 
 COM.RS.Shannon.plot
 
@@ -1944,8 +1974,8 @@ com.abund.trt.cla$Treatment <- factor(com.abund.trt.cla$Treatment, levels = c("D
                               labels = c("BIODYN", "CONFYM", "CONMIN"))
 com.abund.trt.cla$Irrigation <- factor(com.abund.trt.cla$Irrigation, levels = c("Rainout", "Control"),
                          labels = c("Drought", "Control"))
-com.abund.trt.cla$Date <- factor(com.abund.trt.cla$Date, levels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"),
-                          labels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
+com.abund.trt.cla$Date <- factor(com.abund.trt.cla$Date, levels = c("Apr-28", "Jun-01", "Jul-05", "Jul-20", "Sep-13"))
+                          #labels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
 
 display.brewer.all(n=NULL, type="all", select=NULL, exact.n=TRUE, 
 colorblindFriendly=T)
@@ -1967,14 +1997,14 @@ com.clade.plot <- ggplot(com.abund.trt.cla, aes(x=interaction(Date, Irrigation),
   theme(plot.title = element_text(size = 25, face="bold"),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        axis.text=element_text(size=14),
+        axis.text=element_text(size=20),
         axis.line.x = element_blank(),
-        axis.text.x = element_text(angle = 90, hjust = 0.5, vjust=0.5),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5),
         #axis.ticks.x = element_blank(),
         axis.title.x = element_blank(),
-        axis.title.y =element_text(size=18),
-        legend.text=element_text(size = 16),
-        legend.title = element_text(size=17, face="bold"),
+        axis.title.y =element_text(size=22),
+        legend.text=element_text(size = 20),
+        legend.title = element_text(size=22, face="bold"),
         panel.grid = element_blank(), 
         panel.background = element_blank(),
         #strip.background = element_blank(),

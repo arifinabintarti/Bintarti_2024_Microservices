@@ -240,16 +240,16 @@ AOA.glmT3s.pairwise.global.ALL <- rbind(AOA_M04, AOA_D04, AOA_K04, AOA_M06, AOA_
 view(AOA.glmT3s.pairwise.global.ALL)
 length(unique(AOA.glmT3s.pairwise.global.ALL$OTU)) #79
 ## nb of pval <= 0.05 before and after filter
-table(glmT3s.pairwise.global.ALL$p.value <= 0.05)
-table(glmT3s.pairwise.global.ALL$p.adjust <= 0.05)
+table(AOA.glmT3s.pairwise.global.ALL$p.value <= 0.05)
+table(AOA.glmT3s.pairwise.global.ALL$p.adjust <= 0.05)
 
 ## nb of OTU with a pval <= 0.05 before and after filter
 #tmp_otu3s = unique(glmT3s.pairwise.global.ALL$OTU[glmT3s.pairwise.global.ALL$p.adjust <= 0.05])
 #glmT3s.pairwise.global.signif = glmT3s.pairwise.global.ALL[glmT3s.pairwise.global.ALL$p.adjust <=0.05,]
-tmp_otu3s = unique(glmT3s.pairwise.global.ALL$OTU[AOA.glmT3s.pairwise.global.ALL$p.value <= 0.05])
+tmp_otu3s = unique(AOA.glmT3s.pairwise.global.ALL$OTU[AOA.glmT3s.pairwise.global.ALL$p.value <= 0.05])
 AOA.glmT3s.pairwise.global.signif = AOA.glmT3s.pairwise.global.ALL[AOA.glmT3s.pairwise.global.ALL$p.value <=0.05,]
 
-length(tmp_otu3s)
+length(tmp_otu3s) # 16 UNIQUE
 tmp_otu3s
 
 # cast pvalues
@@ -461,25 +461,6 @@ png("heatm.aoa.test.tiff")
 png("heatm.aoa.test.tiff",width=12,height=2.5,units="in",res=1200)
 aoa.hm2
 dev.off()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ####################################################################################################################
 ####################################################################################################################

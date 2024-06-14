@@ -117,7 +117,7 @@ K0705.rh.seq1 <- prune_taxa(taxa_sums(K0705.rh.seq)>0, K0705.rh.seq) # 67 taxa a
 ###############################################################################
 # Filter low-abundant taxa
 # keeping OTUs with at least 0.01 % relative abundance across all samples
-physeq.subset <-aob.physeq_rh1
+physeq.subset <-aob.physeq_bulk1
 physeq.subset 
 data.obs <- as.data.frame(otu_table(physeq.subset))
 keep.taxa.id=which((rowSums(data.obs)/sum(data.obs))>0.0001)
@@ -729,6 +729,8 @@ aob.asv.ra.melt$ra.perc <- aob.asv.ra.melt$Mean*100
 aob.asv.ra.melt <- column_to_rownames(aob.asv.ra.melt, var = "OTU")
 rownames(aob.asv.ra.melt)
 # make asv and ra
+setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/')
+ann <- read.csv("AOB.anno_prev80_pval_270224.csv",row.names = 1)
 aob.ra <- ann
 rownames(aob.ra)
 aob.ra$RA <- aob.asv.ra.melt$ra.perc[match(row.names(aob.ra), row.names(aob.asv.ra.melt))]
@@ -745,6 +747,8 @@ aoa.asv.ra.melt <- psmelt(aoa.asv.ra) %>%
 aoa.asv.ra.melt$ra.perc <- aoa.asv.ra.melt$Mean*100
 aoa.asv.ra.melt <- column_to_rownames(aoa.asv.ra.melt, var = "OTU")
 # make asv and ra
+setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB/')
+ann.aoa <- read.csv("AOA_anno_prev80_pval_280224.csv", row.names = 1)
 aoa.ra <- ann.aoa
 rownames(aoa.ra)
 aoa.ra$RA <- aoa.asv.ra.melt$ra.perc[match(row.names(aoa.ra), row.names(aoa.asv.ra.melt))]
@@ -762,6 +766,8 @@ com.asv.ra.melt$ra.perc <- com.asv.ra.melt$Mean*100
 view(com.asv.ra.melt)
 com.asv.ra.melt <- column_to_rownames(com.asv.ra.melt, var = "OTU")
 # make asv and ra
+setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB')
+ann.com <- read.csv("COM_anno_prev80_pval_280224.csv", row.names = 1)
 com.ra <- ann.com
 rownames(com.ra)
 com.ra$RA <- com.asv.ra.melt$ra.perc[match(row.names(com.ra), row.names(com.asv.ra.melt))]
@@ -778,90 +784,51 @@ RA.comp.df2 <- RA.comp.df[,-2]
 view(RA.comp.df2)
 RA.comp.df2 <- column_to_rownames(RA.comp.df2, var="ASV")
 str(RA.comp.df2)
-
-
 # save the results in the computer and read the csv file
 #setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
 #RA.comp <- read.csv("3genes.ra.all.csv", row.names = 1)
 #RA.comp.ord <- RA.comp[match(rownames(ann.comp), rownames(RA.comp)), ]
 #view(RA.comp)
 
-
-#set colors
-#lgd1 <- Legend(labels = c("Nitrosolobus-multiformis-Nl1_2667636517",
-                         # "Nitrosomonas-communis-Nm44_2676397764",
-                         # "Nitrosospira-sp-17Nsp14_2671457573",
-                         # "Nitrosospira-sp_2630434854",
-                         # "Nitrosospira-sp_2636913388"),
-              # legend_gp = gpar(fill=c("#990F0F","#FFB2B2","#2C85B2","#7EC3E5","#B2E5FF")),
-              # title= "AOB")
-lgd1 <- Legend(labels = c("Nitrosolobus-multiformis-Nl1_2667636517",
-                              "Nitrosomonas-communis-Nm44_2676397764",
-                              "Nitrosomonas-europaea-ATCC-19718_637427314",
-                              "Nitrosospira-sp-17Nsp14_2671457573",
-                              "Nitrosospira-sp_2630434854",
-                              "Nitrosospira-sp_2636913388"),
-               legend_gp = gpar(fill=c("#33A02C","#FF7F00","#FF7F00","#6A3D9A","#6A3D9A","#6A3D9A")),
+library(ComplexHeatmap)
+colfunc <- colorRampPalette(c("#FF7F00","white"))
+colfunc(10)
+plot(rep(1,10),col=colfunc(10),pch=19,cex=3)
+lgd1 <- Legend(labels = c("Nitrosolobus multiformis",
+                              "Nitrosomonas communis",
+                              "Nitrosomonas europaea",
+                              "Nitrosospira sp."),
+                              #"Nitrosospira-sp-17Nsp14_2671457573",
+                              #"Nitrosospira-sp_2630434854",
+                              #"Nitrosospira-sp_2636913388"),
+               legend_gp = gpar(fill=c("#33A02C","#FF7F00","#FF9B38","#6A3D9A")),
                title= "AOB", labels_gp = gpar(fontsize=18),title_gp = gpar(fontsize = 20,fontface='bold'))
 
-#lgd2 <- Legend(labels = c("Ca.Nitrosotaleales (NT-Alpha-1.1.2.2)",
-                         # "Nitrososphaerales (NS-Delta-1.Incertae_sedis)",
-                         # "Nitrososphaerales (NS-Gamma-1.2)",
-                         # "Nitrososphaerales (NS-Gamma-2.3.1)"),
-              # legend_gp = gpar(fill=c("#B22C2C","#A3CC51","#E5FFB2","#B2E5FF")),
-              # title= "AOA")
-lgd2 <- Legend(labels = c("NS-Beta-1.3_OTU1_1-EU885554",
-                          "NS-Delta-1.Incertae_sedis.2_OTU1_1-EU885561",
-                          "NS-Delta-1.Incertae_sedis.2_OTU2_1-EU885632",
-                          "NS-Gamma-1.2_OTU1_1-EU671146",
-                          "NS-Gamma-1.Incertae_sedis_OTU1_1-EU651089",
-                          "NS-Gamma-2.3.1_OTU2_1-KC469632",
-                          "NT-Alpha-1.1.2.2-JN179533"),
-               legend_gp = gpar(fill=c("#DD701E","#E1823A","#E1823A","#E9A672","#E9A672","#E9A672","#7570B3")),
+lgd2 <- Legend(labels = c("NS-Beta",
+                          "NS-Delta",
+                          #"NS-Delta",
+                          "NS-Gamma",
+                          #"NS-Gamma",
+                          #"NS-Gamma",
+                          "NT-Alpha"),
+               legend_gp = gpar(fill=c("#DD701E","#E1823A","#E9A672","#7570B3")),
+               #legend_gp = gpar(fill=c("#DD701E","#E1823A","#E1823A","#E9A672","#E9A672","#E9A672","#7570B3")),
                title= "AOA",labels_gp = gpar(fontsize=18),title_gp = gpar(fontsize = 20,fontface='bold'))
-#lgd3 <- Legend(labels = c("Clade B Nitrospira-sp.GGF-bin22",
-                          #"Clade B Nitrospira-sp.LM-bin98",
-                          #"Clade B Nitrospira-sp.LPPL-bin249"),
-               #legend_gp = gpar(fill=c("#B26F2C","#CC8E51","#E5B17E")),
-               #title= "COMAMMOX")
-lgd3 <- Legend(labels = c("Clade A-Nitrospira-sp.CTRL-LIN-TMP1",
-                                 "Clade B-Nitrospira-sp.GGF-bin22",
-                                 "Clade B-Nitrospira-sp.LM-bin98",
-                                 "Clade B-Nitrospira-sp.LPPL-bin249",
-                                 "Clade B-Nitrospira-sp.Smid-bin44"),
-               legend_gp = gpar(fill=c("#66C2A5","#FC8D62","#FC8D62","#FC8D62","#FC8D62")),
+
+lgd3 <- Legend(labels = c("Clade A-Nitrospira sp.",
+                                 "Clade B-Nitrospira sp."),
+                                 #"Clade B-Nitrospira-sp.LM-bin98",
+                                 #"Clade B-Nitrospira-sp.LPPL-bin249",
+                                 #"Clade B-Nitrospira-sp.Smid-bin44"),
+                          legend_gp = gpar(fill=c("#66C2A5","#FC8D62")),
+               #legend_gp = gpar(fill=c("#66C2A5","#FC8D62","#FC8D62","#FC8D62","#FC8D62")),
                title= "COMAMMOX",labels_gp = gpar(fontsize=18),title_gp = gpar(fontsize = 20, fontface='bold'))
 pd = packLegend(lgd,lgd1, lgd2, lgd3, direction = "horizontal")
 draw(pd)
               
-#col.comp.ord <- list("Taxonomy"=c("Nitrosolobus-multiformis-Nl1_2667636517"="#990F0F",
-                             # "Nitrosomonas-communis-Nm44_2676397764"="#FFB2B2",
-                             # "Nitrosospira-sp-17Nsp14_2671457573"="#2C85B2",
-                             # "Nitrosospira-sp_2630434854"="#7EC3E5",
-                             # "Nitrosospira-sp_2636913388"="#B2E5FF",
-                             # "Ca.Nitrosotaleales (NT-Alpha-1.1.2.2)"="#B22C2C",
-                             # "Nitrososphaerales (NS-Delta-1.Incertae_sedis)"="#A3CC51",
-                             # "Nitrososphaerales (NS-Gamma-1.2)"="#E5FFB2",
-                             # "Nitrososphaerales (NS-Gamma-2.3.1)"="#B2E5FF",
-                             # "Clade B Nitrospira-sp.GGF-bin22"="#B26F2C",
-                             # "Clade B Nitrospira-sp.LM-bin98"="#CC8E51",
-                             # "Clade B Nitrospira-sp.LPPL-bin249"="#E5B17E"))
-#col_level <- factor(ann.comp$Taxonomy, levels = c("Nitrosolobus-multiformis-Nl1_2667636517",
-                                                # "Nitrosomonas-communis-Nm44_2676397764",
-                                                 # "Nitrosospira-sp-17Nsp14_2671457573",
-                                                  #"Nitrosospira-sp_2630434854",
-                                                  #"Nitrosospira-sp_2636913388",
-                                                  #"Ca.Nitrosotaleales (NT-Alpha-1.1.2.2)",
-                                                  #"Nitrososphaerales (NS-Delta-1.Incertae_sedis)",
-                                                  #"Nitrososphaerales (NS-Gamma-1.2)",
-                                                  #"Nitrososphaerales (NS-Gamma-2.3.1)",
-                                                 # "Clade B Nitrospira-sp.GGF-bin22",
-                                                  #"Clade B Nitrospira-sp.LM-bin98",
-                                                  #"Clade B Nitrospira-sp.LPPL-bin249"))
-
 col.comp.ord <- list("Taxonomy"=c("Nitrosolobus-multiformis-Nl1_2667636517"="#33A02C",
                               "Nitrosomonas-communis-Nm44_2676397764"="#FF7F00",
-                              "Nitrosomonas-europaea-ATCC-19718_637427314"="#FF7F00",
+                              "Nitrosomonas-europaea-ATCC-19718_637427314"="#FF9B38",
                               "Nitrosospira-sp-17Nsp14_2671457573"="#6A3D9A",
                               "Nitrosospira-sp_2630434854"="#6A3D9A",
                               "Nitrosospira-sp_2636913388"="#6A3D9A",
@@ -912,22 +879,10 @@ colAnn.comp <- rowAnnotation(annotation_name_gp= gpar(fontsize = 15),df=ann.comp
                              gap=unit(1, "mm"))
 colAnn.comp
 
-#bar.ann.comp <- rowAnnotation(RelativeAbundance = anno_barplot(RA.comp.ord,
-                                                  #gp = gpar(fill = c("#990F0F", "#990F0F","#990F0F","#990F0F","#990F0F",
-                                                                     #"#FFB2B2","#2C85B2","#2C85B2","#2C85B2","#2C85B2",
-                                                                     #"#7EC3E5","#B2E5FF","#B2E5FF","#B2E5FF","#B2E5FF",
-                                                                     #"#B2E5FF","#B2E5FF","#B22C2C","#A3CC51","#A3CC51",
-                                                                     #"#E5FFB2","#B2E5FF","#B26F2C","#B26F2C","#CC8E51",
-                                                                     #"#E5B17E","#E5B17E","#E5B17E")),
-                                                  #ylim=c(0,0.18),
-                                                  #extend = 0.00000000000000001,
-                                                  #width  = unit(4, "cm"),
-                                                  #height = unit(6, "cm")))
-                                                  #show_annotation_name =F)
 bar.ann.comp <- rowAnnotation(annotation_name_gp= gpar(fontsize = 15),'Relative\nAbundance (%)' = anno_barplot(RA.comp.df2,
                                                                axis_param=list(gp=gpar(fontsize = 15)),
                                                   gp = gpar(fill = c("#33A02C", "#33A02C","#33A02C","#33A02C","#33A02C","#33A02C","#33A02C","#33A02C",
-                                                                     "#FF7F00","#FF7F00","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A",
+                                                                     "#FF7F00","#FF9B38","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A",
                                                                      "#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A",
                                                                      "#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A",
                                                                      "#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A","#6A3D9A",
@@ -940,7 +895,8 @@ bar.ann.comp <- rowAnnotation(annotation_name_gp= gpar(fontsize = 15),'Relative\
                                                   extend = 100,
                                                   width  = unit(4, "cm"),
                                                   height = unit(6, "cm")))
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+setwd('/Users/arifinabintarti/Documents/France/microservices/DAA/glmmTMB')
 ann.fert <- read.csv("BulkSoil.anno.csv", row.names = 1)
 colours.fert <- list("Fertilization"=c("CONMIN"="#E69F00",
                              "BIODYN"="#009E73",
@@ -964,13 +920,13 @@ row_split[43:65] = "AOA"
 #row_split[23:28] = "COMAMMOX"
 row_split[66:92] = "COMAMMOX"
 row_split.fa = factor(row_split, levels = c("AOB", "AOA", "COMAMMOX"))
-col_split = rep("CONMIN", 5)
-col_split[6:10] = "BIODYN"
-col_split[11:15] = "CONFYM"
-col_split.fa = factor(col_split, levels = c("BIODYN", "CONFYM", "CONMIN"))
+col_split = rep("CONM", 5)
+col_split[6:10] = "BIOD"
+col_split[11:15] = "CONF"
+col_split.fa = factor(col_split, levels = c("BIOD", "CONF", "CONM"))
 comp.bs.hm <- Heatmap(as.matrix(rr.comp.ord),
                      name = "Log2-ratio",
-                     column_title = "Bulk Soil",
+                     #column_title = "Bulk Soil",
                      cluster_rows  = F,
                      cluster_row_slices=F,
                      column_order=as.integer(c(6,7,8,9,10,11,12,13,14,15,1,2,3,4,5)),
@@ -979,14 +935,14 @@ comp.bs.hm <- Heatmap(as.matrix(rr.comp.ord),
                      column_split = col_split.fa, 
                      left_annotation = bar.ann.comp,
                      #right_annotation = colAnn.comp,
-                     bottom_annotation = colFert.Ann,
+                     #bottom_annotation = colFert.Ann,
                      show_column_dend = F,
                      show_row_dend = F,
                      row_gap = unit(0.4, "cm"),
                      column_gap = unit(0, "cm"),
                      row_names_gp = gpar(fontsize = 12),
                       row_title_gp = gpar(fontsize = 25),
-                      column_title_gp = gpar(fontsize = 30, fontface = "bold"),
+                      column_title_gp = gpar(fontsize = 18),
                       column_names_gp = gpar(fontsize=20),
                      border_gp = gpar(col = "black", lty = 1),
                      show_heatmap_legend = F,
@@ -1019,7 +975,7 @@ colAnn.comp <- rowAnnotation(annotation_name_gp= gpar(fontsize = 15),df=ann.comp
                              annotation_width=unit(c(1, 4), "cm"), 
                              gap=unit(1, "mm"))
 
-setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
+#setwd('D:/Fina/INRAE_Project/microservices/DAA/glmmTMB/')
 ann.fert.rh <- read.csv("Rhizo.anno.csv", row.names = 1)
 colours.fert <- list("Fertilization"=c("CONMIN"="#E69F00",
                              "BIODYN"="#009E73",
@@ -1033,6 +989,7 @@ colFert.Ann.rh <- columnAnnotation(df=ann.fert.rh,
                                    annotation_name_gp= gpar(fontsize = 20),
                                    gap=unit(1, "mm"))
 
+library(colorRamp2)
 col_fun = colorRamp2(c(10, 0, -10), c("blue", "white", "red"))
 lgd_fun = Legend(title="Log2-ratio",
                  col_fun = col_fun, labels_gp = gpar(fontsize=18), 
@@ -1048,14 +1005,14 @@ row_split = rep("AOB", 42)
 row_split[43:65] = "AOA"
 row_split[66:92] = "COMAMMOX"
 row_split.fa = factor(row_split, levels = c("AOB", "AOA", "COMAMMOX"))
-col_split.rh = rep("CONMIN", 3)
-col_split.rh[4:6] = "BIODYN"
-col_split.rh[7:9] = "CONFYM"
-col_split.fa.rh = factor(col_split.rh, levels = c("BIODYN", "CONFYM", "CONMIN"))
+col_split.rh = rep("CONM", 3)
+col_split.rh[4:6] = "BIOD"
+col_split.rh[7:9] = "CONF"
+col_split.fa.rh = factor(col_split.rh, levels = c("BIOD", "CONF", "CONM"))
 comp.rh.hm <- Heatmap(as.matrix(rr.rhizo.comp.ord),
                       #rect_gp = gpar(col = "grey", lwd = 2),
                       name = "Log2-ratio",
-                      column_title = "Rhizosphere",
+                      #column_title = "Rhizosphere",
                       cluster_rows  = F,
                       cluster_row_slices=F,
                       column_order=as.integer(c(4,5,6,7,8,9,1,2,3)),
@@ -1063,14 +1020,14 @@ comp.rh.hm <- Heatmap(as.matrix(rr.rhizo.comp.ord),
                       row_split = row_split.fa, 
                       column_split = col_split.fa.rh, 
                       right_annotation = colAnn.comp,
-                      bottom_annotation = colFert.Ann.rh,
+                      #bottom_annotation = colFert.Ann.rh,
                       show_column_dend = F,
                       show_row_dend = F,
                       row_gap = unit(0.4, "cm"),
                       column_gap = unit(0, "cm"),
                       row_names_gp = gpar(fontsize = 12),
                       row_title_gp = gpar(fontsize = 25),
-                      column_title_gp = gpar(fontsize = 30, fontface = "bold"),
+                      column_title_gp = gpar(fontsize = 18),
                       column_names_gp = gpar(fontsize=20),
                       border_gp = gpar(col = "black", lty = 1),#width=0.5),
                       show_heatmap_legend = F,
@@ -1081,17 +1038,9 @@ comp.heat <- comp.bs.hm + comp.rh.hm
 comp.heat2 <- draw(comp.heat,
                    ht_gap = unit(1, "cm"),
                     heatmap_legend_list=pd,
-                    align_heatmap_legend="heatmap_top")
+                    heatmap_legend_side = "bottom")
+                    #align_heatmap_legend="global_center")
 comp.heat2
-comp.heat2.2 <- draw(comp.heat,
-                   ht_gap = unit(1, "cm"),
-                    heatmap_legend_list=pd,
-                    align_heatmap_legend="heatmap_top")
-                    #heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
-comp.heat2.2
-
-
-
 
 # save image
 setwd('D:/Fina/INRAE_Project/microservices_fig/')
@@ -1100,8 +1049,8 @@ comp.heat2
 dev.off()
 
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
-png("Fig.5.tiff",width=19.7,height=13,units="in",res=300, compression="lzw")
-#png("heatm.3genes2.tiff",width=25,height=17,units="in",res=1200)
+#png("Fig.5.tiff",width=19.7,height=13,units="in",res=1200)
+png("Fig.5.tiff",width=12,height=17,units="in",res=1200)
 comp.heat2
 dev.off()
 
@@ -1153,7 +1102,7 @@ table(glmT3s.pairwise.global.AOB.RS$p.adjust <= 0.05)
 tmp_otu3s = unique(glmT3s.pairwise.global.AOB.RS$OTU[glmT3s.pairwise.global.AOB.RS$p.value <= 0.05])
 glmT3s.pairwise.global.signif = glmT3s.pairwise.global.AOB.RS[glmT3s.pairwise.global.AOB.RS$p.value <=0.05,]
 
-length(tmp_otu3s)
+length(tmp_otu3s) # 25 unique
 tmp_otu3s
 
 # cast pvalues

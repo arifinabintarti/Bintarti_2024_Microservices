@@ -14,9 +14,10 @@ wd <- print(getwd())
 # load the metadata
 soilprop <- read.csv('Soil_SamplingPlotData_DOK2022_edited.csv')
 soilprop$Date <- factor(soilprop$Date, levels = c("28/04/2022", "1/6/22", "5/7/22", "20/07/2022", "13/09/2022"),
-                          labels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
+                          labels = c("Apr-28", "Jun-01", "Jul-05", "Jul-20", "Sep-13"))
 soilprop$Fertilization <- factor(soilprop$Fertilization, levels = c("D", "K", "M"),
                                     labels = c("BIODYN", "CONFYM", "CONMIN"))
+view(soilprop)
 str(soilprop)
 soilprop$SampleID<-factor(soilprop$SampleID)
 soilprop$PlotID<-factor(soilprop$PlotID)
@@ -119,8 +120,18 @@ gwc.pwc.irr <- soilprop %>%
   group_by(Date, Fertilization) %>%
   emmeans_test(GWC ~ Irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = gwc.3rmaov2)
+               conf.level = 0.95)
 View(gwc.pwc.irr)
+
+# simple-simple pairwise
+gwc.pwc.t <- soilprop %>%
+  group_by(Date, Fertilization) %>%
+  pairwise_t_test(GWC ~ Irrigation, paired = T, p.adjust.method = "BH")
+  #select(-df, -statistic) # Remove details
+View(gwc.pwc.t)
+
+
+
 
 # Two-way ANOVA at each fertilization level
 gwc.pwc.fer.4 <- soilprop.3 %>%
@@ -144,7 +155,7 @@ soilprop.4$rep2<-factor(soilprop.4$rep2)
 soilprop.4$var3<-factor(soilprop.4$var3)
 soilprop.4$Date<-factor(soilprop.4$Date)
 
-# Test only 4 time points:
+# Test only 3 time points:
 soilprop.3 <- soilprop[1:72,]
 view(soilprop.3)
 soilprop.3$SampleID<-factor(soilprop.3$SampleID)
@@ -295,6 +306,16 @@ nh4.irri.emm <- soilprop %>%
                p.adjust.method = "BH", 
                conf.level = 0.95, model=nh4.3rmaov2)
 View(nh4.irri.emm) 
+
+# simple-simple pairwise
+nh4.pwc.t <- soilprop %>%
+  group_by(Date, Fertilization) %>%
+  pairwise_t_test(log10NH4 ~ Irrigation, paired = TRUE, p.adjust.method = "BH") %>%
+  select(-df, -statistic) # Remove details
+View(nh4.pwc.t)
+
+
+
 # NH4 Summary
 nh4.sum <- soilprop %>%
   group_by(Irrigation, Fertilization) %>%
@@ -340,10 +361,13 @@ no3.3rmaov2 <- aov(logNO3 ~ Irrigation*Fertilization*Date + Error(rep2/(Irrigati
 summary(no3.3rmaov2)
 # Model Fit
 set.seed(13)
-no3.lmer <- lmerTest::lmer(soilprop$sqrtNO3 ~ Irrigation*Fertilization*Date +(1|Block)+(1|Block:Date), 
+no3.lmer <- lmerTest::lmer(soilprop$logNO3 ~ Irrigation*Fertilization*Date +(1|Block)+(1|Block:Date), 
                            data=soilprop,contrasts = list(Irrigation="contr.sum",Fertilization="contr.sum",Date="contr.sum"))
 anova(no3.lmer, type = 3)
 car::Anova(no3.lmer, test="F", type="III") 
+
+
+
 # test assumptions:
 hist(soilprop$NO3) # highly right-skewed
 shapiro.test(resid(no3.lmer)) # not normal
@@ -388,6 +412,15 @@ no3.irri.emm <- soilprop %>%
                p.adjust.method = "BH", 
                conf.level = 0.95, model=no3.3rmaov2)
 View(no3.irri.emm) 
+
+# simple-simple pairwise
+no3.pwc.t <- soilprop %>%
+  group_by(Date, Fertilization) %>%
+  pairwise_t_test(logNO3 ~ Irrigation, paired = TRUE, p.adjust.method = "BH") %>%
+  select(-df, -statistic) # Remove details
+View(no3.pwc.t)
+
+
 # NO3 Summary
 no3.sum.ave <- soilprop %>%
   group_by(Irrigation, Fertilization) %>%
@@ -404,13 +437,17 @@ no3.sum.plot <- ggboxplot(
   color = "Fertilization", palette = "jco",
   facet.by =  "Date")
 no3.sum.plot
-
+# Simple Pairwise comparisons
+no3.pwc.simp <- soilprop %>%
+  group_by(Date, Fertilization) %>%
+  pairwise_t_test(logNO3 ~ Irrigation, paired = TRUE, p.adjust.method = "BH") %>%
+  select(-df, -statistic) # Remove details
 ###############################################################################################################################
 
 # PLOTS
 
 # GWC
-# adding ANOVA ressults of 4 samples:
+# adding ANOVA results of 4 samples:
 
 soilprop$x <- factor(soilprop$x, levels = c("cont.D", "rain.D", "cont.K","rain.K","cont.M","rain.M"))
                              
@@ -424,25 +461,38 @@ gwc.plot <- ggplot(soilprop , aes(x=Date, y=GWC)) +
                              'Conmin-control', 'Conmin-drought'))+
   #ylab(bquote(bold('Gravimetric Water Content'~(g~g^-1~dry~soil))))+
   ylab(bquote('Gravimetric Water Content'~(g~g^-1~dry~soil)))+
-  #labs(subtitle = "")+
+  labs(subtitle = "D***, C*, T***, D x T***")+
   facet_wrap(~ Fertilization)+
   #scale_y_continuous(limits = c(0, 4.5))+
-  theme(legend.position = "bottom",
+  theme(#plot.caption = element_text(size=18, hjust = 0, face="bold"),
+        legend.position = "bottom",
+        #legend.justification = "right",
         legend.title = element_blank(),
-        legend.text = element_text(size=15),
+        legend.text = element_text(size=25),
         #strip.text = element_blank(),
-        strip.text = element_text(size=18),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_text(size = 16, hjust = 0.5),
-        axis.title.y = element_text(size=18),
-        plot.subtitle = element_text(size=20, face = "bold"),
+        strip.text = element_text(size=25),
+        axis.text.y = element_text(size = 23),
+        axis.text.x = element_text(size = 23, hjust = 1, angle = 45),
+        axis.title.y = element_text(size=25),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'),
+        #plot.tag.position = c(0.07, 0.05),
+        plot.tag.position = c(0.83, 0.85),
+        plot.tag = element_text(face = "italic", size=18, hjust=0))+
+ 
  geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
- annotate(geom = "text", x = 3.6, y = 0, hjust = 0, size = 4, label = "Rewetting", color = "gray25")+
- geom_label(data = stat_text.gwc,label=stat_text.gwc$label,hjust=0, colour="black", size=4, fontface="bold")
+ annotate(geom = "text", x = 3.6, y = 0, hjust = 0, size = 6, label = "Rewetting", color = "gray25")
+ #annotate(geom = "text", x = 3.6, y = -3, hjust = 0, size = 5, label = "D ***\nC *\nT ***\nD x T ***", color = "black")
+ #geom_label(data = stat_text.gwc,label=stat_text.gwc$label,hjust=0, colour="black", size=5, fontface="bold")
  gwc.plot
 
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
@@ -460,16 +510,16 @@ gwc.pwc.xy <- gwc.pwc.irr  %>%
   stat_pvalue_manual(gwc.pwc.xy,x = "Date", y.position = 0.4,
                      #step.increase = 1,
                      #label = "p = {scales::pvalue(p.adj)}",size=3, 
-                     label = "p.adj.signif",size=5,
-                     #bracket.size = 0.6,#bracket.nudge.y = -0.05,
+                     label = "p.adj.signif",size=9,
+                     #bracket.size = 0.6,bracket.nudge.y = -0.05,
                      #bracket.shorten = 1, color = "black",
                      tip.length = 0.01, hide.ns = F)
  gwc.plot2
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("Fig.3dpi300.tiff",
        gwc.plot2, device = "tiff",bg="white",
-       width = 11.5, height = 6.5, 
-       units= "in", dpi = 300, compression="lzw")
+       width = 12, height = 10, 
+       units= "in", dpi = 600, compression="lzw")
 ggsave("Fig.3.3.dpi300.tiff",
        gwc.plot2, device = "tiff",bg="white",
        width = 11.5, height = 7.3, 
@@ -491,27 +541,37 @@ NH4.plot <- ggplot(soilprop , aes(x=Date, y=NH4)) +
                              'Conmin-control', 'Conmin-drought'))+
   ylab('NH<sub>4<sup>+ </sub>content<br>(mg Kg<sup>-1</sup>soil dry matter)')+
   #ylab(bquote(NH4^{"+"}~(mg~Kg^-1~soil~dry~matter)))+
-  labs(title = "A")+
+  labs(title="A", subtitle="D**, C***, T*, D x C***, D x T***, C x T*, D x C x T**")+
+  #title=expression(bold("A. NH"["4"^"+"])), 
   facet_wrap(~ Fertilization)+
   #scale_y_continuous(limits = c(0, 4.5))+
   theme(legend.position = "none",
         legend.title = element_blank(),
-        legend.text = element_text(size=15),
+        legend.text = element_text(size=25),
         #strip.text = element_blank(),
-        strip.text = element_text(size=18),
-        axis.text.y = element_text(size = 18),
+        strip.text = element_text(size=25),
+        axis.text.y = element_text(size = 23),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         #axis.text.x = element_text(size = 16, hjust = 0.5),
-        axis.title.y = element_markdown(size=18),
-        plot.title = element_text(size=20, face = "bold"),
+        axis.title.y = element_markdown(size=25),
+        plot.title = element_text(size=32, face = "bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
- geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))+
+        #plot.tag.position = c(1, 0.85),
+        #plot.tag = element_text(face = "italic", size=18, hjust=0))+
+ geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey")
  #annotate(geom = "text", x = 3.6, y = -1, hjust = 0, size = 4, label = "Rewetting", color = "gray25")+
- geom_label(data = stat_text.NH4,label=stat_text.NH4$label,hjust=0, colour="black", size=4, fontface="bold")
+ #geom_label(data = stat_text.NH4,label=stat_text.NH4$label,hjust=0, colour="black", size=5, fontface="bold")
 NH4.plot
 
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
@@ -525,10 +585,10 @@ nh4.pwc.xy <- nh4.irri.emm  %>%
   add_xy_position(x = "Date", dodge = 0.8) 
 # plotting the pairwise comparisons among treatments (emmeans results)
 NH4.plot2 <-  NH4.plot + 
-  stat_pvalue_manual(nh4.pwc.xy,x = "Date", y.position = 32.8,
+  stat_pvalue_manual(nh4.pwc.xy,x = "Date", y.position = 32.5,
                      #step.increase = 1,
                      #label = "p = {scales::pvalue(p.adj)}",size=3, 
-                     label = "p.adj.signif",size=5,
+                     label = "p.adj.signif",size=9,
                      #bracket.size = 0.6,#bracket.nudge.y = -0.05,
                      #bracket.shorten = 1, color = "black",
                      tip.length = 0.01, hide.ns = F)
@@ -547,27 +607,34 @@ NO3.plot <- ggplot(soilprop , aes(x=Date, y=NO3)) +
                              'Conmin-control', 'Conmin-drought'))+
   ylab('NO<sub>3<sup>- </sub>content<br>(mg Kg<sup>-1</sup>soil dry matter)')+
   #ylab(bquote(NO3^{"-"}~(mg~Kg^-1~soil~dry~matter)))+
-  labs(title = "B")+
+  labs(title = "B", subtitle="D***, T***, D x C***, D x T***, C x T*")+
   facet_wrap(~ Fertilization)+
   #scale_y_continuous(limits = c(0, 4.5))+
   theme(legend.position = "none",
         legend.title = element_blank(),
-        legend.text = element_text(size=15),
+        legend.text = element_text(size=25),
         strip.text = element_blank(),
-        #strip.text = element_text(size=18),
-        axis.text.y = element_text(size = 18),
+        #strip.text = element_text(size=25),
+        axis.text.y = element_text(size = 23),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         #axis.text.x = element_text(size = 16, hjust = 0.5),
-        axis.title.y = element_markdown(size=18),
-        plot.title = element_text(size=20, face = "bold"),
+        axis.title.y = element_markdown(size=25),
+        plot.title = element_text(size=32, face = "bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
- geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))+
+ geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") 
  #annotate(geom = "text", x = 3.6, y = -1, hjust = 0, size = 4, label = "Rewetting", color = "gray25")+
- geom_label(data = stat_text.NO3,label=stat_text.NO3$label,hjust=0, colour="black", size=4, fontface="bold")
+ #geom_label(data = stat_text.NO3,label=stat_text.NO3$label,hjust=0, colour="black", size=5, fontface="bold")
 NO3.plot
 
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
@@ -581,16 +648,16 @@ no3.pwc.xy <- no3.irri.emm  %>%
   add_xy_position(x = "Date", dodge = 0.8) 
 # plotting the pairwise comparisons among treatments (emmeans results)
 NO3.plot2 <-  NO3.plot + 
-  stat_pvalue_manual(no3.pwc.xy,x = "Date", y.position = 64.8,
+  stat_pvalue_manual(no3.pwc.xy,x = "Date", y.position = 64,
                      #step.increase = 1,
                      #label = "p = {scales::pvalue(p.adj)}",size=3, 
-                     label = "p.adj.signif",size=5,
+                     label = "p.adj.signif",size=9,
                      #bracket.size = 0.6,#bracket.nudge.y = -0.05,
                      #bracket.shorten = 1, color = "black",
                      tip.length = 0.01, hide.ns = F)
 NO3.plot2
  
-
+library(patchwork)
 N.pools <- (NH4.plot2 / NO3.plot2 / n2o.plot2)+
  plot_layout(guides = "collect") & 
  theme(legend.position = 'bottom',legend.title = element_blank())
@@ -599,8 +666,8 @@ N.pools
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("Fig.4.dpi300.tiff",
        N.pools, device = "tiff",bg="white",
-       width = 11.5, height = 9.5, 
-       units= "in", dpi = 300, compression="lzw")
+       width = 14, height = 19,#9.5, 
+       units= "in", dpi = 600, compression="lzw")
 ###################################################################################################################################################################
 ####################################################################################################################################################################
 # set working directory
@@ -618,10 +685,10 @@ N2O.dat.sub$Date <- factor(N2O.dat.sub$DSAMP, levels = c("4/5/22", "4/12/22", "4
                                                   "5/3/22","5/10/22", "5/17/22","5/24/22","5/31/22",
                                                   "6/10/22","6/14/22","6/21/22","6/28/22",
                                                   "7/5/22","7/15/22", "7/20/22"),
-                          labels = c("Apr","Apr","Apr","Apr",
-                                     "Jun","Jun","Jun","Jun","Jun",
-                                     "Jul5","Jul5","Jul5","Jul5",
-                                     "Jul5","Jul20","Jul20"))
+                          labels = c("Apr-28","Apr-28","Apr-28","Apr-28",
+                                     "Jun-01","Jun-01","Jun-01","Jun-01","Jun-01",
+                                     "Jul-05","Jul-05","Jul-05","Jul-05",
+                                     "Jul-05","Jul-20","Jul-20"))
 # calculate mean
 N2O.dat.sub.mean <- N2O.dat.sub %>%
   group_by(PLOT, fertilization, irrigation, Date) %>%
@@ -766,6 +833,13 @@ n2o.pwc.irr2 <- soilprop.n2o %>%
                conf.level = 0.95, model = N2O.lmer.cbrt)
 View(n2o.pwc.irr2)
 
+# Summary
+n2o.sum.ave <- soilprop.n2o %>%
+  group_by(Irrigation, Fertilization) %>%
+  get_summary_stats(mean.N2Oflux, type = "mean_sd")
+View(n2o.sum.ave)
+
+
 # plot N2O
 stat_text.n2o <- data.frame(Date = 0.5, mean.N2Oflux = 2,Fertilization="BIODYN", label="D *\nT ***\nD x T **\nC x T ***\nD x C x T **")
 
@@ -778,25 +852,34 @@ n2o.plot <- ggplot(soilprop.comp , aes(x=Date, y=mean.N2Oflux)) +
                              'Conmin-control', 'Conmin-drought'))+
   ylab('Average N<sub>2</sub>O flux<br>(nmol m<sup>-2</sup>s<sup>-1)')+
   #ylab('Comammmox B abundance<br>(copies g<sup>-1</sup>dry soil)')+
-  labs(subtitle = "C")+
+  labs(title = "C", subtitle="D*, T***, D x T**, C x T***, D x C x T**")+
   facet_wrap(~ Fertilization)+
   #scale_y_continuous(limits = c(0, NA))+
   theme(legend.position = "none",
         legend.title = element_blank(),
-        legend.text = element_text(size=15),
+        legend.text = element_text(size=25),
         strip.text = element_blank(),
-        #strip.text = element_text(size=18),
-        axis.text.y = element_text(size = 16),
-        axis.text.x = element_text(size = 16, hjust = 1, angle = 45),
-        axis.title.y = element_markdown(size=18),
-        plot.subtitle = element_text(size=20, face = "bold"),
+        #strip.text = element_text(size=25),
+        axis.text.y = element_text(size = 23),
+        #axis.text.x = element_blank(),
+        #axis.ticks.x = element_blank(),
+        axis.text.x = element_text(size = 23, hjust = 1, angle=45),
+        axis.title.y = element_markdown(size=25),
+        plot.title = element_text(size=32, face = "bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         axis.title.x =element_blank(),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))+
  geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
- annotate(geom = "text", x = 3.5, y = -0.23, hjust = 0, size = 4, label = "Rewetting", color = "gray25")+
- geom_label(data = stat_text.n2o,label=stat_text.n2o$label,hjust=0, colour="black", size=4, fontface="bold")
+ annotate(geom = "text", x = 3.5, y = -0.23, hjust = 0, size = 6, label = "Rewetting", color = "gray25")
+ #geom_label(data = stat_text.n2o,label=stat_text.n2o$label,hjust=0, colour="black", size=5, fontface="bold")
 n2o.plot
 
 # adding xy position for the pairwise comparisons among treatments (emmeans results)
@@ -810,8 +893,8 @@ n2o.pwc.xy <- n2o.pwc.irr  %>%
   add_xy_position(x = "Date", dodge = 0.8) 
 # plotting the pairwise comparisons among treatments (emmeans results)
 n2o.plot2 <-  n2o.plot + 
-  stat_pvalue_manual(n2o.pwc.xy,x = "Date", y.position = 3.18,
-                     label = "p.adj.signif",size=5,
+  stat_pvalue_manual(n2o.pwc.xy,x = "Date", y.position = 3.13,
+                     label = "p.adj.signif",size=9,
                      tip.length = 0.01, hide.ns = F)
 n2o.plot2 # this one is using lmer
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
@@ -820,6 +903,7 @@ ggsave("Fig.7.dpi300.tiff",
        width = 15, height = 9.5, 
        units= "in", dpi = 300, compression="lzw")
 
+library("patchwork")
 N.pools <- (NH4.plot2 / NO3.plot2 / n2o.plot2)+
  plot_layout(guides = "collect") & 
  theme(legend.position = 'bottom',legend.title = element_blank())
@@ -829,7 +913,7 @@ setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("Fig.4.2.dpi300.tiff",
        N.pools, device = "tiff",bg="white",
        width = 11.5, height = 12, 
-       units= "in", dpi = 300, compression="lzw")
+       units= "in", dpi = 600, compression="lzw")
 
 
 

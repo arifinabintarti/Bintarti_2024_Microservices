@@ -114,7 +114,7 @@ aoa.tax.physeq <- phyloseq::tax_table(as.matrix(aoa.tax)) # taxonomy table
  
 # phyloseq object of the metadata
 meta_micro$Date <- factor(meta_micro$Date, levels = c("4/28/22", "6/1/22", "7/5/22", "7/20/22", "9/13/22"),
-                          labels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"))
+                          labels = c("Apr-28", "Jun-01", "Jul-05", "Jul-20", "Sep-13"))
 rownames(meta_micro) <- sample_names(aoa.asv.physeq)
 aoa.meta.physeq <- sample_data(meta_micro)# meta data
 sample_names(aoa.meta.physeq)
@@ -577,8 +577,8 @@ aoa.meta.bulk$period<-factor(aoa.meta.bulk$period)
 aoa.meta.bulk$period2<-factor(aoa.meta.bulk$period2)
 
 aoa.meta.bulk.edit <- aoa.meta.bulk
-aoa.meta.bulk.edit$Date <- factor(aoa.meta.bulk.edit$Date, levels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"),
-                          labels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
+#aoa.meta.bulk.edit$Date <- factor(aoa.meta.bulk.edit$Date, levels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"),
+                          #labels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
 #aoa.meta.bulk.edit$Date <- factor(aoa.meta.bulk.edit$Date, levels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"),
                           #labels = c("2022-04-28", "2022-06-01", "2022-07-05", "2022-07-20", "2022-09-13"))
 #aoa.meta.bulk.edit$Date <- as.Date(aoa.meta.bulk.edit$Date)
@@ -593,28 +593,34 @@ label <- c(`D` ="BIODYN (D)",
 
 AOA.BS.Richness.plot <- ggplot(aoa.meta.bulk.edit , aes(x=Date, y=Richness)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
-  labs(y="AOA Richness", subtitle = "B")+
+  labs(y="AOA Richness", title="Bulk Soil\nB", subtitle = "ns")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 120))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
-        strip.text = element_text(size=18),
-        #strip.text = element_blank(),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
+        legend.title = element_text(size=22, face='bold'),
+        legend.text = element_text(size=26),
+        axis.text.x  = element_blank(),
+        axis.ticks.x  = element_blank(),
+        strip.text = element_text(size=25),
+        axis.text.y = element_text(size = 23),
         #axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
-        axis.title.y = element_text(size=18),
-        plot.subtitle = element_text(size=20, face="bold"),
+        axis.title.y = element_text(size=24),
         axis.title.x =element_blank(),
+        plot.title = element_text(size = 27, face = "bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))+
  geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") 
  #geom_vline(data=filter(aob.meta.df.sub.ed2, Type=="Bulk Soil"),aes(xintercept = as.Date("2022-07-14")), linetype="dashed", colour="darkgrey") +
  #geom_vline(xintercept = as.Date("2022-07-14"), linetype="dashed", colour="darkgrey") 
@@ -642,8 +648,8 @@ aoa.meta.rh$period<-factor(aoa.meta.rh$period)
 aoa.meta.rh$period2<-factor(aoa.meta.rh$period2)
 
 aoa.meta.rh.edit <- aoa.meta.rh
-aoa.meta.rh.edit$Date <- factor(aoa.meta.rh.edit$Date, levels = c("Apr 28th", "Jun 1st", "Jul 5th"),
-                          labels = c("Apr", "Jun", "Jul"))
+aoa.meta.rh.edit$Date <- factor(aoa.meta.rh.edit$Date, levels = c("Apr-28", "Jun-01", "Jul-05"))
+                          #labels = c("Apr", "Jun", "Jul"))
 #aoa.meta.bulk.edit$Date <- factor(aoa.meta.bulk.edit$Date, levels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"),
                           #labels = c("2022-04-28", "2022-06-01", "2022-07-05", "2022-07-20", "2022-09-13"))
 #aoa.meta.bulk.edit$Date <- as.Date(aoa.meta.bulk.edit$Date)
@@ -658,28 +664,34 @@ label <- c(`D` ="BIODYN (D)",
 
 AOA.RS.Richness.plot <- ggplot(aoa.meta.rh.edit , aes(x=Date, y=Richness)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
-  labs(y="AOA Richness", subtitle = "H")+
+  labs(y="AOA Richness", title = "Rhizosphere\nH", subtitle = "ns")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 140))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
-        strip.text = element_text(size=18),
-        #strip.text = element_blank(),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
+        legend.title = element_text(size=22, face='bold'),
+        legend.text = element_text(size=26),
+        axis.text.x  = element_blank(),
+        axis.ticks.x  = element_blank(),
+        strip.text = element_text(size=25),
+        axis.text.y = element_text(size = 23),
         #axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
-        axis.title.y = element_text(size=18),
-        plot.subtitle = element_text(size=20, face="bold"),
+        axis.title.y = element_text(size=24),
         axis.title.x =element_blank(),
+        plot.title = element_text(size = 27, face = "bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))
  #annotate(geom = "text", x = as.Date("2022-07-15"), y = 0, hjust = 0, size = 4, label = "Rewetting", color = "grey25")+
  #geom_text(data = stat_text.BS2,label=stat_text.BS2$label, colour="black", size=4, fontface="bold")
 AOA.RS.Richness.plot
@@ -690,28 +702,35 @@ AOA.RS.Richness.plot
 # Just the bulk soil
 AOA.BS.Shannon.plot <- ggplot(aoa.meta.bulk.edit , aes(x=Date, y=Shannon)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
-  labs(y="AOA Shannon",subtitle = "E")+
+  labs(y="AOA Shannon",title = "E", subtitle = "ns")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 4.5))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
-        #strip.text = element_text(size=18),
+        legend.title = element_text(size=22, face='bold'),
+        legend.text = element_text(size=26),
+        #axis.text.x  = element_blank(),
+        #axis.ticks.x  = element_blank(),
         strip.text = element_blank(),
-        #axis.text.x = element_blank(),
-        #axis.ticks.x = element_blank(),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
-        axis.title.y = element_text(size=18),
+        #strip.text = element_text(size=25),
+        axis.text.y = element_text(size = 23),
+        axis.text.x = element_text(size = 23,angle = 45, hjust = 1),
+        axis.title.y = element_text(size=24),
         axis.title.x =element_blank(),
-        plot.subtitle = element_text(size=20,face="bold"),
+        plot.title = element_text(size = 27, face = "bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))+
  geom_vline(xintercept = 3.4, linetype="dashed", colour="darkgrey") +
  annotate(geom = "text", x = 3.6, y = 0, hjust = 0, size = 4, label = "Rewetting", color = "grey25")
  
@@ -724,29 +743,37 @@ AOA.BS.Shannon.plot
 aoa.stat_text.RS.shan <- data.frame(Date = 0.5, Shannon = 0.35,Treatment="BIODYN", label="C *")
 AOA.RS.Shannon.plot <- ggplot(aoa.meta.rh.edit , aes(x=Date, y=Shannon)) +
   geom_boxplot(aes(group = var3, fill = x))+
-  theme_classic() +
+  theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
                     labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
                              'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
-  labs(y="AOA Shannon", subtitle="K")+
+  labs(y="AOA Shannon", title="K", subtitle = "C*")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 4.5))+
   theme(legend.position = "none",
-        legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
+        legend.title = element_text(size=22, face='bold'),
+        legend.text = element_text(size=26),
+        #axis.text.x  = element_blank(),
+        #axis.ticks.x  = element_blank(),
+        #strip.text = element_text(size=25),
         strip.text = element_blank(),
-        axis.text.y = element_text(size = 18),
-        #axis.text.x = element_blank(),
-        #axis.ticks.x = element_blank(),
-        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
-        axis.title.y = element_text(size=18),
+        axis.text.y = element_text(size = 23),
+        axis.text.x = element_text(size = 23,angle = 45, hjust = 1),
+        axis.title.y = element_text(size=24),
         axis.title.x =element_blank(),
-        plot.subtitle = element_text(size=20, face="bold"),
+        plot.title = element_text(size = 27, face = "bold"),
+        plot.subtitle = element_textbox_simple(face = "italic",
+                        size = 25,
+                        lineheight = 1,
+                        padding = margin(5.5, 5.5, 5.5, 5.5),
+                        margin = margin(0, 0, 5.5, 0),
+                        linetype = 1),
         plot.background = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())+
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0,'lines'))
  #annotate(geom = "text", x = as.Date("2022-07-15"), y = 0, hjust = 0, size = 4, label = "Rewetting", color = "grey25")+
- geom_label(data = aoa.stat_text.RS.shan,label=aoa.stat_text.RS.shan$label, hjust=0,colour="black", size=4, fontface="bold")
+ #geom_label(data = aoa.stat_text.RS.shan,label=aoa.stat_text.RS.shan$label, hjust=0,colour="black", size=6, fontface="bold")
  
 AOA.RS.Shannon.plot
 
@@ -2063,8 +2090,8 @@ aoa.abund.trt.cla$Treatment <- factor(aoa.abund.trt.cla$Treatment, levels = c("D
                               labels = c("BIODYN", "CONFYM", "CONMIN"))
 aoa.abund.trt.cla$Irrigation <- factor(aoa.abund.trt.cla$Irrigation, levels = c("Rainout", "Control"),
                          labels = c("Drought", "Control"))
-aoa.abund.trt.cla$Date <- factor(aoa.abund.trt.cla$Date, levels = c("Apr 28th", "Jun 1st", "Jul 5th", "Jul 20th", "Sept 13th"),
-                          labels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
+aoa.abund.trt.cla$Date <- factor(aoa.abund.trt.cla$Date, levels = c("Apr-28", "Jun-01", "Jul-05", "Jul-20", "Sep-13"))
+                          #labels = c("Apr", "Jun", "Jul5", "Jul20", "Sep"))
 
 display.brewer.all(n=NULL, type="all", select=NULL, exact.n=TRUE, 
 colorblindFriendly=T)
@@ -2086,6 +2113,7 @@ aoa.clade.col <- c("#1B9E77","#80C9B3",
                    "#D95F02","#DD701E","#E1823A","#E59456","#E9A672","#EEB78E","#F2C9AA" ,
                    "#7570B3","#B2AFD4")
 
+library(ggh4x)
 set.seed(13)
 aoa.clade.plot <- ggplot(aoa.abund.trt.cla, aes(x=interaction(Date, Irrigation), y=Mean, fill=Clade)) + 
   geom_bar(aes(), stat="identity", position="fill") + 
@@ -2095,21 +2123,26 @@ aoa.clade.plot <- ggplot(aoa.abund.trt.cla, aes(x=interaction(Date, Irrigation),
   facet_nested(~Type+Treatment, 
                #nest_line = element_line(linetype = 1, linewidth = 0.5), 
                scales="free")+
+               #nest_line = element_line(colour = "red"))+
                #resect = unit(5, "cm"))+
   theme(legend.direction = "vertical",legend.position="right") + 
   guides(fill=guide_legend(ncol=1))+
   labs(y= "Mean Relative Abundance", title = "B. AOA")+
-  theme(plot.title = element_text(size = 25, face="bold"),
+  theme(
+        legend.direction = "vertical",
+        legend.position="right",
+        plot.title = element_text(size = 25, face="bold"),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        axis.text=element_text(size=14),
+        axis.text.y=element_text(size=20),
         axis.line.x = element_blank(),
-        axis.text.x = element_text(angle = 90, hjust = 0.5, vjust=0.5),
-        #axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        #axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5),
+        axis.ticks.x = element_blank(),
         axis.title.x = element_blank(),
-        axis.title.y =element_text(size=18),
-        legend.text=element_text(size = 16),
-        legend.title = element_text(size=17, face="bold"),
+        axis.title.y =element_text(size=22),
+        legend.text=element_text(size = 20),
+        legend.title = element_text(size=22, face="bold"),
         panel.grid = element_blank(), 
         panel.background = element_blank(),
         #strip.background = element_blank(),
@@ -2118,8 +2151,6 @@ aoa.clade.plot <- ggplot(aoa.abund.trt.cla, aes(x=interaction(Date, Irrigation),
         #panel.border = element_rect(colour = "black", fill = NA,linewidth= 0.2),
         panel.border=element_rect(color="grey30",fill = NA))+
   scale_y_continuous(expand = c(0,0))+ guides(x="axis_nested")
-  #geom_vline(xintercept = 5, linetype="dotted", 
-             #color = "blue", linewidth=1.5)
 aoa.clade.plot
 
 
