@@ -1,5 +1,0 @@
-All data sets in this folder are generated using glmmTMB using UNRAREFIED DATASET. Steps conducted as follows:
-- subset the original rarefied data set into smaller dataset by DATE and CROPPING SYSTEM
-- filtering: subset data with more than 0.01% abundance and samples with >= 75 % of prevalence
-- using glmmTMB package instead of glmer
-- offset is using the unfilterd data (M04rawseq1)

@@ -1,9 +1,0 @@
-ANOVA Table (type III tests),,,,,,
-Effect,DFn,DFd,F,p,p<.05,ges
-irrigation,1,18,4.039,6.00E-02,,0.121
-fertilization,2,18,0.98,3.94E-01,,0.062
-sampling.date,4,72,4.699,2.00E-03,*,0.092
-irrigation:fertilization,2,18,0.22,8.05E-01,,0.015
-irrigation:sampling.date,4,72,3.102,2.10E-02,*,0.063
-fertilization:sampling.date,8,72,0.55,8.15E-01,,0.023
-irrigation:fertilization:sampling.date,8,72,0.857,5.57E-01,,0.036
