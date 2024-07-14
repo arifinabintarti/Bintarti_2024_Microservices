@@ -7,7 +7,7 @@
 
 ### Data
 
-The raw data for this study are available in the NCBI SRA under bioproject (AOB), (AOA), (comammox)
+The raw data for this study are available in the NCBI SRA under bioproject PRJNA1129138, PRJNA1129476, and PRJNA1129662.
 
 ### To cite this work or code
 
