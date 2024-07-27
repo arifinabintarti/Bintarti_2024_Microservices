@@ -619,8 +619,8 @@ COM.BS.Richness.plot <- ggplot(com.meta.bulk.edit , aes(x=Date, y=Richness)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   labs(y="COMA Richness", title = "Bulk Soil\nC", subtitle = "C*, D x C*")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 120))+
@@ -686,8 +686,8 @@ COM.RS.Richness.plot <- ggplot(com.meta.rh.edit , aes(x=Date, y=Richness)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   labs(y="COMA Richness", title = "Rhizosphere\nI", subtitle = "C*, T*")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 140))+
@@ -726,8 +726,8 @@ COM.BS.Shannon.plot <- ggplot(com.meta.bulk.edit , aes(x=Date, y=Shannon)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   labs(y="COMA Shannon", title = "F", subtitle = "C*, D x C*")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 4.5))+
@@ -770,8 +770,8 @@ COM.RS.Shannon.plot <- ggplot(com.meta.rh.edit , aes(x=Date, y=Shannon)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   labs(y="COMA Shannon", title="L", subtitle = "C*, T**")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 4.5))+
@@ -802,83 +802,6 @@ COM.RS.Shannon.plot <- ggplot(com.meta.rh.edit , aes(x=Date, y=Shannon)) +
 
 COM.RS.Shannon.plot
 
-
-#______________________________________________________________________________________________________________________________
-# Inverse Simpson
-
-# Inverse Simpson: plotting the significance across treatment
-com.invsimp.pwc.plot <- ggplot(com.meta.df, aes(x=Irrigation, y=InvSimpson)) +
-  geom_boxplot(aes(fill = Treatment))+
-  theme_bw() +
-  labs(y="Comammox Inverse Simpson")+
-  labs(pattern="Irrigation")+
-  scale_fill_viridis(discrete=T)+
-  facet_grid(Type~ Date,scales="free_x")+
-  theme(legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
-        strip.text = element_text(size=18),
-        axis.text = element_text(size = 18),
-        axis.title.y = element_text(size=18,face="bold"),
-        axis.title.x =element_blank(),
-        plot.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-com.invsimp.pwc.plot
-# adding xy position for the pairwise comparisons among treatments (emmeans results)
-com.xy.invsimp.bulk <- com.emm.invsimp.bulk %>% 
-  add_xy_position(x = "Irrigation", dodge = 0.8) # bulk soil
-com.xy.invsimp.rh <- com.emm.invsimp.rh %>% 
-  add_xy_position(x = "Irrigation", dodge = 0.8)# rhizosphere
-# #combine two data frames and adding 'Type'
-com.df.xy.invsimp.bulk <- as.data.frame(com.xy.invsimp.bulk)
-com.df.xy.invsimp.rh <- as.data.frame(com.xy.invsimp.rh)
-com.df.xy.invsimp.all <- rbind(com.df.xy.invsimp.bulk, com.df.xy.invsimp.rh) 
-com.df.xy.invsimp.all$Type <-  c(rep("Bulk Soil", 30), rep("Rhizosphere", 18)) #adding 'Type'
-# plotting the pairwise comparisons among treatments (emmeans results)
-com.invsimp.pwc.plot2 <- com.invsimp.pwc.plot + 
-  stat_pvalue_manual(com.df.xy.invsimp.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
-  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
-com.invsimp.pwc.plot2
-setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
-ggsave("COM_min_invsimp_all.eps",
-       com.min.invsimp.pwc.plot2, device = "eps",
-       width = 14, height =5.8, 
-       units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
-ggsave("COM_invsimp_all.tiff",
-       com.invsimp.pwc.plot2, device = "tiff",
-       width = 14, height =5.8, 
-       units= "in", dpi = 600)
-
-# inverse simpson between irrigations
-com.invsimp.pwc.irri.plot <- ggplot(com.meta.df, aes(x=Date, y=InvSimpson)) +
-  geom_boxplot(aes(group = var3, fill = Irrigation))+
-  theme_bw() +
-  labs(y="Comammox Inverse Simpson")+
-  scale_fill_manual(values = c("#996035","#F2DACD"))+
-  facet_grid(Type~ Treatment,scales="free_x")+
-  theme(legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
-        strip.text = element_text(size=18),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
-        axis.title.y = element_text(size=18,face="bold"),
-        axis.title.x =element_blank(),
-        plot.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-com.invsimp.pwc.irri.plot
-
-setwd('/Users/arifinabintarti/Documents/France/Figures/COM/')
-ggsave("COM_invsimp_irri_boxplot.eps",
-       com.invsimp.pwc.irri.plot, device = "eps",
-       width = 10, height =5.5, 
-       units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/COM')
-ggsave("COM_invsimp_irri_boxplot.tiff",
-       com.invsimp.pwc.irri.plot, device = "tiff",
-       width = 10, height =5.5, 
-       units= "in", dpi = 600)
 
 ###################################################################################
 # Beta Diversity Analyses on Rarefied Data: COMAMMOX
@@ -1455,12 +1378,12 @@ hsd.com.bs
 
 # 1. Using adonis2 package with defined perm to restrict the permutation 
 set.seed(133)
-com.adonis.bulk.bc <- adonis2(com.bulk_dist_bc ~ Irrigation*Treatment*Date+Block, #strata=block.com, 
+com.adonis.bulk.bc <- adonis2(com.bulk_dist_bc ~ Irrigation*Treatment*Date, #strata=block.com, 
                               data=com.meta.bulk, 
                               permutations = 999) # significant
 com.adonis.bulk.bc
 
-# similar with below:
+0# similar with below:
 perm1.com = how(within = Within(type="free"), 
                 plots = Plots(type = "none"),
                 blocks = block.com,
@@ -1531,7 +1454,7 @@ com.bc.anosim.rh <- anosim(com.rh_dist_wUF,
 summary(com.bc.anosim.rh) # SIGNIFICANT
 
 set.seed(13)
-com.adonis.rh <- adonis2(com.rh_dist_bc ~ Irrigation*Treatment*Date+Block, data=com.meta.rh, 
+com.adonis.rh <- adonis2(com.rh_dist_bc ~ Irrigation*Treatment*Date, data=com.meta.rh, 
                          permutation=999) # only treatment is significant
 com.adonis.rh
 
@@ -1541,7 +1464,7 @@ com.adonis.rh
 
 
 
-set.seed(13)
+0set.seed(13)
 com.adonis.rh.irri <- adonis2(com.rh_dist_bc ~ Irrigation, data=com.meta.rh, 
                               permutation=999,
                               method="bray", 

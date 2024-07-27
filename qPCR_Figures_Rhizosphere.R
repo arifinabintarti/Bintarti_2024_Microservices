@@ -305,8 +305,8 @@ AOB_16S.rat.RS.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=AOB_16S_ratio_p
   ylab('AOB/16S (%)')+
   #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
   theme(legend.position = "none",
         #legend.title = element_text(size=15, face='bold'),
@@ -369,8 +369,8 @@ comA_16S.rat.RS.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=ComA_16S_ratio
   ylab('Comammox A/16S (%)')+
   #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
   theme(legend.position = "none",
         #legend.title = element_text(size=15, face='bold'),
@@ -417,8 +417,8 @@ comB_16S.rat.RS.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=ComB_16S_ratio
   ylab('Comammox B/16S (%)')+
   #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+
   theme(legend.position = "none",
         #legend.title = element_text(size=15, face='bold'),
@@ -460,8 +460,8 @@ AOA_AOB.rat.rh.plot <- ggplot(qPCR.RS.ed, aes(x=sampling.date, y=AOA_AOB_ratio_p
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   labs(title="B. Rhizosphere", subtitle ="C*, D x T*")+
   ylab('AOA/AOB (%)')+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label))+

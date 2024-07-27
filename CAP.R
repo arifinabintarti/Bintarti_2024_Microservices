@@ -96,12 +96,12 @@ aoa.cap.plot <- ggplot(as.data.frame(aoa.cap.bulk$x), aes(x = aoa.cap.bulk$x[,1]
         legend.title = element_blank(),
         #legend.title = element_text(size=13),
         legend.text = element_text(size=20)) +
-  #annotate("text",x=-9.5,y=-1,label= "90%", hjust = 0, size = 4,color="#009E73") +
-  #annotate("text",x=-7.5,y=3,label= "95%", hjust = 0, size = 4,color="#009E73") +
-  #annotate("text",x=-1.7,y=-7,label= "100%", hjust = 0, size = 4, color="#FF618C")+
-  #annotate("text",x=-1.7,y=-1.5,label= "100%", hjust = 0, size = 4,color="#FF618C")+
-  #annotate("text",x=2,y=6,label= "95%", hjust = 0, size = 4, color="#E69F00")+
-  #annotate("text",x=6.5,y=0.4,label= "85%", hjust = 0, size = 4,color="#E69F00")+
+  annotate("text",x=-9.5,y=-1,label= "90%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-7.5,y=3,label= "95%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-1.7,y=-7,label= "100%", hjust = 0, size = 4, color="#FF618C")+
+  annotate("text",x=-1.7,y=-1.5,label= "100%", hjust = 0, size = 4,color="#FF618C")+
+  annotate("text",x=2,y=6,label= "95%", hjust = 0, size = 4, color="#E69F00")+
+  annotate("text",x=6.5,y=0.4,label= "85%", hjust = 0, size = 4,color="#E69F00")+
   annotate("text",x=-14,y=-10,label= "Overall reclassification rate: 94.2%", hjust = 0, size = 6) +
   annotate("text", x=-14, y=-11.5, label= "Pillai's test=4.1***", hjust = 0, size = 6)+
  guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
@@ -194,12 +194,12 @@ aoa.cap.rh.plot <- ggplot(as.data.frame(aoa.cap.rh$x), aes(x = aoa.cap.rh$x[,1],
         legend.title = element_blank(),
         #legend.title = element_text(size=13),
         legend.text = element_text(size=20)) +
- #annotate("text",x=-14,y=-1,label= "100%", hjust = 0, size = 4,color="#009E73") +
- #annotate("text",x=-14,y=3,label= "83.3%", hjust = 0, size = 4,color="#009E73") +
- #annotate("text",x=-3,y=-7,label= "91.7%", hjust = 0, size = 4, color="#FF618C")+
- #annotate("text",x=1,y=-2,label= "75%", hjust = 0, size = 4,color="#FF618C")+
- #annotate("text",x=3,y=6,label= "100%", hjust = 0, size = 4, color="#E69F00")+
- #annotate("text",x=6,y=1,label= "91.7%", hjust = 0, size = 4,color="#E69F00")+
+ annotate("text",x=-14,y=-1,label= "100%", hjust = 0, size = 4,color="#009E73") +
+ annotate("text",x=-14,y=3,label= "83.3%", hjust = 0, size = 4,color="#009E73") +
+ annotate("text",x=-3,y=-7,label= "91.7%", hjust = 0, size = 4, color="#FF618C")+
+ annotate("text",x=1,y=-2,label= "75%", hjust = 0, size = 4,color="#FF618C")+
+ annotate("text",x=3,y=6,label= "100%", hjust = 0, size = 4, color="#E69F00")+
+ annotate("text",x=6,y=1,label= "91.7%", hjust = 0, size = 4,color="#E69F00")+
 annotate("text",x=-17,y=-9,label= "Overall reclassification rate: 90.3%", hjust = 0, size = 6) +
 annotate("text", x=-17, y=-10.5, label= "Pillai's test=4.4***", hjust = 0, size = 6)+
  guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
@@ -296,12 +296,12 @@ com.cap.plot <- ggplot(as.data.frame(com.cap.bulk$x), aes(x = com.cap.bulk$x[,1]
         legend.title = element_blank(),
         #legend.title = element_text(size=13),
         legend.text = element_text(size=20)) +
-  #annotate("text",x=-9,y=2.5,label= "90%", hjust = 0, size = 4,color="#009E73") +
-  #annotate("text",x=-15,y=3,label= "89.5%", hjust = 0, size = 4,color="#009E73") +
-  #annotate("text",x=1,y=-2,label= "85%", hjust = 0, size = 4, color="#FF618C")+
-  #annotate("text",x=6,y=-7,label= "65%", hjust = 0, size = 4,color="#FF618C")+
-  #annotate("text",x=6,y=5,label= "80%", hjust = 0, size = 4, color="#E69F00")+
-  #annotate("text",x=-2.5,y=5,label= "63.2%", hjust = 0, size = 4,color="#E69F00")+
+  annotate("text",x=-9,y=2.5,label= "90%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-15,y=3,label= "89.5%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=1,y=-2,label= "85%", hjust = 0, size = 4, color="#FF618C")+
+  annotate("text",x=6,y=-7,label= "65%", hjust = 0, size = 4,color="#FF618C")+
+  annotate("text",x=6,y=5,label= "80%", hjust = 0, size = 4, color="#E69F00")+
+  annotate("text",x=-2.5,y=5,label= "63.2%", hjust = 0, size = 4,color="#E69F00")+
   annotate("text",x=-17,y=-7,label= "Overall reclassification rate: 78.8%", hjust = 0, size = 6) +
   annotate("text", x=-17, y=-8.5, label= "Pillai's test=3.7***", hjust = 0, size = 6)+
  guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
@@ -381,7 +381,8 @@ com.cap.rh.plot <- ggplot(as.data.frame(com.cap.rh$x), aes(x = com.cap.rh$x[,1],
   scale_shape_manual(values = c(8, 1),
                      name = "Drought",
                      labels = c("control", "drought")) + theme_classic() +
-  scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
+  #scale_fill_manual(values = c("#009E73","#FF618C","#E69F00", "#009E73", "#FF618C", "#E69F00")) +
+  scale_fill_manual(values = c("#009E73","#009E73","#FF618C","#FF618C","#E69F00", "#E69F00")) +
   geom_mark_ellipse(aes(fill = com.meta.rh$x), 
                     expand = 0, linewidth = NA, show.legend = FALSE)  +
   labs(subtitle = "F. Comammox")+
@@ -394,12 +395,12 @@ com.cap.rh.plot <- ggplot(as.data.frame(com.cap.rh$x), aes(x = com.cap.rh$x[,1],
         legend.title = element_blank(),
         #legend.title = element_text(size=13),
         legend.text = element_text(size=20))+
-  #annotate("text",x=-16,y=-2.5,label= "100%", hjust = 0, size = 4,color="#009E73") +
-  #annotate("text",x=-16,y=3,label= "91.7%", hjust = 0, size = 4,color="#009E73") +
-  #annotate("text",x=0.5,y=-2,label= "75%", hjust = 0, size = 4, color="#FF618C")+
-  #annotate("text",x=4.4,y=-8.3,label= "83.3%", hjust = 0, size = 4,color="#FF618C")+
-  #annotate("text",x=0,y=7,label= "75%", hjust = 0, size = 4, color="#E69F00")+
-  #annotate("text",x=-2,y=3,label= "75%", hjust = 0, size = 4,color="#E69F00")+
+  annotate("text",x=-16,y=-2.5,label= "100%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-16,y=3,label= "91.7%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=0.5,y=-2,label= "75%", hjust = 0, size = 4, color="#FF618C")+
+  annotate("text",x=4.4,y=-8.3,label= "83.3%", hjust = 0, size = 4,color="#FF618C")+
+  annotate("text",x=0,y=7,label= "75%", hjust = 0, size = 4, color="#E69F00")+
+  annotate("text",x=-2,y=3,label= "75%", hjust = 0, size = 4,color="#E69F00")+
   annotate("text",x=-17,y=-7,label= "Overall reclassification rate: 83.3%", hjust = 0, size = 6) +
   annotate("text", x=-17, y=-8.5, label= "Pillai's test=3.4***", hjust = 0, size = 6)+
  guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
@@ -499,12 +500,12 @@ aob.cap.plot <- ggplot(as.data.frame(aob.cap.bulk$x), aes(x = aob.cap.bulk$x[,1]
         legend.title = element_blank(),
         #legend.title = element_text(size=13),
         legend.text = element_text(size=20)) +
-  #annotate("text",x=-3,y=1.6,label= "57.9%", hjust = 0, size = 4,color="#009E73") +
-  #annotate("text",x=-5.5,y=3.5,label= "80%", hjust = 0, size = 4,color="#009E73") +
-  #annotate("text",x=-2.2,y=-2.2,label= "45%", hjust = 0, size = 4, color="#FF618C")+
-  #annotate("text",x=3.5,y=-2.6,label= "55%", hjust = 0, size = 4,color="#FF618C")+
-  #annotate("text",x=3.6,y=5,label= "70%", hjust = 0, size = 4, color="#E69F00")+
-  #annotate("text",x=-1,y=3,label= "55%", hjust = 0, size = 4,color="#E69F00")+
+  annotate("text",x=-3,y=1.6,label= "57.9%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-5.5,y=3.5,label= "80%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-2.2,y=-2.2,label= "45%", hjust = 0, size = 4, color="#FF618C")+
+  annotate("text",x=3.5,y=-2.6,label= "55%", hjust = 0, size = 4,color="#FF618C")+
+  annotate("text",x=3.6,y=5,label= "70%", hjust = 0, size = 4, color="#E69F00")+
+  annotate("text",x=-1,y=3,label= "55%", hjust = 0, size = 4,color="#E69F00")+
   annotate("text",x=-6,y=-5.5,label= "Overall reclassification rate: 60.5%", hjust = 0, size = 6) +
   annotate("text", x=-6, y=-6.5, label= "Pillai's test=2.7***", hjust = 0, size = 6)+
  guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
@@ -600,12 +601,12 @@ aob.cap.rh.plot <- ggplot(as.data.frame(aob.cap.rh$x), aes(x = aob.cap.rh$x[,1],
         legend.title = element_blank(),
         #legend.title = element_text(size=13),
         legend.text = element_text(size=20))+
-  #annotate("text",x=-5,y=2,label= "66.7%", hjust = 0, size = 4,color="#009E73") +
-  #annotate("text",x=-5.5,y=-3,label= "58.3%", hjust = 0, size = 4,color="#009E73") +
-  #annotate("text",x=-2.7,y=3,label= "66.7%", hjust = 0, size = 4, color="#FF618C")+
-  #annotate("text",x=2.5,y=5,label= "50%", hjust = 0, size = 4,color="#FF618C")+
-  #annotate("text",x=3.3,y=-3.5,label= "41.7%", hjust = 0, size = 4, color="#E69F00")+
-  #annotate("text",x=-1.3,y=-2,label= "41.7%", hjust = 0, size = 4,color="#E69F00")+
+  annotate("text",x=-5,y=2,label= "66.7%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-5.5,y=-3,label= "58.3%", hjust = 0, size = 4,color="#009E73") +
+  annotate("text",x=-2.7,y=3,label= "66.7%", hjust = 0, size = 4, color="#FF618C")+
+  annotate("text",x=2.5,y=5,label= "50%", hjust = 0, size = 4,color="#FF618C")+
+  annotate("text",x=3.3,y=-3.5,label= "41.7%", hjust = 0, size = 4, color="#E69F00")+
+  annotate("text",x=-1.3,y=-2,label= "41.7%", hjust = 0, size = 4,color="#E69F00")+
   annotate("text",x=-6,y=-5.5,label= "Overall reclassification rate: 54.2%", hjust = 0, size =6) +
   annotate("text", x=-6, y=-6.5, label= "Pillai's test=2.6***", hjust = 0, size = 6)+
  guides(colour=guide_legend(override.aes = list(size=7)),shape=guide_legend(override.aes = list(size=7)))
@@ -657,7 +658,7 @@ CAP.All <- ((aob.cap.plot / aoa.cap.plot / com.cap.plot) | (aob.cap.rh.plot / ao
  plot_layout(guides = "collect") & theme(legend.position = 'right',legend.title = element_blank(), legend.text = element_text(size = 22))
 CAP.All
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
-ggsave("Fig.2dpi300.tiff",
+ggsave("140624_Fig.2dpi300.tiff",
        CAP.All, device = "tiff",
        width = 13, height = 14, 
        units= "in", dpi = 600, compression="lzw")

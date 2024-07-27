@@ -613,8 +613,8 @@ AOB.BS.Richness.plot <- ggplot(aob.meta.bulk.edit , aes(x=Date, y=Richness)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   labs(y="AOB Richness", title="Bulk Soil\nA", subtitle = "C**")+# tag="Bulk Soil")+
   facet_wrap(~ Treatment)+
   #scale_y_continuous(limits = c(0, NA))+
@@ -680,8 +680,8 @@ AOB.RS.Richness.plot <- ggplot(aob.meta.rh.edit , aes(x=Date, y=Richness)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   labs(y="AOB Richness", title="Rhizosphere\nG", subtitle = "C**")+
   facet_wrap(~ Treatment)+
   #ylim(0,139)+
@@ -721,8 +721,8 @@ AOB.BS.Shannon.plot <- ggplot(aob.meta.bulk.edit , aes(x=Date, y=Shannon)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   labs(y="AOB Shannon", title="D", subtitle = "C**")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 4.5))+
@@ -765,8 +765,8 @@ AOB.RS.Shannon.plot <- ggplot(aob.meta.rh.edit , aes(x=Date, y=Shannon)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   labs(y="AOB Shannon", title="J", subtitle = "C*")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 4.5))+
@@ -880,61 +880,6 @@ setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
 ggsave("AOB_invsimp_all.tiff",
        aob.invsimp.pwc.plot2, device = "tiff",
        width = 14, height =5.8, 
-       units= "in", dpi = 600)
-
-
-# inverse simpson between irrigations
-aob.invsimp.pwc.irri.plot <- ggplot(aob.meta.bulk, aes(x=Date, y=InvSimpson)) +
-  geom_boxplot(aes(group = var3, fill = Irrigation))+
-  theme_bw() +
-  labs(y="AOB Inverse Simpson")+
-  scale_fill_manual(values = c("#996035","#F2DACD"))+
-  #facet_grid(Type~ Treatment,scales="free_x")+
-  facet_wrap(~ Treatment,scales="free_x")+
-  theme(legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
-        strip.text = element_text(size=18),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
-        axis.title.y = element_text(size=18,face="bold"),
-        axis.title.x =element_blank(),
-        plot.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-aob.invsimp.pwc.irri.plot
-
-
-test2 <- aob.invsimp.pwc.irri.plot + 
-  stat_pvalue_manual(xy.invsimp.irri.bulk,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
-  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
-test2
-
-
-# adding xy position for the pairwise comparisons among treatments (emmeans results)
-xy.invsimp.irri.bulk <- emm.invsimp.irri.bulk %>% 
-  add_xy_position(x = "Date", dodge = 0.8) # bulk soil
-xy.invsimp.irri.bulk
-xy.invsimp.irri.rh <- emm.invsimp.irri.rh %>% 
-  add_xy_position(x = "Date", dodge = 0.8)# rhizosphere
-# #combine two data frames and adding 'Type'
-df.xy.invsimp.irri.bulk <- as.data.frame(xy.invsimp.irri.bulk)
-df.xy.invsimp.irri.rh <- as.data.frame(xy.invsimp.irri.rh)
-df.xy.invsimp.irri.all <- rbind(df.xy.invsimp.irri.bulk, df.xy.invsimp.irri.rh) 
-df.xy.invsimp.irri.all$Type <-  c(rep("Bulk Soil", 15), rep("Rhizosphere", 9)) #adding 'Type'
-# plotting the pairwise comparisons among treatments (emmeans results)
-aob.invsimp.pwc.irri.plot2 <- aob.invsimp.pwc.irri.plot + 
-  stat_pvalue_manual(df.xy.invsimp.irri.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
-  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
-aob.invsimp.pwc.irri.plot2
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOB/')
-ggsave("AOB_invsimp_irri_boxplot.eps",
-       aob.invsimp.pwc.irri.plot2, device = "eps",
-       width = 10, height =5.5, 
-       units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOB')
-ggsave("AOB_invsimp_irri_boxplot.tiff",
-       aob.invsimp.pwc.irri.plot2, device = "tiff",
-       width = 10, height =5.5, 
        units= "in", dpi = 600)
 
 ###################################################################################
@@ -1726,7 +1671,8 @@ hsd.aob.bs.irri
 
 # 1. Using adonis2 package with defined perm to restrict the permutation 
 set.seed(13)
-aob.adonis.bulk.bc <- adonis2(aob.bulk_dist_bc ~ Irrigation*Treatment, strata=block.aob, data=aob.meta.bulk, 
+aob.adonis.bulk.bc <- adonis2(aob.bulk_dist_bc ~ Irrigation*Treatment+Date, strata=block.aob,
+                              data=aob.meta.bulk, 
                               permutations = 999) # significant
 aob.adonis.bulk.bc
 
@@ -1774,7 +1720,7 @@ summary(aob.bc.anosim) # NOT SIGNIFICANT
 
 # test the permanova for farming system
 set.seed(13)
-aob.adonis.bulk <- adonis2(aob.bulk_dist_bc ~ Treatment*Irrigation*Date+Block, data=aob.meta.bulk, 
+aob.adonis.bulk <- adonis2(aob.bulk_dist_bc ~ Treatment*Irrigation*Date, data=aob.meta.bulk, 
                            permutation=999) # only treatment is significant
 aob.adonis.bulk
 ####################################################################################################
@@ -1807,7 +1753,7 @@ aob.bc.anosim.rh <- anosim(aob.rh_dist_wUF,
 summary(aob.bc.anosim.rh) # SIGNIFICANT
 
 set.seed(13)
-aob.adonis.rh <- adonis2(aob.rh_dist_bc ~ Irrigation*Treatment*Date+Block, data=aob.meta.rh,#strata=block.aob.rh,
+aob.adonis.rh <- adonis2(aob.rh_dist_bc ~ Treatment*Irrigation*Date, data=aob.meta.rh,
                          permutation=999) # only treatment is significant
 aob.adonis.rh
 
@@ -1816,7 +1762,7 @@ aob.adonis.rh
 
 
 
-set.seed(13)
+00set.seed(13)
 aob.adonis.rh.irri <- adonis2(aob.rh_dist_bc ~ Irrigation, data=aob.meta.rh, 
                               permutation=999,
                               method="bray", 

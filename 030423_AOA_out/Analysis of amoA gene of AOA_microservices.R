@@ -360,41 +360,6 @@ ggsave("AOA_sha.tiff",
        width = 9, height = 7.5, 
        units= "in", dpi = 600)
 
-#. 3. Inverse Simpson
-
-#Line plot of AOA Inverse Simpson
-aoa.invsimp.plot <- ggplot(aoa.meta.df.tidy, aes(x = Date, y = Mean.invsimp, linetype=Irrigation))+
-  geom_line(linewidth=1.15, aes(group = var2, col=Treatment))+
-  facet_wrap(~ Type, strip.position="top", nrow = 1)+
-  theme_bw() +
-  scale_colour_viridis(discrete=T, labels = c("Biodynamic", "Conventional", "Mineral fertilized"))+
-  labs(x="Time Point", y="AOA Inverse Simpson")+
-  theme(legend.position = "bottom",
-        strip.text = element_text(size=18),
-        axis.text.y = element_text(size = 16),
-        plot.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.title.y = element_text(size=18,face="bold"),
-        axis.title.x = element_blank(),
-        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
-        legend.title = element_text(size=15, face='bold'),
-        legend.text=element_text(size=14))+
-  geom_point(alpha=0.5,aes(col=Treatment), size=4)+
-  theme(legend.direction = "horizontal", legend.box = "vertical")
-aoa.invsimp.plot 
-
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_min_invsimp.eps",
-       aoa.min.invsimp.plot, device = cairo_ps,
-       width = 9, height = 7.5, 
-       units= "in", dpi = 600)
-
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("AOA_invsimp.tiff",
-       aoa.invsimp.plot, device = tiff,
-       width = 9, height = 7.5, 
-       units= "in", dpi = 600)
 
 #############################################################################
 
@@ -595,8 +560,8 @@ AOA.BS.Richness.plot <- ggplot(aoa.meta.bulk.edit , aes(x=Date, y=Richness)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   labs(y="AOA Richness", title="Bulk Soil\nB", subtitle = "ns")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 120))+
@@ -666,8 +631,8 @@ AOA.RS.Richness.plot <- ggplot(aoa.meta.rh.edit , aes(x=Date, y=Richness)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   labs(y="AOA Richness", title = "Rhizosphere\nH", subtitle = "ns")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 140))+
@@ -704,8 +669,8 @@ AOA.BS.Shannon.plot <- ggplot(aoa.meta.bulk.edit , aes(x=Date, y=Shannon)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   labs(y="AOA Shannon",title = "E", subtitle = "ns")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 4.5))+
@@ -745,8 +710,8 @@ AOA.RS.Shannon.plot <- ggplot(aoa.meta.rh.edit , aes(x=Date, y=Shannon)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   labs(y="AOA Shannon", title="K", subtitle = "C*")+
   facet_wrap(~ Treatment)+
   scale_y_continuous(limits = c(0, 4.5))+
@@ -776,84 +741,6 @@ AOA.RS.Shannon.plot <- ggplot(aoa.meta.rh.edit , aes(x=Date, y=Shannon)) +
  #geom_label(data = aoa.stat_text.RS.shan,label=aoa.stat_text.RS.shan$label, hjust=0,colour="black", size=6, fontface="bold")
  
 AOA.RS.Shannon.plot
-
-
-#___________________________________________________________________________________________________________________________________-
-# Inverse Simpson
-
-# Inverse Simpson: plotting the significance across treatment
-aoa.invsimp.pwc.plot <- ggplot(aoa.meta.df, aes(x=Irrigation, y=InvSimpson)) +
-  geom_boxplot(aes(fill = Treatment))+
-  theme_bw() +
-  labs(y="AOA Inverse Simpson")+
-  labs(pattern="Irrigation")+
-  scale_fill_viridis(discrete=T)+
-  facet_grid(Type~ Date,scales="free_x")+
-  theme(legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
-        strip.text = element_text(size=18),
-        axis.text = element_text(size = 18),
-        axis.title.y = element_text(size=18,face="bold"),
-        axis.title.x =element_blank(),
-        plot.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-aoa.invsimp.pwc.plot
-# adding xy position for the pairwise comparisons among treatments (emmeans results)
-aoa.xy.invsimp.bulk <- aoa.emm.invsimp.bulk %>% 
-  add_xy_position(x = "Irrigation", dodge = 0.8) # bulk soil
-aoa.xy.invsimp.rh <- aoa.emm.invsimp.rh %>% 
-  add_xy_position(x = "Irrigation", dodge = 0.8)# rhizosphere
-# #combine two data frames and adding 'Type'
-aoa.df.xy.invsimp.bulk <- as.data.frame(aoa.xy.invsimp.bulk)
-aoa.df.xy.invsimp.rh <- as.data.frame(aoa.xy.invsimp.rh)
-aoa.df.xy.invsimp.all <- rbind(aoa.df.xy.invsimp.bulk, aoa.df.xy.invsimp.rh) 
-aoa.df.xy.invsimp.all$Type <-  c(rep("Bulk Soil", 30), rep("Rhizosphere", 18)) #adding 'Type'
-# plotting the pairwise comparisons among treatments (emmeans results)
-aoa.invsimp.pwc.plot2 <- aoa.invsimp.pwc.plot + 
-  stat_pvalue_manual(aoa.df.xy.invsimp.all,label = "p.adj.signif", size=8, bracket.size = 0.6,bracket.nudge.y = -0.05,bracket.shorten = 0, color = "blue",tip.length = 0.01, hide.ns = TRUE)+
-  scale_y_continuous(expand = expansion(mult = c(0.01, 0.1)))
-aoa.invsimp.pwc.plot2
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_min_invsimp_all.eps",
-       aoa.min.invsimp.pwc.plot2, device = "eps",
-       width = 14, height =5.8, 
-       units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("AOA_invsimp_all.tiff",
-       aoa.invsimp.pwc.plot2, device = "tiff",
-       width = 14, height =5.8, 
-       units= "in", dpi = 600)
-
-# inverse simpson between irrigations
-aoa.invsimp.pwc.irri.plot <- ggplot(aoa.meta.df, aes(x=Date, y=InvSimpson)) +
-  geom_boxplot(aes(group = var3, fill = Irrigation))+
-  theme_bw() +
-  labs(y="AOA Inverse Simpson")+
-  scale_fill_manual(values = c("#996035","#F2DACD"))+
-  facet_grid(Type~ Treatment,scales="free_x")+
-  theme(legend.title = element_text(size=15, face='bold'),
-        legend.text = element_text(size=15),
-        strip.text = element_text(size=18),
-        axis.text.y = element_text(size = 18),
-        axis.text.x = element_text(size = 16,angle = 45, hjust = 1),
-        axis.title.y = element_text(size=18,face="bold"),
-        axis.title.x =element_blank(),
-        plot.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-aoa.invsimp.pwc.irri.plot
-
-setwd('/Users/arifinabintarti/Documents/France/Figures/AOA/')
-ggsave("AOA_invsimp_irri_boxplot.eps",
-       aoa.invsimp.pwc.irri.plot, device = "eps",
-       width = 10, height =5.5, 
-       units= "in", dpi = 600)
-setwd('D:/Fina/INRAE_Project/microservices_fig/AOA')
-ggsave("AOA_invsimp_irri_boxplot.tiff",
-       aoa.invsimp.pwc.irri.plot, device = "tiff",
-       width = 10, height =5.5, 
-       units= "in", dpi = 600)
 
 ######################################################################################
 # SEPARATE BETWEEN BULK SOIL AND RHIZOSPHERE
@@ -1491,7 +1378,7 @@ aoa.adonis.bulk.bc <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment, strata=ao
 aoa.adonis.bulk.bc
 
 set.seed(13)
-aoa.adonis.bulk.bc2 <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment*Date+Block, data=aoa.meta.bulk, 
+aoa.adonis.bulk.bc2 <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment*Date, data=aoa.meta.bulk, 
                                  permutations = 999) # significant
 aoa.adonis.bulk.bc2
 
@@ -1543,7 +1430,7 @@ aoa.adonis.bulk.BC <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment*Date, data
                            permutation=999) # only treatment is significant
 aoa.adonis.bulk.BC
 
-set.seed(37) #132 #19
+0set.seed(37) #132 #19
 aoa.adonis.bulk.1 <- adonis2(aoa.bulk_dist_bc ~ Irrigation*Treatment*Date+PlotID, data=aoa.meta.bulk, 
                            permutation=999) # only treatment is significant
 aoa.adonis.bulk.1
@@ -1629,13 +1516,13 @@ aoa.bc.anosim.rh <- anosim(aoa.rh_dist_wUF,
 summary(aoa.bc.anosim.rh) # SIGNIFICANT
 
 set.seed(13)
-aoa.adonis.rh.bc <- adonis2(aoa.rh_dist_bc ~ Irrigation*Treatment*Date+Block, data=aoa.meta.rh, 
-                           permutation=999,
-                           method="bray", 
-                           strata = NULL) # only treatment is significant
+aoa.adonis.rh.bc <- adonis2(aoa.rh_dist_bc ~ Irrigation*Treatment*Date, data=aoa.meta.rh, 
+                           permutation=999)
+                           #method="bray", 
+                           #strata = NULL) # only treatment is significant
 aoa.adonis.rh.bc
 
-set.seed(13)
+0set.seed(13)
 aoa.adonis.rh.wUF <- adonis2(aoa.rh_dist_wUF ~ Irrigation*Treatment*Date, data=aoa.meta.rh, 
                            permutation=999,
                            method="bray", 

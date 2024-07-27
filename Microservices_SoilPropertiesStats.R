@@ -116,25 +116,53 @@ gwc.pwc.trt <- soilprop.4 %>%
                conf.level = 0.95)
 View(gwc.pwc.trt)
 # 2. between irrigation:
-gwc.pwc.irr <- soilprop %>%
+gwc.pwc.irr <- soilprop.4 %>%
   group_by(Date, Fertilization) %>%
   emmeans_test(GWC ~ Irrigation, 
                p.adjust.method = "BH", 
                conf.level = 0.95)
 View(gwc.pwc.irr)
 
-# simple-simple pairwise
-gwc.pwc.t <- soilprop %>%
-  group_by(Date, Fertilization) %>%
-  pairwise_t_test(GWC ~ Irrigation, paired = T, p.adjust.method = "BH")
-  #select(-df, -statistic) # Remove details
+# simple-simple pairwise_t_test
+gwc.pwc.t <- soilprop.4 %>%
+  group_by(Fertilization) %>%
+  pairwise_t_test(GWC ~ Irrigation, paired = T, p.adjust.method = "BH") %>%
+  select(-df, -statistic) # Remove details
 View(gwc.pwc.t)
 
+# simple-simple with emmeans_test
+gwc.pwc.emm <- soilprop %>%
+  group_by(Fertilization) %>%
+  emmeans_test(GWC ~ Irrigation, p.adjust.method = "BH", model=gwc.3rmaov2) %>%
+  select(-df, -statistic) # Remove details
+View(gwc.pwc.emm)
 
+
+# Make the significance letter
+gwc.pwc.emm.df <- as.data.frame(gwc.pwc.emm)
+gwc.pwc.emm.df
+gwc.pwc.emm.df$Comparison <- c("BIODYN.control - BIODYN.drought", 
+                               "CONFYM.control - CONFYM.drought",
+                               "CONMIN.control - CONMIN.drought") # adding column comparison
+gwc.pwc.emm.df.ed <- gwc.pwc.emm.df[,c(9,7)]
+gwc.pwc.emm.BIOD <- gwc.pwc.emm.df.ed[1,]
+gwc.pwc.emm.BIOD
+gwc.pwc.emm.cld.BIOD = cldList(p.adj ~ Comparison, data=gwc.pwc.emm.BIOD,threshold = 0.05)
+gwc.pwc.emm.cld.BIOD
+
+gwc.pwc.emm.CONF <- gwc.pwc.emm.df.ed[2,]
+gwc.pwc.emm.CONF
+gwc.pwc.emm.cld.CONF = cldList(p.adj ~ Comparison, data=gwc.pwc.emm.CONF,threshold = 0.05)
+gwc.pwc.emm.cld.CONF
+
+gwc.pwc.emm.CONM <- gwc.pwc.emm.df.ed[3,]
+gwc.pwc.emm.CONM
+gwc.pwc.emm.cld.CONM = cldList(p.adj ~ Comparison, data=gwc.pwc.emm.CONM,threshold = 0.05)
+gwc.pwc.emm.cld.CONM
 
 
 # Two-way ANOVA at each fertilization level
-gwc.pwc.fer.4 <- soilprop.3 %>%
+gwc.pwc.fer.4 <- soilprop.4 %>%
   group_by(Irrigation) %>%
   emmeans_test(GWC ~ Fertilization, 
                p.adjust.method = "BH", 
@@ -314,6 +342,35 @@ nh4.pwc.t <- soilprop %>%
   select(-df, -statistic) # Remove details
 View(nh4.pwc.t)
 
+# simple-simple with emmeans_test
+nh4.pwc.emm <- soilprop %>%
+  group_by(Fertilization) %>%
+  emmeans_test(log10NH4 ~ Irrigation, p.adjust.method = "BH", model = nh4.3rmaov2) %>%
+  select(-df, -statistic) # Remove details
+View(nh4.pwc.emm)
+
+# Make the significance letter
+nh4.pwc.emm.df <- as.data.frame(nh4.pwc.emm)
+nh4.pwc.emm.df
+nh4.pwc.emm.df$Comparison <- c("BIODYN.control - BIODYN.drought", 
+                               "CONFYM.control - CONFYM.drought",
+                               "CONMIN.control - CONMIN.drought") # adding column comparison
+nh4.pwc.emm.df.ed <- nh4.pwc.emm.df[,c(9,7)]
+nh4.pwc.emm.BIOD <- nh4.pwc.emm.df.ed[1,]
+nh4.pwc.emm.BIOD
+nh4.pwc.emm.cld.BIOD = cldList(p.adj ~ Comparison, data=nh4.pwc.emm.BIOD,threshold = 0.05)
+nh4.pwc.emm.cld.BIOD
+
+nh4.pwc.emm.CONF <- nh4.pwc.emm.df.ed[2,]
+nh4.pwc.emm.CONF
+nh4.pwc.emm.cld.CONF = cldList(p.adj ~ Comparison, data=nh4.pwc.emm.CONF,threshold = 0.05)
+nh4.pwc.emm.cld.CONF
+
+nh4.pwc.emm.CONM <- nh4.pwc.emm.df.ed[3,]
+nh4.pwc.emm.CONM
+nh4.pwc.emm.cld.CONM = cldList(p.adj ~ Comparison, data=nh4.pwc.emm.CONM,threshold = 0.05)
+nh4.pwc.emm.cld.CONM
+
 
 
 # NH4 Summary
@@ -420,6 +477,34 @@ no3.pwc.t <- soilprop %>%
   select(-df, -statistic) # Remove details
 View(no3.pwc.t)
 
+# simple-simple with emmeans_test
+no3.pwc.emm <- soilprop %>%
+  group_by(Fertilization) %>%
+  emmeans_test(logNO3 ~ Irrigation, p.adjust.method = "BH", model=no3.3rmaov2) %>%
+  select(-df, -statistic) # Remove details
+View(no3.pwc.emm)
+
+# Make the significance letter
+no3.pwc.emm.df <- as.data.frame(no3.pwc.emm)
+no3.pwc.emm.df
+no3.pwc.emm.df$Comparison <- c("BIODYN.control - BIODYN.drought", 
+                               "CONFYM.control - CONFYM.drought",
+                               "CONMIN.control - CONMIN.drought") # adding column comparison
+no3.pwc.emm.df.ed <- no3.pwc.emm.df[,c(9,7)]
+no3.pwc.emm.BIOD <- no3.pwc.emm.df.ed[1,]
+no3.pwc.emm.BIOD
+no3.pwc.emm.cld.BIOD = cldList(p.adj ~ Comparison, data=no3.pwc.emm.BIOD,threshold = 0.05)
+no3.pwc.emm.cld.BIOD
+
+no3.pwc.emm.CONF <- no3.pwc.emm.df.ed[2,]
+no3.pwc.emm.CONF
+no3.pwc.emm.cld.CONF = cldList(p.adj ~ Comparison, data=no3.pwc.emm.CONF,threshold = 0.05)
+no3.pwc.emm.cld.CONF
+
+no3.pwc.emm.CONM <- no3.pwc.emm.df.ed[3,]
+no3.pwc.emm.CONM
+no3.pwc.emm.cld.CONM = cldList(p.adj ~ Comparison, data=no3.pwc.emm.CONM,threshold = 0.05)
+no3.pwc.emm.cld.CONM
 
 # NO3 Summary
 no3.sum.ave <- soilprop %>%
@@ -457,8 +542,8 @@ gwc.plot <- ggplot(soilprop , aes(x=Date, y=GWC)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control','Biodyn-drought', 'Confym-control','Confym-drought',
-                             'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control','BIODYN.drought', 'CONFYM.control','CONFYM.drought',
+                             'CONMIN.control', 'CONMIN.drought'))+
   #ylab(bquote(bold('Gravimetric Water Content'~(g~g^-1~dry~soil))))+
   ylab(bquote('Gravimetric Water Content'~(g~g^-1~dry~soil)))+
   labs(subtitle = "D***, C*, T***, D x T***")+
@@ -518,7 +603,7 @@ gwc.pwc.xy <- gwc.pwc.irr  %>%
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("Fig.3dpi300.tiff",
        gwc.plot2, device = "tiff",bg="white",
-       width = 12, height = 10, 
+       width = 12, height = 9, 
        units= "in", dpi = 600, compression="lzw")
 ggsave("Fig.3.3.dpi300.tiff",
        gwc.plot2, device = "tiff",bg="white",
@@ -537,8 +622,8 @@ NH4.plot <- ggplot(soilprop , aes(x=Date, y=NH4)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control','Biodyn-drought', 'Confym-control','Confym-drought',
-                             'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control','BIODYN.drought', 'CONFYM.control','CONFYM.drought',
+                             'CONMIN.control', 'CONMIN.drought'))+
   ylab('NH<sub>4<sup>+ </sub>content<br>(mg Kg<sup>-1</sup>soil dry matter)')+
   #ylab(bquote(NH4^{"+"}~(mg~Kg^-1~soil~dry~matter)))+
   labs(title="A", subtitle="D**, C***, T*, D x C***, D x T***, C x T*, D x C x T**")+
@@ -603,8 +688,8 @@ NO3.plot <- ggplot(soilprop , aes(x=Date, y=NO3)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control','Biodyn-drought', 'Confym-control','Confym-drought',
-                             'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control','BIODYN.drought', 'CONFYM.control','CONFYM.drought',
+                             'CONMIN.control', 'CONMIN.drought'))+
   ylab('NO<sub>3<sup>- </sub>content<br>(mg Kg<sup>-1</sup>soil dry matter)')+
   #ylab(bquote(NO3^{"-"}~(mg~Kg^-1~soil~dry~matter)))+
   labs(title = "B", subtitle="D***, T***, D x C***, D x T***, C x T*")+
@@ -758,7 +843,7 @@ view(soilprop)
 view(soilprop.n2o)
 soilprop <- rownames_to_column(soilprop, var = "SampleID")
 soilprop.n2o <- rownames_to_column(soilprop.n2o, var = "SampleID")
-just.n2o <- soilprop.n2o[,c(1,30:31)]
+just.n2o <- soilprop.n2o[,c(1,28:29)]
 head(just.n2o)
 # left_join
 soilprop.comp <- left_join(soilprop,just.n2o, by="SampleID")
@@ -830,8 +915,38 @@ n2o.pwc.irr2 <- soilprop.n2o %>%
   group_by(Date, Fertilization) %>%
   emmeans_test(N2Oflux.cbrt ~ Irrigation, 
                p.adjust.method = "BH", 
-               conf.level = 0.95, model = N2O.lmer.cbrt)
+               conf.level = 0.95, c)
 View(n2o.pwc.irr2)
+
+
+# simple-simple with emmeans_test
+n2o.pwc.emm <- soilprop.n2o %>%
+  group_by(Fertilization) %>%
+  emmeans_test(N2Oflux.cbrt ~ Irrigation, p.adjust.method = "BH", model=N2O.lmer.cbrt) %>%
+  select(-df, -statistic) # Remove details
+View(n2o.pwc.emm)
+
+# Make the significance letter
+n2o.pwc.emm.df <- as.data.frame(n2o.pwc.emm)
+n2o.pwc.emm.df
+n2o.pwc.emm.df$Comparison <- c("BIODYN.control - BIODYN.drought", 
+                               "CONFYM.control - CONFYM.drought",
+                               "CONMIN.control - CONMIN.drought") # adding column comparison
+n2o.pwc.emm.df.ed <- n2o.pwc.emm.df[,c(9,7)]
+n2o.pwc.emm.BIOD <- n2o.pwc.emm.df.ed[1,]
+n2o.pwc.emm.BIOD
+n2o.pwc.emm.cld.BIOD = cldList(p.adj ~ Comparison, data=n2o.pwc.emm.BIOD,threshold = 0.05)
+n2o.pwc.emm.cld.BIOD
+
+n2o.pwc.emm.CONF <- n2o.pwc.emm.df.ed[2,]
+n2o.pwc.emm.CONF
+n2o.pwc.emm.cld.CONF = cldList(p.adj ~ Comparison, data=n2o.pwc.emm.CONF,threshold = 0.05)
+n2o.pwc.emm.cld.CONF
+
+n2o.pwc.emm.CONM <- n2o.pwc.emm.df.ed[3,]
+n2o.pwc.emm.CONM
+n2o.pwc.emm.cld.CONM = cldList(p.adj ~ Comparison, data=n2o.pwc.emm.CONM,threshold = 0.05)
+n2o.pwc.emm.cld.CONM
 
 # Summary
 n2o.sum.ave <- soilprop.n2o %>%
@@ -843,13 +958,14 @@ View(n2o.sum.ave)
 # plot N2O
 stat_text.n2o <- data.frame(Date = 0.5, mean.N2Oflux = 2,Fertilization="BIODYN", label="D *\nT ***\nD x T **\nC x T ***\nD x C x T **")
 
+soilprop.comp$x <- factor(soilprop.comp$x, levels = c("cont.D", "rain.D", "cont.K","rain.K","cont.M","rain.M"))
 
 n2o.plot <- ggplot(soilprop.comp , aes(x=Date, y=mean.N2Oflux)) +
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control','Biodyn-drought', 'Confym-control','Confym-drought',
-                             'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control','BIODYN.drought', 'CONFYM.control','CONFYM.drought',
+                             'CONMIN.control', 'CONMIN.drought'))+
   ylab('Average N<sub>2</sub>O flux<br>(nmol m<sup>-2</sup>s<sup>-1)')+
   #ylab('Comammmox B abundance<br>(copies g<sup>-1</sup>dry soil)')+
   labs(title = "C", subtitle="D*, T***, D x T**, C x T***, D x C x T**")+
@@ -912,7 +1028,7 @@ N.pools
 setwd('/Users/arifinabintarti/Documents/France/Figures/')
 ggsave("Fig.4.2.dpi300.tiff",
        N.pools, device = "tiff",bg="white",
-       width = 11.5, height = 12, 
+       width = 13, height = 18.9, 
        units= "in", dpi = 600, compression="lzw")
 
 

@@ -137,6 +137,20 @@ qPCR.BS.ed <- qPCR.BS %>%
 label.fert <- c(`D` ="BIODYN", 
            `K` ="CONFYM", 
            `M` ="CONMIN")
+
+# Test only 4 time points:
+qPCR.BS.4 <- qPCR.BS[1:96,]
+str(qPCR.BS.4)
+qPCR.BS.4$nr <- factor(qPCR.BS.4$nr)
+qPCR.BS.4$plot <- factor(qPCR.BS.4$plot)
+qPCR.BS.4$block <- factor(qPCR.BS.4$block)
+qPCR.BS.4$irrigation <- factor(qPCR.BS.4$irrigation)
+qPCR.BS.4$fertilization <- factor(qPCR.BS.4$fertilization)
+qPCR.BS.4$rep <- factor(qPCR.BS.4$rep)
+qPCR.BS.4$rep2 <- factor(qPCR.BS.4$rep2)
+qPCR.BS.4$sampling.date <- factor(qPCR.BS.4$sampling.date)
+qPCR.BS.4$x <- factor(qPCR.BS.4$x)
+qPCR.BS.4$var3 <- factor(qPCR.BS.4$var3)
 ########################################################################################
 
 #### 1. AOA Abundance per gram DWS ####
@@ -596,25 +610,9 @@ t.16S.BS.aov <- anova_test(
   within = c(irrigation, fertilization, sampling.date))
 get_anova_table(t.16S.BS.aov)
 
-
-# Test only 4 time points:
-qPCR.BS.4 <- qPCR.BS[1:96,]
-str(qPCR.BS.4)
-qPCR.BS.4$nr <- factor(qPCR.BS.4$nr)
-qPCR.BS.4$plot <- factor(qPCR.BS.4$plot)
-qPCR.BS.4$block <- factor(qPCR.BS.4$block)
-qPCR.BS.4$irrigation <- factor(qPCR.BS.4$irrigation)
-qPCR.BS.4$fertilization <- factor(qPCR.BS.4$fertilization)
-qPCR.BS.4$rep <- factor(qPCR.BS.4$rep)
-qPCR.BS.4$rep2 <- factor(qPCR.BS.4$rep2)
-qPCR.BS.4$sampling.date <- factor(qPCR.BS.4$sampling.date)
-qPCR.BS.4$x <- factor(qPCR.BS.4$x)
-qPCR.BS.4$var3 <- factor(qPCR.BS.4$var3)
 # its unbalanced data:
 t.16S.4 <- lme4::lmer(Tot_logDWS ~ irrigation*fertilization*sampling.date+(1|block)+
                        (1|sampling.date:block), contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"),data=qPCR.BS.4)
-anova(t.16S.4,ddf="Kenward-Roger", type = 1) # there are significant interaction effects
-anova(t.16S.4,ddf="Kenward-Roger", type = 3) # similar with below:
 Anova(t.16S.4, test="F", type="III") 
 
 # checkin with aov
@@ -711,7 +709,7 @@ t.aob.16.rat.percent <- lme4::lmer(AOB_16S_ratio_percent ~ irrigation*fertilizat
                    (1|sampling.date:block), data=qPCR.BS.ed, contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
 
 t <- lme4::lmer(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
-                   (1|block), data=qPCR.BS, contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
+                   (1|block), data=qPCR.BS.ed, contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
 
 anova(t.aob.16.rat.percent,ddf="Kenward-Roger", type = 1) # there is no significant interaction effects
 anova(t.aob.16.rat.percent,ddf="Kenward-Roger", type = 2) 
@@ -721,8 +719,6 @@ coef(t.aob.16.rat.percent)
 # anova test for AOB/16S Ratio Percentage: 4 time points (unbalanced data)
 t.aob.16.rat.percent.4 <- lme4::lmer(AOB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+(1|block)+
                        (1|sampling.date:block), data=qPCR.BS.4,contrasts = list(irrigation="contr.sum",fertilization="contr.sum",sampling.date="contr.sum"))
-anova(t.aob.16.rat.percent.4,ddf="Kenward-Roger", type = 1) # there is no significant interaction effects
-anova(t.aob.16.rat.percent.4,ddf="Kenward-Roger", type = 2)
 car::Anova(t.aob.16.rat.percent.4, test="F", type="III") 
 # t.aob.16.rat.percent is better based on AIC value
 # test assumptions:
@@ -896,7 +892,7 @@ setwd('/Users/arifinabintarti/Documents/France/microservices/qPCR_stat/')
 ### anova test for Comammox B /16S Ratio Percentage
 # Linear mixed model
 t.comB.16.rat.percent <- lmerTest::lmer(ComB_16S_ratio_percent ~ irrigation*fertilization*sampling.date+
-                   (1|block:sampling.date), data=qPCR.BS, na.action=na.omit)
+                   (1|block:sampling.date), data=qPCR.BS.ed, na.action=na.omit)
 anova(t.comB.16.rat.percent)
 # test assumptions:
 shapiro.test(resid(t.comB.16.rat.percent)) # very not normal
@@ -986,7 +982,7 @@ setwd('/Users/arifinabintarti/Documents/France/microservices/qPCR_stat/')
 
 ### anova test for AOA/AOB Ratio without transformation
 AOA_AOB_rat <- lmerTest::lmer(AOA_AOB_ratio ~ irrigation*fertilization*sampling.date+
-                   (1|block:sampling.date), data=qPCR.BS, na.action=na.omit)
+                   (1|block:sampling.date), data=qPCR.BS.ed, na.action=na.omit)
 anova(AOA_AOB_rat)
 # test assumptions:
 shapiro.test(resid(AOA_AOB_rat)) # very not normal
@@ -1114,8 +1110,8 @@ AOA.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOA_nbc_per_g_DW_soil)
   ylab('*amoA* gene (copies g<sup>-1</sup>dry soil)')+
   #ylab(bquote(bold('AOA abundance'~(copies~g^-1~dry~soil))))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
   theme(legend.position = "none",
         legend.title = element_text(size=25, face='bold'),
@@ -1186,8 +1182,8 @@ AOB.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOB_nbc_per_g_DW_soil)
   ylab('*amoA* gene (copies g<sup>-1</sup>dry soil)')+
   #ylab(bquote(bold('AOB abundance'~(copies~g^-1~dry~soil))))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
   theme(legend.position = "none",
         legend.title = element_text(size=25, face='bold'),
@@ -1261,8 +1257,8 @@ ComA.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComA_nbc_per_g_DW_soi
   ylab('*amoA* gene (copies g<sup>-1</sup>dry soil)')+
   #ylab(bquote(bold('Comammmox A abundance'~(copies~g^-1~dry~soil))))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
   theme(legend.position = "none",
         legend.title = element_text(size=25, face='bold'),
@@ -1316,8 +1312,8 @@ ComB.dws.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComB_nbc_per_g_DW_soi
   #ylab('*amoA* gene (copies g<sup>-1</sup>dry soil)')+
   #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
   theme(legend.position = "none",
         legend.title = element_text(size=25, face='bold'),
@@ -1556,8 +1552,8 @@ AOB_16S.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOB_16S_ratio_perc
   ylab('AOB/16S (%)')+
   #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
   theme(legend.position = "none",
         #legend.title = element_text(size=15, face='bold'),
@@ -1623,8 +1619,8 @@ comA_16S.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComA_16S_ratio_pe
   ylab('Comammox A/16S (%)')+
   #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
   theme(legend.position = "none",
         #legend.title = element_text(size=15, face='bold'),
@@ -1689,8 +1685,8 @@ comB_16S.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=ComB_16S_ratio_pe
   ylab('Comammox B/16S (%)')+
   #ylab(bquote('Comammmox B abundance'~(copies~g^-1~dry~soil)))+
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
   theme(legend.position = "none",
         #legend.title = element_text(size=15, face='bold'),
@@ -1750,8 +1746,8 @@ AOA_AOB.rat.plot <- ggplot(qPCR.BS.ed, aes(x=sampling.date, y=AOA_AOB_ratio_perc
   geom_boxplot(aes(group = var3, fill = x))+
   theme_bw() +
   scale_fill_manual(values = c("#009E73","#DAF1EB","#FF618C","#FFE8EE","#E69F00","#FBF1DA"),
-                    labels=c('Biodyn-control', 'Biodyn-drought', 'Confym-control', 
-                             'Confym-drought', 'Conmin-control', 'Conmin-drought'))+
+                    labels=c('BIODYN.control', 'BIODYN.drought', 'CONFYM.control', 
+                             'CONFYM.drought', 'CONMIN.control', 'CONMIN.drought'))+
   ylab('AOA/AOB (%)')+
   labs(title = "A. Bulk Soil", subtitle = "C***, T**")+
   facet_wrap(~ fertilization,scales="free_x", labeller = as_labeller(label.fert))+
@@ -1974,32 +1970,6 @@ qPCR.RS$rep <- factor(qPCR.RS$rep)
 qPCR.RS$rep2 <- factor(qPCR.RS$rep2)
 qPCR.RS$sampling.date <- factor(qPCR.RS$sampling.date, levels = c("28/04/2022", "1/6/22", "5/7/22"),
                                 labels = c("Apr-28", "Jun-01", "Jul-05"))
-
-##subset
-aoa.rh.M <- qPCR.RS[which(qPCR.RS$fertilization == "M"),]
-aoa.rh.M
-aoa.rh.D <- qPCR.RS[which(qPCR.RS$fertilization == "D"),]
-aoa.rh.D
-aoa.rh.K <- qPCR.RS[which(qPCR.RS$fertilization == "K"),]
-aoa.rh.K
-aoa.rh.D1 <- qPCR.RS[which(qPCR.RS$fertilization == "D"
-                            & qPCR.RS$sampling.date == "04-28-22" ),]
-aoa.rh.D2 <- qPCR.RS[which(qPCR.RS$fertilization == "D"
-                            & qPCR.RS$sampling.date == "06-01-22" ),]
-aoa.rh.D3 <- qPCR.RS[which(qPCR.RS$fertilization == "D"
-                            & qPCR.RS$sampling.date == "07-05-22" ),]
-aoa.rh.K1 <- qPCR.RS[which(qPCR.RS$fertilization == "K"
-                           & qPCR.RS$sampling.date == "04-28-22" ),]
-aoa.rh.K2 <- qPCR.RS[which(qPCR.RS$fertilization == "K"
-                           & qPCR.RS$sampling.date == "06-01-22" ),]
-aoa.rh.K3 <- qPCR.RS[which(qPCR.RS$fertilization == "K"
-                           & qPCR.RS$sampling.date == "07-05-22" ),]
-aoa.rh.M1 <- qPCR.RS[which(qPCR.RS$fertilization == "M"
-                           & qPCR.RS$sampling.date == "04-28-22" ),]
-aoa.rh.M2 <- qPCR.RS[which(qPCR.RS$fertilization == "M"
-                           & qPCR.RS$sampling.date == "06-01-22" ),]
-aoa.rh.M3 <- qPCR.RS[which(qPCR.RS$fertilization == "M"
-                           & qPCR.RS$sampling.date == "07-05-22" ),]
 
 # perform log transformation
 qPCR.RS$AOA_logDNA <- log10(qPCR.RS$AOA_nbc_per_ngDNA)
